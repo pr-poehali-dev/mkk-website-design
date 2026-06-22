@@ -49,9 +49,14 @@ const Index = () => {
             <a href="#how" className="text-muted-foreground transition-colors hover:text-primary">Как это работает</a>
             <a href="#why" className="text-muted-foreground transition-colors hover:text-primary">Преимущества</a>
           </nav>
-          <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
-            <Link to="/anketa">Оформить займ</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" className="hidden text-primary hover:bg-secondary sm:inline-flex">
+              <Link to="/login"><Icon name="User" size={16} className="mr-1" /> Войти</Link>
+            </Button>
+            <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+              <Link to="/anketa">Оформить займ</Link>
+            </Button>
+          </div>
         </div>
       </header>
 

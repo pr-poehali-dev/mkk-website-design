@@ -1,13 +1,18 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import { addRequest } from '@/lib/loanStore';
 
 const Anketa = () => {
+  const nav = useNavigate();
   const [photo, setPhoto] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [f, setF] = useState({ lastname: '', firstname: '', phone: '', password: '', series: '' });
+
+  const upd = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -16,6 +21,14 @@ const Anketa = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    addRequest({
+      name: `${f.lastname} ${f.firstname}`.trim() || 'Новый клиент',
+      phone: f.phone,
+      password: f.password,
+      amount: 15000,
+      days: 14,
+      passport: f.series || '—',
+    });
     setSubmitted(true);
   };
 
@@ -32,8 +45,9 @@ const Anketa = () => {
             Мы проверяем ваши данные. Решение придёт в течение 5 минут на указанный телефон.
           </p>
           <Button asChild size="lg" className="mt-6 w-full bg-accent text-accent-foreground hover:bg-accent/90">
-            <Link to="/">На главную</Link>
+            <Link to="/login">Войти в личный кабинет <Icon name="ArrowRight" size={18} className="ml-1" /></Link>
           </Button>
+          <button onClick={() => nav('/')} className="mt-3 text-sm text-muted-foreground hover:text-primary">На главную</button>
         </div>
       </div>
     );
@@ -71,21 +85,21 @@ const Anketa = () => {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="lastname">Фамилия</Label>
-                <Input id="lastname" placeholder="Иванов" required />
+                <Input id="lastname" placeholder="Иванов" value={f.lastname} onChange={upd('lastname')} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="firstname">Имя</Label>
-                <Input id="firstname" placeholder="Иван" required />
+                <Input id="firstname" placeholder="Иван" value={f.firstname} onChange={upd('firstname')} required />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="birth">Дата рождения</Label>
-                <Input id="birth" type="date" required />
+                <Label htmlFor="phone">Телефон</Label>
+                <Input id="phone" type="tel" placeholder="+7 (___) ___-__-__" value={f.phone} onChange={upd('phone')} required />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="phone">Телефон</Label>
-                <Input id="phone" type="tel" placeholder="+7 (___) ___-__-__" required />
+                <Label htmlFor="password">Придумайте пароль</Label>
+                <Input id="password" type="password" placeholder="для входа в кабинет" value={f.password} onChange={upd('password')} required />
               </div>
             </div>
           </fieldset>
@@ -98,7 +112,7 @@ const Anketa = () => {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="series">Серия и номер</Label>
-                <Input id="series" placeholder="0000 000000" required />
+                <Input id="series" placeholder="0000 000000" value={f.series} onChange={upd('series')} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="issued">Кем выдан</Label>
