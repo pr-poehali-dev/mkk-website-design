@@ -13,7 +13,8 @@ def handler(event: dict, context) -> dict:
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': headers, 'body': ''}
 
-    token = event.get('headers', {}).get('x-admin-token', '')
+    req_headers = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
+    token = req_headers.get('x-admin-token', '')
     if token != ADMIN_TOKEN:
         return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
 

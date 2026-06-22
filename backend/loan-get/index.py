@@ -14,7 +14,8 @@ def handler(event: dict, context) -> dict:
 
     params = event.get('queryStringParameters') or {}
     ref = params.get('ref')
-    is_admin = event.get('headers', {}).get('x-admin-token') == ADMIN_TOKEN
+    req_headers = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
+    is_admin = req_headers.get('x-admin-token') == ADMIN_TOKEN
 
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
