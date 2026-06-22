@@ -4,35 +4,35 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 40% 99%;
+    --foreground: 218 60% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 218 60% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 218 60% 12%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 218 70% 18%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 212 30% 95%;
+    --secondary-foreground: 218 60% 16%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 212 30% 95%;
+    --muted-foreground: 215 18% 42%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 218 70% 14%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 214 28% 88%;
+    --input: 214 28% 88%;
+    --ring: 218 70% 18%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -97,5 +97,88 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: "Manrope", sans-serif;
   }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: "Oswald", sans-serif;
+  }
+  .hero-grid {
+    background-image:
+      linear-gradient(
+        hsl(var(--primary-foreground) / 0.05) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        hsl(var(--primary-foreground) / 0.05) 1px,
+        transparent 1px
+      );
+    background-size: 40px 40px;
+  }
+}
+
+@keyframes float-coin {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-22px) rotate(8deg);
+  }
+}
+@keyframes float-coin-2 {
+  0%,
+  100% {
+    transform: translateY(0) rotate(10deg);
+  }
+  50% {
+    transform: translateY(18px) rotate(-6deg);
+  }
+}
+@keyframes spin-3d {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-float-coin {
+  animation: float-coin 5s ease-in-out infinite;
+}
+.animate-float-coin-2 {
+  animation: float-coin-2 6s ease-in-out infinite;
+}
+.animate-spin-3d {
+  animation: spin-3d 6s linear infinite;
+  transform-style: preserve-3d;
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2.5s ease-out infinite;
+}
+.animate-fade-up {
+  animation: fade-up 0.7s ease-out both;
 }
