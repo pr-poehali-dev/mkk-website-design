@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Wrong credentials",
+      "method": "POST",
+      "path": "/",
+      "body": {"phone": "+70000000000", "password": "wrong"},
+      "expectedStatus": 401
+    }
+  ]
+}

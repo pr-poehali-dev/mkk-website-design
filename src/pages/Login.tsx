@@ -4,19 +4,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
-import { login } from '@/lib/loanStore';
+import { apiLogin, saveSession } from '@/lib/api';
 
 const Login = () => {
   const nav = useNavigate();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = login(phone, password);
-    if (user) nav('/cabinet');
-    else setError('Неверный телефон или пароль');
+    setLoading(true);
+    setError('');
+    try {
+      const user = await apiLogin(phone, password);
+      saveSession(user);
+      nav('/cabinet');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Ошибка входа');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,15 +59,15 @@ const Login = () => {
                 <Icon name="AlertCircle" size={15} /> {error}
               </p>
             )}
-            <Button type="submit" size="lg" className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
-              Войти <Icon name="LogIn" size={18} className="ml-1" />
+            <Button type="submit" size="lg" disabled={loading}
+              className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-60">
+              {loading ? (
+                <span className="flex items-center gap-2"><Icon name="Loader2" size={18} className="animate-spin" /> Входим...</span>
+              ) : (
+                <span className="flex items-center gap-2">Войти <Icon name="LogIn" size={18} /></span>
+              )}
             </Button>
           </form>
-
-          <div className="mt-5 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">
-            <Icon name="Info" size={14} className="mr-1 inline text-accent" />
-            Демо-доступ: <b>+79001234567</b> / пароль <b>1234</b>
-          </div>
 
           <p className="mt-5 text-center text-sm text-muted-foreground">
             Нет заявки? <Link to="/anketa" className="font-medium text-accent hover:underline">Оформить займ</Link>

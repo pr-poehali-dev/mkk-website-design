@@ -1,0 +1,87 @@
+const URLS = {
+  register: 'https://functions.poehali.dev/7dc0972a-c770-4d7c-86b6-a3fd575e479b',
+  login:    'https://functions.poehali.dev/178d05da-1f3c-44f3-afb7-e5c1ffcb2ec5',
+  get:      'https://functions.poehali.dev/972288ec-3c64-419d-8b5c-4d61bb09a5b1',
+  status:   'https://functions.poehali.dev/fc3311ea-4731-4819-98d5-675332a348fe',
+};
+
+const ADMIN_TOKEN = 'admin_zaimy_plus';
+const SESSION_KEY = 'zaimy_session';
+
+export interface UserSession {
+  id: number;
+  ref_number: string;
+  full_name: string;
+  phone: string;
+  passport: string;
+  amount: number;
+  days: number;
+  status: string;
+  created_at: string;
+}
+
+export function getSession(): UserSession | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+export function saveSession(user: UserSession) {
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
+}
+
+export function clearSession() {
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+export async function apiRegister(data: {
+  full_name: string; phone: string; password: string;
+  amount: number; days: number; passport?: string; passport_by?: string; birth_date?: string;
+}) {
+  const res = await fetch(URLS.register, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка регистрации');
+  return json as { id: number; ref_number: string; status: string; created_at: string };
+}
+
+export async function apiLogin(phone: string, password: string): Promise<UserSession> {
+  const res = await fetch(URLS.login, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, password }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Неверный телефон или пароль');
+  return json as UserSession;
+}
+
+export async function apiGetRequest(ref: string): Promise<UserSession> {
+  const res = await fetch(`${URLS.get}?ref=${encodeURIComponent(ref)}`);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не найдено');
+  return json as UserSession;
+}
+
+export async function apiGetAll(): Promise<UserSession[]> {
+  const res = await fetch(URLS.get, {
+    headers: { 'x-admin-token': ADMIN_TOKEN },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as UserSession[];
+}
+
+export async function apiSetStatus(ref_number: string, status: string): Promise<void> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ ref_number, status }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+}

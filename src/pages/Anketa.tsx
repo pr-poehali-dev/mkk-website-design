@@ -4,37 +4,51 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
-import { addRequest } from '@/lib/loanStore';
+import { apiRegister } from '@/lib/api';
 
 const Anketa = () => {
   const nav = useNavigate();
   const [photo, setPhoto] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [f, setF] = useState({ lastname: '', firstname: '', phone: '', password: '', series: '' });
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const [f, setF] = useState({ lastname: '', firstname: '', phone: '', password: '', series: '', issued: '' });
 
-  const upd = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
+  const upd = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setF({ ...f, [k]: e.target.value });
+    setApiError('');
+  };
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setPhoto(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addRequest({
-      name: `${f.lastname} ${f.firstname}`.trim() || 'Новый клиент',
-      phone: f.phone,
-      password: f.password,
-      amount: 15000,
-      days: 14,
-      passport: f.series || '—',
-    });
-    setSubmitted(true);
+    setLoading(true);
+    setApiError('');
+    try {
+      await apiRegister({
+        full_name: `${f.lastname} ${f.firstname}`.trim(),
+        phone: f.phone,
+        password: f.password,
+        amount: 15000,
+        days: 14,
+        passport: f.series || undefined,
+        passport_by: f.issued || undefined,
+      });
+      setSubmitted(true);
+    } catch (err: unknown) {
+      setApiError(err instanceof Error ? err.message : 'Ошибка отправки');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-primary px-4 text-primary-foreground">
+      <div className="relative flex min-h-screen items-center justify-center bg-primary px-4 text-primary-foreground">
         <div className="hero-grid absolute inset-0 opacity-40" />
         <div className="animate-fade-up relative max-w-md rounded-2xl bg-background p-10 text-center text-foreground shadow-2xl">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-accent/15 text-accent">
@@ -47,7 +61,9 @@ const Anketa = () => {
           <Button asChild size="lg" className="mt-6 w-full bg-accent text-accent-foreground hover:bg-accent/90">
             <Link to="/login">Войти в личный кабинет <Icon name="ArrowRight" size={18} className="ml-1" /></Link>
           </Button>
-          <button onClick={() => nav('/')} className="mt-3 text-sm text-muted-foreground hover:text-primary">На главную</button>
+          <button onClick={() => nav('/')} className="mt-3 block w-full text-sm text-muted-foreground hover:text-primary">
+            На главную
+          </button>
         </div>
       </div>
     );
@@ -116,7 +132,7 @@ const Anketa = () => {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="issued">Кем выдан</Label>
-                <Input id="issued" placeholder="ОВД района..." required />
+                <Input id="issued" placeholder="ОВД района..." value={f.issued} onChange={upd('issued')} required />
               </div>
             </div>
 
@@ -150,14 +166,24 @@ const Anketa = () => {
             </div>
           </fieldset>
 
+          {apiError && (
+            <p className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+              <Icon name="AlertCircle" size={16} /> {apiError}
+            </p>
+          )}
+
           <div className="rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
             <Icon name="ShieldCheck" size={16} className="mr-1.5 inline text-accent" />
             Ваши данные передаются по защищённому соединению и не передаются третьим лицам.
           </div>
 
-          <Button type="submit" size="lg" className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
-            Отправить анкету
-            <Icon name="Send" size={18} className="ml-1" />
+          <Button type="submit" size="lg" disabled={loading}
+            className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-60">
+            {loading ? (
+              <span className="flex items-center gap-2"><Icon name="Loader2" size={18} className="animate-spin" /> Отправляем...</span>
+            ) : (
+              <span className="flex items-center gap-2">Отправить анкету <Icon name="Send" size={18} /></span>
+            )}
           </Button>
         </form>
       </main>

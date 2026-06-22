@@ -1,0 +1,6 @@
+{
+  "loan-get": "https://functions.poehali.dev/972288ec-3c64-419d-8b5c-4d61bb09a5b1",
+  "loan-status": "https://functions.poehali.dev/fc3311ea-4731-4819-98d5-675332a348fe",
+  "loan-register": "https://functions.poehali.dev/7dc0972a-c770-4d7c-86b6-a3fd575e479b",
+  "loan-login": "https://functions.poehali.dev/178d05da-1f3c-44f3-afb7-e5c1ffcb2ec5"
+}
