@@ -6,8 +6,23 @@ import psycopg2
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
 ADMIN_TOKEN = 'admin_zaimy_plus'
 
+COLS = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'passport_by',
+        'birth_date', 'amount', 'days', 'status', 'operator_comment', 'created_at']
+
+def row_to_dict(row):
+    d = dict(zip(COLS, row))
+    if d.get('created_at'):
+        d['created_at'] = d['created_at'].isoformat()
+    if d.get('birth_date'):
+        d['birth_date'] = d['birth_date'].isoformat()
+    return d
+
 def handler(event: dict, context) -> dict:
-    headers = {'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token'}
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
+    }
 
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': headers, 'body': ''}
@@ -22,25 +37,21 @@ def handler(event: dict, context) -> dict:
 
     if is_admin:
         cur.execute(
-            f"""SELECT id, ref_number, full_name, phone, passport, amount, days, status, created_at
+            f"""SELECT id, ref_number, full_name, phone, passport, passport_by,
+                       birth_date, amount, days, status, operator_comment, created_at
                 FROM {SCHEMA}.loan_requests ORDER BY created_at DESC"""
         )
-        cols = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'amount', 'days', 'status', 'created_at']
         rows = cur.fetchall()
         conn.close()
-        result = []
-        for row in rows:
-            d = dict(zip(cols, row))
-            d['created_at'] = d['created_at'].isoformat()
-            result.append(d)
-        return {'statusCode': 200, 'headers': headers, 'body': json.dumps(result)}
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps([row_to_dict(r) for r in rows])}
 
     if not ref:
         conn.close()
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref обязателен'})}
 
     cur.execute(
-        f"""SELECT id, ref_number, full_name, phone, passport, amount, days, status, created_at
+        f"""SELECT id, ref_number, full_name, phone, passport, passport_by,
+                   birth_date, amount, days, status, operator_comment, created_at
             FROM {SCHEMA}.loan_requests WHERE ref_number = %s""",
         (ref,)
     )
@@ -50,7 +61,4 @@ def handler(event: dict, context) -> dict:
     if not row:
         return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
 
-    cols = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'amount', 'days', 'status', 'created_at']
-    d = dict(zip(cols, row))
-    d['created_at'] = d['created_at'].isoformat()
-    return {'statusCode': 200, 'headers': headers, 'body': json.dumps(d)}
+    return {'statusCode': 200, 'headers': headers, 'body': json.dumps(row_to_dict(row))}

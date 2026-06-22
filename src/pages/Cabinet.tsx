@@ -119,6 +119,19 @@ const Cabinet = () => {
           </div>
         </div>
 
+        {/* Комментарий оператора */}
+        {user.operator_comment && (
+          <div className="mt-5 flex gap-3 rounded-2xl border border-accent/30 bg-accent/5 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
+              <Icon name="MessageSquare" size={20} />
+            </div>
+            <div>
+              <p className="mb-1 text-sm font-semibold text-primary">Сообщение от оператора</p>
+              <p className="text-sm text-muted-foreground">{user.operator_comment}</p>
+            </div>
+          </div>
+        )}
+
         {status === 'issued' && (
           <Button size="lg" className="mt-6 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
             Погасить займ <Icon name="ArrowRight" size={18} className="ml-1" />

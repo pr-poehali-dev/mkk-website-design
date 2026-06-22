@@ -14,9 +14,12 @@ export interface UserSession {
   full_name: string;
   phone: string;
   passport: string;
+  passport_by?: string;
+  birth_date?: string;
   amount: number;
   days: number;
   status: string;
+  operator_comment?: string | null;
   created_at: string;
 }
 
@@ -76,11 +79,17 @@ export async function apiGetAll(): Promise<UserSession[]> {
   return json as UserSession[];
 }
 
-export async function apiSetStatus(ref_number: string, status: string): Promise<void> {
+export async function apiUpdateRequest(data: {
+  ref_number: string;
+  status?: string;
+  amount?: number;
+  days?: number;
+  operator_comment?: string;
+}): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
-    body: JSON.stringify({ ref_number, status }),
+    body: JSON.stringify(data),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка');

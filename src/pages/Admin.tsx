@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiGetAll, apiSetStatus, type UserSession } from '@/lib/api';
+import { apiGetAll, apiUpdateRequest, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 
 const ADMIN_PASS = 'admin';
@@ -16,7 +18,9 @@ const Admin = () => {
   const [err, setErr] = useState('');
   const [requests, setRequests] = useState<UserSession[]>([]);
   const [loadingList, setLoadingList] = useState(false);
-  const [changingId, setChangingId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<UserSession | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState({ status: '', amount: '', days: '', operator_comment: '' });
 
   const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -25,26 +29,45 @@ const Admin = () => {
     try {
       const data = await apiGetAll();
       setRequests(data);
-    } catch {
+    } catch (_) {
       // ignore
     } finally {
       setLoadingList(false);
     }
   }, []);
 
-  useEffect(() => {
-    if (authed) fetchAll();
-  }, [authed, fetchAll]);
+  useEffect(() => { if (authed) fetchAll(); }, [authed, fetchAll]);
 
-  const handleStatusChange = async (ref_number: string, status: string) => {
-    setChangingId(ref_number);
+  const openModal = (r: UserSession) => {
+    setSelected(r);
+    setEditForm({
+      status: r.status,
+      amount: String(r.amount),
+      days: String(r.days),
+      operator_comment: r.operator_comment || '',
+    });
+  };
+
+  const handleSave = async () => {
+    if (!selected) return;
+    setSaving(true);
     try {
-      await apiSetStatus(ref_number, status);
-      setRequests((prev) => prev.map((r) => r.ref_number === ref_number ? { ...r, status } : r));
-    } catch {
+      await apiUpdateRequest({
+        ref_number: selected.ref_number,
+        status: editForm.status,
+        amount: parseInt(editForm.amount),
+        days: parseInt(editForm.days),
+        operator_comment: editForm.operator_comment,
+      });
+      setRequests((prev) => prev.map((r) => r.ref_number === selected.ref_number
+        ? { ...r, status: editForm.status, amount: parseInt(editForm.amount), days: parseInt(editForm.days), operator_comment: editForm.operator_comment }
+        : r
+      ));
+      setSelected(null);
+    } catch (_) {
       // ignore
     } finally {
-      setChangingId(null);
+      setSaving(false);
     }
   };
 
@@ -64,8 +87,7 @@ const Admin = () => {
           }} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="ap">Пароль администратора</Label>
-              <Input id="ap" type="password" value={pass}
-                onChange={(e) => { setPass(e.target.value); setErr(''); }} placeholder="••••" />
+              <Input id="ap" type="password" value={pass} onChange={(e) => { setPass(e.target.value); setErr(''); }} placeholder="••••" />
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
             <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Войти</Button>
@@ -87,7 +109,7 @@ const Admin = () => {
             <Icon name="LayoutDashboard" size={20} className="text-accent" />
             <span className="font-display text-lg font-bold tracking-wide">АДМИН · ЗАЙМЫ ПЛЮС</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button onClick={fetchAll} className="flex items-center gap-1.5 text-sm text-primary-foreground/70 hover:text-primary-foreground">
               <Icon name="RefreshCw" size={16} className={loadingList ? 'animate-spin' : ''} /> Обновить
             </button>
@@ -130,7 +152,7 @@ const Admin = () => {
             const meta = STATUS_META[status];
             return (
               <div key={r.ref_number}
-                className="animate-fade-up flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+                className="animate-fade-up flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${meta.bg} ${meta.color}`}>
                     <Icon name={meta.icon} size={22} />
@@ -142,27 +164,19 @@ const Admin = () => {
                     <p className="text-sm text-muted-foreground">
                       {r.phone} · {fmt(r.amount)} ₽ / {r.days} дн. · {r.created_at?.slice(0, 10)}
                     </p>
+                    {r.operator_comment && (
+                      <p className="mt-1 flex items-center gap-1 text-xs text-accent">
+                        <Icon name="MessageSquare" size={12} /> {r.operator_comment}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`hidden text-sm font-medium sm:block ${meta.color}`}>{meta.label}</span>
-                  <Select
-                    value={status}
-                    disabled={changingId === r.ref_number}
-                    onValueChange={(v) => handleStatusChange(r.ref_number, v)}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      {changingId === r.ref_number
-                        ? <span className="flex items-center gap-1.5"><Icon name="Loader2" size={14} className="animate-spin" /> Сохраняем...</span>
-                        : <SelectValue />
-                      }
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(Object.keys(STATUS_META) as StatusKey[]).map((k) => (
-                        <SelectItem key={k} value={k}>{STATUS_META[k].label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Button size="sm" variant="outline" onClick={() => openModal(r)}
+                    className="flex items-center gap-1.5">
+                    <Icon name="Pencil" size={14} /> Изменить
+                  </Button>
                 </div>
               </div>
             );
@@ -173,6 +187,85 @@ const Admin = () => {
           <Icon name="ArrowLeft" size={16} /> На сайт
         </Link>
       </main>
+
+      {/* Модалка редактирования */}
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-primary">
+              Заявка {selected?.ref_number}
+            </DialogTitle>
+          </DialogHeader>
+
+          {selected && (
+            <div className="space-y-5">
+              {/* Данные клиента — только просмотр */}
+              <div className="rounded-xl bg-secondary p-4 text-sm space-y-1.5">
+                <p className="font-semibold text-primary">{selected.full_name}</p>
+                <p className="text-muted-foreground">{selected.phone}</p>
+                {selected.passport && (
+                  <p className="text-muted-foreground">
+                    Паспорт: {selected.passport}{selected.passport_by ? ` · ${selected.passport_by}` : ''}
+                  </p>
+                )}
+                {selected.birth_date && <p className="text-muted-foreground">Д/р: {selected.birth_date}</p>}
+                <p className="text-muted-foreground">Дата заявки: {selected.created_at?.slice(0, 10)}</p>
+              </div>
+
+              {/* Статус */}
+              <div className="space-y-1.5">
+                <Label>Статус заявки</Label>
+                <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(STATUS_META) as StatusKey[]).map((k) => (
+                      <SelectItem key={k} value={k}>{STATUS_META[k].label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Сумма и срок */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-amount">Сумма займа (₽)</Label>
+                  <Input id="edit-amount" type="number" min={1000} max={500000}
+                    value={editForm.amount}
+                    onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-days">Срок (дней)</Label>
+                  <Input id="edit-days" type="number" min={1} max={365}
+                    value={editForm.days}
+                    onChange={(e) => setEditForm({ ...editForm, days: e.target.value })} />
+                </div>
+              </div>
+
+              {/* Комментарий оператора */}
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-comment">Комментарий оператора</Label>
+                <Textarea id="edit-comment" rows={3}
+                  placeholder="Будет виден клиенту в личном кабинете..."
+                  value={editForm.operator_comment}
+                  onChange={(e) => setEditForm({ ...editForm, operator_comment: e.target.value })} />
+              </div>
+
+              <div className="flex gap-3">
+                <Button onClick={handleSave} disabled={saving}
+                  className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90">
+                  {saving
+                    ? <span className="flex items-center gap-2"><Icon name="Loader2" size={16} className="animate-spin" /> Сохранение...</span>
+                    : <span className="flex items-center gap-2"><Icon name="Save" size={16} /> Сохранить</span>
+                  }
+                </Button>
+                <Button variant="outline" onClick={() => setSelected(null)} className="flex-1">
+                  Отмена
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
