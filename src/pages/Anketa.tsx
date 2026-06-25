@@ -4,49 +4,94 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
-import { apiRegister } from '@/lib/api';
+import { apiRegister, apiUploadFile } from '@/lib/api';
+
+const STEPS = [
+  { n: 1, title: 'Личные данные', icon: 'User' },
+  { n: 2, title: 'Паспорт', icon: 'BookUser' },
+  { n: 3, title: 'Параметры займа', icon: 'Wallet' },
+  { n: 4, title: 'Адрес и работа', icon: 'Briefcase' },
+];
 
 const Anketa = () => {
   const nav = useNavigate();
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
-  const [f, setF] = useState({ lastname: '', firstname: '', phone: '', password: '', series: '', issued: '' });
 
-  const upd = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setF({ ...f, [k]: e.target.value });
-    setApiError('');
-  };
+  // Step 1
+  const [f1, setF1] = useState({ lastname: '', firstname: '', middlename: '', phone: '', password: '', birth_date: '' });
+  // Step 2
+  const [f2, setF2] = useState({ series: '', issued: '', issued_date: '' });
+  const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
+  // Step 3
+  const [amount, setAmount] = useState(15000);
+  const [days, setDays] = useState(14);
+  // Step 4
+  const [f4, setF4] = useState({ address_residence: '', address_registration: '', work_place: '', work_phone: '' });
+  const [incomeFile, setIncomeFile] = useState<File | null>(null);
+  const [incomePreview, setIncomePreview] = useState<string | null>(null);
+  const [incomeUploading, setIncomeUploading] = useState(false);
 
-  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const upd1 = (k: keyof typeof f1) => (e: React.ChangeEvent<HTMLInputElement>) => setF1({ ...f1, [k]: e.target.value });
+  const upd2 = (k: keyof typeof f2) => (e: React.ChangeEvent<HTMLInputElement>) => setF2({ ...f2, [k]: e.target.value });
+  const upd4 = (k: keyof typeof f4) => (e: React.ChangeEvent<HTMLInputElement>) => setF4({ ...f4, [k]: e.target.value });
+
+  const fmt = (n: number) => n.toLocaleString('ru-RU');
+
+  const handlePassportPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setPhoto(URL.createObjectURL(file));
+    if (file) setPassportPhoto(URL.createObjectURL(file));
   };
+
+  const handleIncomeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIncomeFile(file);
+      setIncomePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const next = () => { setApiError(''); setStep((s) => s + 1); };
+  const prev = () => { setApiError(''); setStep((s) => s - 1); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setApiError('');
     try {
+      let income_doc_url: string | undefined;
+      if (incomeFile) {
+        setIncomeUploading(true);
+        income_doc_url = await apiUploadFile(incomeFile);
+        setIncomeUploading(false);
+      }
+
       await apiRegister({
-        full_name: `${f.lastname} ${f.firstname}`.trim(),
-        phone: f.phone,
-        password: f.password,
-        amount: 15000,
-        days: 14,
-        passport: f.series || undefined,
-        passport_by: f.issued || undefined,
+        full_name: `${f1.lastname} ${f1.firstname}${f1.middlename ? ' ' + f1.middlename : ''}`.trim(),
+        phone: f1.phone,
+        password: f1.password,
+        birth_date: f1.birth_date || undefined,
+        amount,
+        days,
+        passport: f2.series || undefined,
+        passport_by: f2.issued || undefined,
+        address_residence: f4.address_residence || undefined,
+        address_registration: f4.address_registration || undefined,
+        work_place: f4.work_place || undefined,
+        work_phone: f4.work_phone || undefined,
+        income_doc_url,
       });
-      setSubmitted(true);
+      setStep(5);
     } catch (err: unknown) {
       setApiError(err instanceof Error ? err.message : 'Ошибка отправки');
     } finally {
       setLoading(false);
+      setIncomeUploading(false);
     }
   };
 
-  if (submitted) {
+  if (step === 5) {
     return (
       <div className="relative flex min-h-screen items-center justify-center bg-primary px-4 text-primary-foreground">
         <div className="hero-grid absolute inset-0 opacity-40" />
@@ -79,113 +124,268 @@ const Anketa = () => {
             </div>
             <span className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</span>
           </Link>
-          <Link to="/" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
-            <Icon name="ArrowLeft" size={16} /> Назад
-          </Link>
+          {step > 1 ? (
+            <button onClick={prev} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
+              <Icon name="ArrowLeft" size={16} /> Назад
+            </button>
+          ) : (
+            <Link to="/" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
+              <Icon name="ArrowLeft" size={16} /> Назад
+            </Link>
+          )}
         </div>
       </header>
 
       <main className="container max-w-2xl px-4 py-10 md:py-14">
-        <div className="mb-8 text-center">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-accent">Шаг 2 из 3</p>
-          <h1 className="font-display text-3xl font-bold text-primary sm:text-4xl">Анкета заёмщика</h1>
-          <p className="mt-2 text-muted-foreground">Заполните данные — это займёт 2 минуты</p>
+        {/* Прогресс */}
+        <div className="mb-8">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            {STEPS.map((s) => (
+              <div key={s.n} className="flex flex-1 flex-col items-center gap-1.5">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-all ${
+                  step > s.n ? 'bg-accent text-accent-foreground' :
+                  step === s.n ? 'bg-primary text-primary-foreground' :
+                  'bg-secondary text-muted-foreground'
+                }`}>
+                  {step > s.n
+                    ? <Icon name="Check" size={18} />
+                    : <Icon name={s.icon} size={18} />
+                  }
+                </div>
+                <span className={`hidden text-center text-xs sm:block ${step === s.n ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
+                  {s.title}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+            <div className="h-full rounded-full bg-accent transition-all duration-500"
+              style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }} />
+          </div>
+          <p className="mt-3 text-center text-sm text-muted-foreground">Шаг {step} из {STEPS.length} — {STEPS[step - 1].title}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="animate-fade-up space-y-8 rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
-          {/* Личные данные */}
-          <fieldset className="space-y-4">
-            <legend className="mb-1 flex items-center gap-2 font-display text-lg font-semibold text-primary">
-              <Icon name="User" size={18} className="text-accent" /> Личные данные
-            </legend>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="lastname">Фамилия</Label>
-                <Input id="lastname" placeholder="Иванов" value={f.lastname} onChange={upd('lastname')} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="firstname">Имя</Label>
-                <Input id="firstname" placeholder="Иван" value={f.firstname} onChange={upd('firstname')} required />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="phone">Телефон</Label>
-                <Input id="phone" type="tel" placeholder="+7 (___) ___-__-__" value={f.phone} onChange={upd('phone')} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Придумайте пароль</Label>
-                <Input id="password" type="password" placeholder="для входа в кабинет" value={f.password} onChange={upd('password')} required />
-              </div>
-            </div>
-          </fieldset>
-
-          {/* Паспорт */}
-          <fieldset className="space-y-4">
-            <legend className="mb-1 flex items-center gap-2 font-display text-lg font-semibold text-primary">
-              <Icon name="BookUser" size={18} className="text-accent" /> Паспортные данные
-            </legend>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="series">Серия и номер</Label>
-                <Input id="series" placeholder="0000 000000" value={f.series} onChange={upd('series')} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="issued">Кем выдан</Label>
-                <Input id="issued" placeholder="ОВД района..." value={f.issued} onChange={upd('issued')} required />
-              </div>
-            </div>
-
-            {/* Загрузка фото */}
-            <div className="space-y-1.5">
-              <Label>Фото паспорта (разворот с фото)</Label>
-              <label
-                htmlFor="passport-photo"
-                className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-secondary/50 p-8 text-center transition-colors hover:border-accent hover:bg-accent/5"
-              >
-                {photo ? (
-                  <>
-                    <img src={photo} alt="Паспорт" className="max-h-44 rounded-lg object-contain shadow-md" />
-                    <span className="flex items-center gap-1.5 text-sm font-medium text-accent">
-                      <Icon name="RefreshCw" size={15} /> Заменить фото
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:scale-110">
-                      <Icon name="Camera" size={26} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-primary">Нажмите, чтобы загрузить фото</p>
-                      <p className="text-sm text-muted-foreground">JPG или PNG, до 10 МБ</p>
-                    </div>
-                  </>
-                )}
-              </label>
-              <input id="passport-photo" type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
-            </div>
-          </fieldset>
+        <div className="animate-fade-up rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
+          <h1 className="font-display mb-6 text-2xl font-bold text-primary">{STEPS[step - 1].title}</h1>
 
           {apiError && (
-            <p className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            <p className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
               <Icon name="AlertCircle" size={16} /> {apiError}
             </p>
           )}
 
-          <div className="rounded-xl bg-secondary p-4 text-sm text-muted-foreground py-4">
-            <Icon name="ShieldCheck" size={16} className="mr-1.5 inline text-accent" />
-            Ваши данные передаются по защищённому соединению и не передаются третьим лицам.
-          </div>
+          {/* ШАГ 1: Личные данные */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="lastname">Фамилия *</Label>
+                  <Input id="lastname" placeholder="Иванов" value={f1.lastname} onChange={upd1('lastname')} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="firstname">Имя *</Label>
+                  <Input id="firstname" placeholder="Иван" value={f1.firstname} onChange={upd1('firstname')} required />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="middlename">Отчество</Label>
+                <Input id="middlename" placeholder="Иванович" value={f1.middlename} onChange={upd1('middlename')} />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="birth_date">Дата рождения *</Label>
+                  <Input id="birth_date" type="date" value={f1.birth_date} onChange={upd1('birth_date')} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone">Телефон *</Label>
+                  <Input id="phone" type="tel" placeholder="+7 (___) ___-__-__" value={f1.phone} onChange={upd1('phone')} required />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="password">Придумайте пароль *</Label>
+                <Input id="password" type="password" placeholder="для входа в личный кабинет" value={f1.password} onChange={upd1('password')} required />
+              </div>
+              <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
+                onClick={() => { if (f1.lastname && f1.firstname && f1.birth_date && f1.phone && f1.password) next(); else setApiError('Заполните все обязательные поля'); }}>
+                Далее <Icon name="ArrowRight" size={18} className="ml-1" />
+              </Button>
+            </div>
+          )}
 
-          <Button type="submit" size="lg" disabled={loading}
-            className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-60">
-            {loading ? (
-              <span className="flex items-center gap-2"><Icon name="Loader2" size={18} className="animate-spin" /> Отправляем...</span>
-            ) : (
-              <span className="flex items-center gap-2">Отправить анкету <Icon name="Send" size={18} /></span>
-            )}
-          </Button>
-        </form>
+          {/* ШАГ 2: Паспорт */}
+          {step === 2 && (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="series">Серия и номер *</Label>
+                  <Input id="series" placeholder="0000 000000" value={f2.series} onChange={upd2('series')} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="issued_date">Дата выдачи</Label>
+                  <Input id="issued_date" type="date" value={f2.issued_date} onChange={upd2('issued_date')} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="issued">Кем выдан *</Label>
+                <Input id="issued" placeholder="ОВД района..." value={f2.issued} onChange={upd2('issued')} required />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Фото паспорта (разворот с фото)</Label>
+                <label htmlFor="passport-photo"
+                  className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-secondary/50 p-8 text-center transition-colors hover:border-accent hover:bg-accent/5">
+                  {passportPhoto ? (
+                    <>
+                      <img src={passportPhoto} alt="Паспорт" className="max-h-44 rounded-lg object-contain shadow-md" />
+                      <span className="flex items-center gap-1.5 text-sm font-medium text-accent">
+                        <Icon name="RefreshCw" size={15} /> Заменить фото
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:scale-110">
+                        <Icon name="Camera" size={26} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-primary">Нажмите, чтобы загрузить фото</p>
+                        <p className="text-sm text-muted-foreground">JPG или PNG, до 10 МБ</p>
+                      </div>
+                    </>
+                  )}
+                </label>
+                <input id="passport-photo" type="file" accept="image/*" className="hidden" onChange={handlePassportPhoto} />
+              </div>
+
+              <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
+                onClick={() => { if (f2.series && f2.issued) next(); else setApiError('Заполните серию/номер и кем выдан'); }}>
+                Далее <Icon name="ArrowRight" size={18} className="ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* ШАГ 3: Параметры займа */}
+          {step === 3 && (
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Сумма займа</Label>
+                  <span className="font-display text-xl font-bold text-accent">{fmt(amount)} ₽</span>
+                </div>
+                <input type="range" min={3000} max={100000} step={1000} value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  className="w-full accent-accent" />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>3 000 ₽</span><span>100 000 ₽</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Срок займа</Label>
+                  <span className="font-display text-xl font-bold text-accent">{days} дней</span>
+                </div>
+                <input type="range" min={7} max={90} step={1} value={days}
+                  onChange={(e) => setDays(Number(e.target.value))}
+                  className="w-full accent-accent" />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>7 дней</span><span>90 дней</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-secondary p-4 text-sm space-y-1.5">
+                <div className="flex justify-between"><span className="text-muted-foreground">Сумма займа</span><span className="font-semibold">{fmt(amount)} ₽</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Переплата (0.8%/день)</span><span className="font-semibold">{fmt(Math.round(amount * 0.008 * days))} ₽</span></div>
+                <div className="flex justify-between border-t border-border pt-1.5"><span className="font-semibold text-primary">К возврату</span><span className="font-bold text-primary">{fmt(amount + Math.round(amount * 0.008 * days))} ₽</span></div>
+              </div>
+
+              <Button size="lg" className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90" onClick={next}>
+                Далее <Icon name="ArrowRight" size={18} className="ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* ШАГ 4: Адрес и работа */}
+          {step === 4 && (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <fieldset className="space-y-4">
+                <legend className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  <Icon name="MapPin" size={15} className="text-accent" /> Адрес
+                </legend>
+                <div className="space-y-1.5">
+                  <Label htmlFor="address_residence">Место проживания *</Label>
+                  <Input id="address_residence" placeholder="г. Москва, ул. Ленина, д. 1, кв. 1"
+                    value={f4.address_residence} onChange={upd4('address_residence')} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="address_registration">Адрес регистрации (прописки)</Label>
+                  <Input id="address_registration" placeholder="Совпадает с местом проживания или укажите другой"
+                    value={f4.address_registration} onChange={upd4('address_registration')} />
+                </div>
+              </fieldset>
+
+              <fieldset className="space-y-4">
+                <legend className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  <Icon name="Briefcase" size={15} className="text-accent" /> Место работы
+                </legend>
+                <div className="space-y-1.5">
+                  <Label htmlFor="work_place">Организация и должность *</Label>
+                  <Input id="work_place" placeholder="ООО «Компания», менеджер"
+                    value={f4.work_place} onChange={upd4('work_place')} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="work_phone">Телефон работы</Label>
+                  <Input id="work_phone" type="tel" placeholder="+7 (___) ___-__-__"
+                    value={f4.work_phone} onChange={upd4('work_phone')} />
+                </div>
+              </fieldset>
+
+              <fieldset className="space-y-3">
+                <legend className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  <Icon name="FileText" size={15} className="text-accent" /> Справка о доходах
+                </legend>
+                <label htmlFor="income-file"
+                  className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-secondary/50 p-6 text-center transition-colors hover:border-accent hover:bg-accent/5">
+                  {incomePreview ? (
+                    <>
+                      <img src={incomePreview} alt="Справка" className="max-h-36 rounded-lg object-contain shadow-md" />
+                      <span className="flex items-center gap-1.5 text-sm font-medium text-accent">
+                        <Icon name="RefreshCw" size={15} /> Заменить файл
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:scale-110">
+                        <Icon name="Upload" size={22} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-primary">Загрузить фото справки</p>
+                        <p className="text-sm text-muted-foreground">JPG, PNG или PDF · до 10 МБ · необязательно</p>
+                      </div>
+                    </>
+                  )}
+                </label>
+                <input id="income-file" type="file" accept="image/*,application/pdf" className="hidden" onChange={handleIncomeFile} />
+              </fieldset>
+
+              <div className="rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
+                <Icon name="ShieldCheck" size={16} className="mr-1.5 inline text-accent" />
+                Ваши данные передаются по защищённому соединению и не передаются третьим лицам.
+              </div>
+
+              <Button type="submit" size="lg" disabled={loading}
+                className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-60">
+                {loading || incomeUploading ? (
+                  <span className="flex items-center gap-2">
+                    <Icon name="Loader2" size={18} className="animate-spin" />
+                    {incomeUploading ? 'Загружаем справку...' : 'Отправляем заявку...'}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">Отправить заявку <Icon name="Send" size={18} /></span>
+                )}
+              </Button>
+            </form>
+          )}
+        </div>
       </main>
     </div>
   );
