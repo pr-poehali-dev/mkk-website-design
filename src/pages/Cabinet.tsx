@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { getSession, clearSession, apiGetRequest, saveSession, apiUpdateRequest, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
@@ -11,13 +12,14 @@ const Cabinet = () => {
   const [loading, setLoading] = useState(true);
   const [contractSigned, setContractSigned] = useState(false);
   const [signing, setSigning] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const session = getSession();
     if (!session) { nav('/login'); return; }
     setUser(session);
     setLoading(false);
-    // Обновляем статус с сервера
     apiGetRequest(session.ref_number).then((fresh) => {
       saveSession(fresh);
       setUser(fresh);
@@ -44,6 +46,7 @@ const Cabinet = () => {
     { key: 'issued', label: 'Деньги выданы', icon: 'BadgeCheck' },
   ];
   const activeStep = meta.step;
+  const initials = user.full_name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
   return (
     <div className="min-h-screen bg-secondary/40">
@@ -55,9 +58,19 @@ const Cabinet = () => {
             </div>
             <span className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</span>
           </Link>
-          <button onClick={handleLogout} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
-            <Icon name="LogOut" size={16} /> Выйти
-          </button>
+
+          {/* Меню + аватар */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-sm font-medium text-primary hover:bg-secondary transition-colors">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                {initials}
+              </div>
+              <span className="hidden sm:block">{user.full_name.split(' ')[0]}</span>
+              <Icon name="ChevronDown" size={15} className="text-muted-foreground" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -98,8 +111,8 @@ const Cabinet = () => {
           )}
         </div>
 
-        {/* Данные клиента */}
-        <div className="mt-6 grid gap-5 sm:grid-cols-2">
+        {/* Займ */}
+        <div className="mt-6">
           {status === 'approved' ? (
             <div className="rounded-2xl border-2 border-accent/50 bg-accent/5 p-6">
               <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-primary">
@@ -169,16 +182,6 @@ const Cabinet = () => {
               </dl>
             </div>
           )}
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-primary">
-              <Icon name="User" size={18} className="text-accent" /> Мои данные
-            </h2>
-            <dl className="space-y-3 text-sm">
-              <div className="flex justify-between"><dt className="text-muted-foreground">ФИО</dt><dd className="font-semibold">{user.full_name}</dd></div>
-              <div className="flex justify-between"><dt className="text-muted-foreground">Телефон</dt><dd className="font-semibold">{user.phone}</dd></div>
-              <div className="flex justify-between"><dt className="text-muted-foreground">Паспорт</dt><dd className="font-semibold">{user.passport || '—'}</dd></div>
-            </dl>
-          </div>
         </div>
 
         {/* Комментарий оператора */}
@@ -200,6 +203,87 @@ const Cabinet = () => {
           </Button>
         )}
       </main>
+
+      {/* Поп-ап меню */}
+      <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-primary">Меню</DialogTitle>
+          </DialogHeader>
+
+          {/* Аватар + имя */}
+          <div className="flex items-center gap-3 rounded-xl bg-secondary p-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+              {initials}
+            </div>
+            <div>
+              <p className="font-semibold text-primary">{user.full_name}</p>
+              <p className="text-sm text-muted-foreground">{user.phone}</p>
+            </div>
+          </div>
+
+          {/* Пункты меню */}
+          <div className="space-y-1">
+            <button
+              onClick={() => { setProfileOpen(true); setMenuOpen(false); }}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="User" size={18} className="text-accent" /> Мои данные
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
+              <Icon name="LogOut" size={18} /> Выйти из кабинета
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Поп-ап Мои данные */}
+      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-primary">Мои данные</DialogTitle>
+          </DialogHeader>
+          <dl className="space-y-3 text-sm">
+            <div className="flex justify-between border-b border-border pb-2">
+              <dt className="text-muted-foreground">ФИО</dt>
+              <dd className="font-semibold text-right">{user.full_name}</dd>
+            </div>
+            <div className="flex justify-between border-b border-border pb-2">
+              <dt className="text-muted-foreground">Телефон</dt>
+              <dd className="font-semibold">{user.phone}</dd>
+            </div>
+            {user.birth_date && (
+              <div className="flex justify-between border-b border-border pb-2">
+                <dt className="text-muted-foreground">Дата рождения</dt>
+                <dd className="font-semibold">{user.birth_date}</dd>
+              </div>
+            )}
+            {user.passport && (
+              <div className="flex justify-between border-b border-border pb-2">
+                <dt className="text-muted-foreground">Паспорт</dt>
+                <dd className="font-semibold">{user.passport}</dd>
+              </div>
+            )}
+            {user.address_residence && (
+              <div className="flex justify-between border-b border-border pb-2">
+                <dt className="text-muted-foreground">Адрес</dt>
+                <dd className="font-semibold text-right max-w-[180px]">{user.address_residence}</dd>
+              </div>
+            )}
+            {user.work_place && (
+              <div className="flex justify-between border-b border-border pb-2">
+                <dt className="text-muted-foreground">Работа</dt>
+                <dd className="font-semibold text-right max-w-[180px]">{user.work_place}</dd>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Заявка</dt>
+              <dd className="font-semibold">{user.ref_number}</dd>
+            </div>
+          </dl>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
