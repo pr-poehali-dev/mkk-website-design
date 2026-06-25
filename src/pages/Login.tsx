@@ -74,9 +74,7 @@ const Login = () => {
           </p>
         </div>
 
-        <p className="mt-4 text-center text-xs text-primary-foreground/50">
-          <Link to="/admin" className="hover:text-primary-foreground/80 text-yellow-400">Вход для администратора →</Link>
-        </p>
+
       </div>
     </div>
   );
