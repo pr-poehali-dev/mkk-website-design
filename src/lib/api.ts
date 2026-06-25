@@ -3,6 +3,7 @@ const URLS = {
   login:    'https://functions.poehali.dev/178d05da-1f3c-44f3-afb7-e5c1ffcb2ec5',
   get:      'https://functions.poehali.dev/972288ec-3c64-419d-8b5c-4d61bb09a5b1',
   status:   'https://functions.poehali.dev/fc3311ea-4731-4819-98d5-675332a348fe',
+  upload:   'https://functions.poehali.dev/39467c33-638c-4a9d-8a7a-fc8d3be83521',
 };
 
 const ADMIN_TOKEN = 'admin_zaimy_plus';
@@ -40,7 +41,10 @@ export function clearSession() {
 
 export async function apiRegister(data: {
   full_name: string; phone: string; password: string;
-  amount: number; days: number; passport?: string; passport_by?: string; birth_date?: string;
+  amount: number; days: number;
+  passport?: string; passport_by?: string; birth_date?: string;
+  address_residence?: string; address_registration?: string;
+  work_place?: string; work_phone?: string; income_doc_url?: string;
 }) {
   const res = await fetch(URLS.register, {
     method: 'POST',
@@ -50,6 +54,23 @@ export async function apiRegister(data: {
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка регистрации');
   return json as { id: number; ref_number: string; status: string; created_at: string };
+}
+
+export async function apiUploadFile(file: File): Promise<string> {
+  const b64 = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+  const res = await fetch(URLS.upload, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file: b64, mime: file.type }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки файла');
+  return json.url as string;
 }
 
 export async function apiLogin(phone: string, password: string): Promise<UserSession> {

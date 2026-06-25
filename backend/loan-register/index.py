@@ -35,8 +35,9 @@ def handler(event: dict, context) -> dict:
 
     cur.execute(
         f"""INSERT INTO {SCHEMA}.loan_requests
-            (ref_number, full_name, phone, password_hash, birth_date, passport, passport_by, amount, days)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            (ref_number, full_name, phone, password_hash, birth_date, passport, passport_by, amount, days,
+             address_residence, address_registration, work_place, work_phone, income_doc_url)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, ref_number, status, created_at""",
         (
             ref_number,
@@ -48,6 +49,11 @@ def handler(event: dict, context) -> dict:
             body.get('passport_by') or None,
             int(body['amount']),
             int(body['days']),
+            body.get('address_residence') or None,
+            body.get('address_registration') or None,
+            body.get('work_place') or None,
+            body.get('work_phone') or None,
+            body.get('income_doc_url') or None,
         )
     )
     row = cur.fetchone()
