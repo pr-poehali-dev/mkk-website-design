@@ -1,10 +1,83 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { apiRegister, apiUploadFile } from '@/lib/api';
+
+const TOTAL_SECONDS = 5 * 60; // 5 минут
+
+const SuccessScreen = ({ nav }: { nav: (path: string) => void }) => {
+  const [timeLeft, setTimeLeft] = useState(TOTAL_SECONDS);
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const progress = timeLeft / TOTAL_SECONDS;
+  const dashOffset = circumference * (1 - progress);
+  const mins = Math.floor(timeLeft / 60);
+  const secs = timeLeft % 60;
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setTimeLeft((t) => (t > 0 ? t - 1 : 0));
+    }, 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
+  return (
+    <div className="relative flex min-h-screen items-center justify-center bg-primary px-4 text-primary-foreground">
+      <div className="hero-grid absolute inset-0 opacity-40" />
+      <div className="animate-fade-up relative w-full max-w-md overflow-hidden rounded-3xl shadow-2xl">
+        {/* Тёмный блок с таймером */}
+        <div className="flex flex-col items-center bg-[#0d1117] px-8 pb-10 pt-10 text-center"
+          style={{ background: 'linear-gradient(160deg, #0d1a2e 0%, #0a0f1a 100%)' }}>
+          {/* Круговой таймер */}
+          <div className="relative mb-8 flex h-36 w-36 items-center justify-center">
+            <svg className="absolute inset-0 -rotate-90" width="144" height="144" viewBox="0 0 144 144">
+              {/* Фоновый круг */}
+              <circle cx="72" cy="72" r={radius} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="10" />
+              {/* Прогресс */}
+              <circle
+                cx="72" cy="72" r={radius}
+                fill="none"
+                stroke="#3b82f6"
+                strokeWidth="10"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={dashOffset}
+                style={{ transition: 'stroke-dashoffset 1s linear' }}
+              />
+            </svg>
+            <span className="font-display relative text-3xl font-bold tabular-nums text-white">
+              {mins}:{secs.toString().padStart(2, '0')}
+            </span>
+          </div>
+
+          <h1 className="font-display text-2xl font-bold leading-snug text-white">
+            Проверяем данные,<br />не закрывайте страницу
+          </h1>
+          <p className="mt-3 text-sm text-white/50">
+            Возможно нам потребуется дополнительная информация
+          </p>
+        </div>
+
+        {/* Светлый блок с кнопками */}
+        <div className="bg-background px-8 pb-8 pt-6">
+          <p className="mb-4 text-center text-sm text-muted-foreground">
+            Анкета принята! Решение придёт на указанный телефон.
+          </p>
+          <Button asChild size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            <Link to="/login">Войти в личный кабинет <Icon name="ArrowRight" size={18} className="ml-1" /></Link>
+          </Button>
+          <button onClick={() => nav('/')} className="mt-3 block w-full text-center text-sm text-muted-foreground hover:text-primary">
+            На главную
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const STEPS = [
   { n: 1, title: 'Личные данные', icon: 'User' },
@@ -92,26 +165,7 @@ const Anketa = () => {
   };
 
   if (step === 5) {
-    return (
-      <div className="relative flex min-h-screen items-center justify-center bg-primary px-4 text-primary-foreground">
-        <div className="hero-grid absolute inset-0 opacity-40" />
-        <div className="animate-fade-up relative max-w-md rounded-2xl bg-background p-10 text-center text-foreground shadow-2xl">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-accent/15 text-accent">
-            <Icon name="CheckCircle2" size={40} />
-          </div>
-          <h1 className="font-display text-2xl font-bold text-primary">Анкета отправлена!</h1>
-          <p className="mt-3 text-muted-foreground">
-            Мы проверяем ваши данные. Решение придёт в течение 5 минут на указанный телефон.
-          </p>
-          <Button asChild size="lg" className="mt-6 w-full bg-accent text-accent-foreground hover:bg-accent/90">
-            <Link to="/login">Войти в личный кабинет <Icon name="ArrowRight" size={18} className="ml-1" /></Link>
-          </Button>
-          <button onClick={() => nav('/')} className="mt-3 block w-full text-sm text-muted-foreground hover:text-primary">
-            На главную
-          </button>
-        </div>
-      </div>
-    );
+    return <SuccessScreen nav={nav} />;
   }
 
   return (
