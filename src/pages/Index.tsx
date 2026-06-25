@@ -200,12 +200,21 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="bg-primary text-primary-foreground/70">
-        <div className="container border-t border-primary-foreground/10 px-4 py-8 text-sm">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+        <div className="container border-t border-primary-foreground/10 px-4 py-10 text-sm">
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <p className="font-display text-lg font-bold tracking-wide text-primary-foreground">ЗАЙМЫ ПЛЮС</p>
-            <p>© 2014–2026 ООО МКК «Займы Плюс». Все права защищены.</p>
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/40">Служба поддержки</p>
+              <a href="tel:84999610736" className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
+                <Icon name="Phone" size={16} className="text-accent" /> 8 499 961-07-36
+              </a>
+              <a href="mailto:zaymy.plyus@bk.ru" className="flex items-center gap-2 hover:text-accent transition-colors">
+                <Icon name="Mail" size={16} className="text-accent" /> zaymy.plyus@bk.ru
+              </a>
+            </div>
+            <p className="text-primary-foreground/60">© 2014–2026 ООО МКК «Займы Плюс».<br className="hidden md:block" /> Все права защищены.</p>
           </div>
-          <p className="mt-4 text-xs text-primary-foreground/50">
+          <p className="mt-6 text-xs text-primary-foreground/40">
             Деятельность регулируется ФЗ №151. Расчёты на калькуляторе носят ознакомительный характер.
           </p>
         </div>
