@@ -35,6 +35,8 @@ const Cabinet = () => {
   const status = (user.status as StatusKey) in STATUS_META ? (user.status as StatusKey) : 'review';
   const meta = STATUS_META[status];
   const fmt = (n: number) => n.toLocaleString('ru-RU');
+  const contractCode = `ДГ-${user.ref_number}-${user.created_at?.slice(0, 10).replace(/-/g, '')}`;
+  const [contractSigned, setContractSigned] = useState(false);
   const steps = [
     { key: 'review', label: 'Заявка принята', icon: 'FileCheck' },
     { key: 'approved', label: 'Одобрено', icon: 'CheckCircle2' },
