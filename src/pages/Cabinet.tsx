@@ -97,13 +97,23 @@ const Cabinet = () => {
 
         {/* Данные клиента */}
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-card p-6">
+          <div className={`rounded-2xl border p-6 ${status === 'issued' ? 'border-accent/40 bg-accent/5' : 'border-border bg-card'}`}>
             <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-primary">
-              <Icon name="Wallet" size={18} className="text-accent" /> Параметры займа
+              <Icon name={status === 'issued' ? 'BadgeDollarSign' : 'Wallet'} size={18} className="text-accent" />
+              {status === 'issued' ? 'Активный займ' : 'Параметры займа'}
             </h2>
             <dl className="space-y-3 text-sm">
-              <div className="flex justify-between"><dt className="text-muted-foreground">Сумма</dt><dd className="font-semibold">{fmt(user.amount)} ₽</dd></div>
+              <div className="flex justify-between"><dt className="text-muted-foreground">Сумма займа</dt><dd className="font-semibold">{fmt(user.amount)} ₽</dd></div>
               <div className="flex justify-between"><dt className="text-muted-foreground">Срок</dt><dd className="font-semibold">{user.days} дн.</dd></div>
+              {status === 'issued' && (
+                <>
+                  <div className="flex justify-between"><dt className="text-muted-foreground">Переплата (0.8%/день)</dt><dd className="font-semibold">{fmt(Math.round(user.amount * 0.008 * user.days))} ₽</dd></div>
+                  <div className="flex justify-between border-t border-accent/20 pt-2">
+                    <dt className="font-semibold text-primary">К возврату</dt>
+                    <dd className="font-bold text-accent text-base">{fmt(user.amount + Math.round(user.amount * 0.008 * user.days))} ₽</dd>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between"><dt className="text-muted-foreground">Дата заявки</dt><dd className="font-semibold">{user.created_at?.slice(0, 10)}</dd></div>
             </dl>
           </div>

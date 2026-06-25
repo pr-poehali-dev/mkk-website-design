@@ -241,6 +241,35 @@ const Admin = () => {
                 </div>
               </div>
 
+              {/* Расчёт займа */}
+              {editForm.amount && editForm.days && (
+                <div className="rounded-xl bg-accent/5 border border-accent/20 p-4 text-sm space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-accent">Расчёт займа</p>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Сумма займа</span>
+                    <span className="font-medium">{fmt(parseInt(editForm.amount) || 0)} ₽</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Срок</span>
+                    <span className="font-medium">{editForm.days} дн.</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Ставка</span>
+                    <span className="font-medium">0.8% / день</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Переплата</span>
+                    <span className="font-medium">{fmt(Math.round((parseInt(editForm.amount) || 0) * 0.008 * (parseInt(editForm.days) || 0)))} ₽</span>
+                  </div>
+                  <div className="flex justify-between border-t border-accent/20 pt-2">
+                    <span className="font-semibold text-primary">К возврату</span>
+                    <span className="font-bold text-primary text-base">
+                      {fmt((parseInt(editForm.amount) || 0) + Math.round((parseInt(editForm.amount) || 0) * 0.008 * (parseInt(editForm.days) || 0)))} ₽
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Комментарий оператора */}
               <div className="space-y-1.5">
                 <Label htmlFor="edit-comment">Комментарий оператора</Label>
