@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import { getSession, clearSession, apiGetRequest, saveSession, type UserSession } from '@/lib/api';
+import { getSession, clearSession, apiGetRequest, saveSession, apiUpdateRequest, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 
 const Cabinet = () => {
@@ -10,6 +10,7 @@ const Cabinet = () => {
   const [user, setUser] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [contractSigned, setContractSigned] = useState(false);
+  const [signing, setSigning] = useState(false);
 
   useEffect(() => {
     const session = getSession();
@@ -123,8 +124,26 @@ const Cabinet = () => {
                 </div>
               ) : (
                 <Button size="sm" className="mt-4 w-full bg-accent text-accent-foreground hover:bg-accent/90"
-                  onClick={() => setContractSigned(true)}>
-                  <Icon name="PenLine" size={15} className="mr-1.5" /> Подписать договор
+                  disabled={signing}
+                  onClick={async () => {
+                    if (!user) return;
+                    setSigning(true);
+                    setContractSigned(true);
+                    try {
+                      await apiUpdateRequest({ ref_number: user.ref_number, status: 'issued' });
+                      const fresh = await apiGetRequest(user.ref_number);
+                      saveSession(fresh);
+                      setUser(fresh);
+                    } catch (_) {
+                      setContractSigned(false);
+                    } finally {
+                      setSigning(false);
+                    }
+                  }}>
+                  {signing
+                    ? <span className="flex items-center gap-2"><Icon name="Loader2" size={15} className="animate-spin" /> Оформляем...</span>
+                    : <span className="flex items-center gap-2"><Icon name="PenLine" size={15} /> Подписать договор</span>
+                  }
                 </Button>
               )}
             </div>
