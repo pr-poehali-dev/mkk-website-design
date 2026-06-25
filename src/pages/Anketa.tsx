@@ -172,7 +172,7 @@ const Anketa = () => {
             </p>
           )}
 
-          <div className="rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
+          <div className="rounded-xl bg-secondary p-4 text-sm text-muted-foreground py-4">
             <Icon name="ShieldCheck" size={16} className="mr-1.5 inline text-accent" />
             Ваши данные передаются по защищённому соединению и не передаются третьим лицам.
           </div>
