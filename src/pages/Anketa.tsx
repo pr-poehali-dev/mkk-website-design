@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { apiRegister, apiUploadFile } from '@/lib/api';
+import { formatPhone } from '@/lib/phone';
 
 const TOTAL_SECONDS = 5 * 60; // 5 минут
 
@@ -106,19 +107,11 @@ const Anketa = () => {
 
   const upd1 = (k: keyof typeof f1) => (e: React.ChangeEvent<HTMLInputElement>) => setF1({ ...f1, [k]: e.target.value });
 
-  const handlePhone = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let v = e.target.value.replace(/\D/g, '');
-    if (v.startsWith('8')) v = '7' + v.slice(1);
-    if (v.startsWith('7')) v = v.slice(0, 11);
-    else v = ('7' + v).slice(0, 11);
-    const d = v.slice(1);
-    let fmt = '+7';
-    if (d.length > 0) fmt += ' (' + d.slice(0, 3);
-    if (d.length >= 3) fmt += ') ' + d.slice(3, 6);
-    if (d.length >= 6) fmt += '-' + d.slice(6, 8);
-    if (d.length >= 8) fmt += '-' + d.slice(8, 10);
-    setF1({ ...f1, phone: fmt });
-  };
+  const handlePhone = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setF1({ ...f1, phone: formatPhone(e.target.value) });
+
+  const handleWorkPhone = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setF4({ ...f4, work_phone: formatPhone(e.target.value) });
   const upd2 = (k: keyof typeof f2) => (e: React.ChangeEvent<HTMLInputElement>) => setF2({ ...f2, [k]: e.target.value });
   const upd4 = (k: keyof typeof f4) => (e: React.ChangeEvent<HTMLInputElement>) => setF4({ ...f4, [k]: e.target.value });
 
@@ -401,7 +394,8 @@ const Anketa = () => {
                 <div className="space-y-1.5">
                   <Label htmlFor="work_phone">Телефон работы</Label>
                   <Input id="work_phone" type="tel" placeholder="+7 (___) ___-__-__"
-                    value={f4.work_phone} onChange={upd4('work_phone')} />
+                    value={f4.work_phone} onChange={handleWorkPhone}
+                    onFocus={() => { if (!f4.work_phone) setF4({ ...f4, work_phone: '+7 ' }); }} />
                 </div>
               </fieldset>
 

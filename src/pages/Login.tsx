@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { apiLogin, saveSession } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
+import { formatPhone } from '@/lib/phone';
 
 const Login = () => {
   const maintenance = useMaintenance();
@@ -49,7 +50,9 @@ const Login = () => {
             <div className="space-y-1.5">
               <Label htmlFor="phone">Телефон</Label>
               <Input id="phone" type="tel" placeholder="+7 (___) ___-__-__" value={phone}
-                onChange={(e) => { setPhone(e.target.value); setError(''); }} required />
+                onChange={(e) => { setPhone(formatPhone(e.target.value)); setError(''); }}
+                onFocus={() => { if (!phone) setPhone('+7 '); }}
+                required />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Пароль</Label>
