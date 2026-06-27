@@ -352,25 +352,40 @@ const CabinetDialogs = ({
               </div>
             </div>
 
-            {/* Фото с анкеты */}
+            {/* Фото документов */}
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Фото документов</p>
-              {user.income_doc_url ? (
-                <a href={user.income_doc_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl border border-border bg-secondary p-4 hover:bg-accent/5 transition-colors">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon name="FileImage" size={20} />
+              <div className="space-y-2">
+                {user.income_doc_url && (
+                  <a href={user.income_doc_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-xl border border-border bg-secondary p-4 hover:bg-accent/5 transition-colors">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Icon name="FileImage" size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-primary">Фото паспорта</p>
+                      <p className="text-xs text-accent">Открыть →</p>
+                    </div>
+                  </a>
+                )}
+                {user.doc_urls && user.doc_urls.length > 0 && user.doc_urls.map((url, i) => (
+                  <a key={url} href={url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-xl border border-border bg-secondary p-4 hover:bg-accent/5 transition-colors">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Icon name="FileImage" size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-primary">Документ {i + 1}</p>
+                      <p className="text-xs text-accent">Открыть →</p>
+                    </div>
+                  </a>
+                ))}
+                {!user.income_doc_url && (!user.doc_urls || user.doc_urls.length === 0) && (
+                  <div className="flex items-center gap-3 rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                    <Icon name="ImageOff" size={18} /> Документы не загружены
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-primary">Фото паспорта</p>
-                    <p className="text-xs text-accent">Открыть →</p>
-                  </div>
-                </a>
-              ) : (
-                <div className="flex items-center gap-3 rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                  <Icon name="ImageOff" size={18} /> Фото не загружено
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Согласие на обработку персональных данных */}
