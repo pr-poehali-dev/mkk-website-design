@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiAdminSetPassword, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiAdminSetPassword, apiUploadFile, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from './contractHtml';
 import { useState } from 'react';
@@ -57,6 +57,8 @@ const AdminEditModal = ({
   const [newPassword, setNewPassword] = useState('');
   const [pwdSaving, setPwdSaving] = useState(false);
   const [pwdMsg, setPwdMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [docUrls, setDocUrls] = useState<string[]>(selected?.doc_urls || []);
+  const [docUploading, setDocUploading] = useState(false);
 
   const handleSetPassword = async () => {
     if (!selected || !newPassword) return;
@@ -71,6 +73,26 @@ const AdminEditModal = ({
     } finally {
       setPwdSaving(false);
     }
+  };
+
+  const handleDocUpload = async (files: FileList | null) => {
+    if (!files || !selected) return;
+    setDocUploading(true);
+    try {
+      const urls = await Promise.all(Array.from(files).map(f => apiUploadFile(f)));
+      const newUrls = [...docUrls, ...urls];
+      setDocUrls(newUrls);
+      await apiUpdateRequest({ ref_number: selected.ref_number, doc_urls: newUrls });
+    } finally {
+      setDocUploading(false);
+    }
+  };
+
+  const handleDocRemove = async (url: string) => {
+    if (!selected) return;
+    const newUrls = docUrls.filter(u => u !== url);
+    setDocUrls(newUrls);
+    await apiUpdateRequest({ ref_number: selected.ref_number, doc_urls: newUrls });
   };
 
   const handleSave = async () => {
@@ -150,10 +172,37 @@ const AdminEditModal = ({
               ))}
               {selected.income_doc_url && (
                 <a href={selected.income_doc_url} target="_blank" rel="noopener noreferrer"
-                  className="mt-1 flex items-center gap-1.5 text-accent hover:underline">
-                  <Icon name="FileImage" size={14} /> Фото документа
+                  className="mt-1 flex items-center gap-1.5 text-accent hover:underline text-xs">
+                  <Icon name="FileImage" size={14} /> Документ клиента
                 </a>
               )}
+            </div>
+
+            {/* Документы — загрузка администратором */}
+            <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Документы заявки</p>
+              {docUrls.length > 0 && (
+                <div className="flex flex-col gap-1.5">
+                  {docUrls.map((url, i) => (
+                    <div key={url} className="flex items-center justify-between gap-2 rounded-lg bg-secondary px-3 py-2">
+                      <a href={url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-accent hover:underline text-xs truncate">
+                        <Icon name="FileImage" size={13} /> Документ {i + 1}
+                      </a>
+                      <button onClick={() => handleDocRemove(url)} className="shrink-0 text-muted-foreground hover:text-red-500 transition-colors">
+                        <Icon name="X" size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-border px-4 py-3 text-sm text-muted-foreground hover:border-accent hover:text-accent transition-colors ${docUploading ? 'pointer-events-none opacity-50' : ''}`}>
+                {docUploading
+                  ? <><Icon name="Loader2" size={16} className="animate-spin" /> Загрузка...</>
+                  : <><Icon name="Upload" size={16} /> Добавить документы</>}
+                <input type="file" multiple accept="image/*,application/pdf" className="hidden"
+                  onChange={e => handleDocUpload(e.target.files)} />
+              </label>
             </div>
 
             {/* Пароль клиента */}

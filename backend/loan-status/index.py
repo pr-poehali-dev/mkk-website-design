@@ -86,6 +86,10 @@ def handler(event: dict, context) -> dict:
         fields.append('is_blocked = %s')
         values.append(bool(body['is_blocked']))
 
+    if 'doc_urls' in body:
+        fields.append('doc_urls = %s')
+        values.append(body['doc_urls'] or [])
+
     if not fields:
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нет полей для обновления'})}
 

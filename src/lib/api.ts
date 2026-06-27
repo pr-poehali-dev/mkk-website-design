@@ -30,6 +30,7 @@ export interface UserSession {
   payment_bank?: string | null;
   is_blocked?: boolean;
   email?: string | null;
+  doc_urls?: string[] | null;
 }
 
 export function getSession(): UserSession | null {
@@ -117,6 +118,7 @@ export async function apiUpdateRequest(data: {
   operator_comment?: string;
   payment_bank?: string | null;
   is_blocked?: boolean;
+  doc_urls?: string[];
 }): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',

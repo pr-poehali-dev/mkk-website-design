@@ -1,0 +1,1 @@
+ALTER TABLE loan_requests ADD COLUMN IF NOT EXISTS doc_urls TEXT[] DEFAULT '{}';
