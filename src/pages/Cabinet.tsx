@@ -213,7 +213,7 @@ const Cabinet = () => {
 
           {/* Аватар + имя */}
           <div className="flex items-center gap-3 rounded-xl bg-secondary p-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+            <div className="flex h-12 w-12 items-center justify-center bg-primary text-lg font-bold text-primary-foreground rounded-sm">
               {initials}
             </div>
             <div>
