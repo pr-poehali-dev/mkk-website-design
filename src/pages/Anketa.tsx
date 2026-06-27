@@ -92,7 +92,7 @@ const Anketa = () => {
   const [apiError, setApiError] = useState('');
 
   // Step 1
-  const [f1, setF1] = useState({ lastname: '', firstname: '', middlename: '', phone: '', password: '', birth_date: '' });
+  const [f1, setF1] = useState({ lastname: '', firstname: '', middlename: '', phone: '', password: '', birth_date: '', email: '' });
   // Step 2
   const [f2, setF2] = useState({ series: '', issued: '', issued_date: '' });
   const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
@@ -259,6 +259,10 @@ const Anketa = () => {
                   <Label htmlFor="phone">Телефон *</Label>
                   <Input id="phone" type="tel" placeholder="+7 (___) ___-__-__" value={f1.phone} onChange={handlePhone} onFocus={() => { if (!f1.phone) setF1({ ...f1, phone: '+7 ' }); }} required />
                 </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Электронная почта</Label>
+                <Input id="email" type="email" placeholder="example@mail.ru" value={f1.email} onChange={upd1('email')} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="password">Придумайте пароль *</Label>
