@@ -14,6 +14,9 @@ const Cabinet = () => {
   const [signing, setSigning] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cardsOpen, setCardsOpen] = useState(false);
+  const [selectedBank, setSelectedBank] = useState<string | null>(null);
+  const [bankSaved, setBankSaved] = useState(false);
 
   useEffect(() => {
     const session = getSession();
@@ -230,11 +233,65 @@ const Cabinet = () => {
               <Icon name="User" size={18} className="text-accent" /> Мои данные
             </button>
             <button
+              onClick={() => { setCardsOpen(true); setMenuOpen(false); }}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="CreditCard" size={18} className="text-accent" /> Мои карты
+            </button>
+            <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
               <Icon name="LogOut" size={18} /> Выйти из кабинета
             </button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Поп-ап Мои карты */}
+      <Dialog open={cardsOpen} onOpenChange={(o) => { setCardsOpen(o); if (!o) { setBankSaved(false); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-primary">Мои карты</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Выберите банк для получения займа по СБП. Деньги придут на карту этого банка, привязанную к вашему номеру телефона.</p>
+          {bankSaved ? (
+            <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center">
+              <Icon name="CheckCircle2" size={28} className="mx-auto mb-2 text-green-600" />
+              <p className="font-semibold text-green-700">Банк сохранён</p>
+              <p className="mt-1 text-sm text-green-600">{selectedBank}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { name: 'Сбербанк', icon: '🟢' },
+                { name: 'Тинькофф', icon: '🟡' },
+                { name: 'ВТБ', icon: '🔵' },
+                { name: 'Альфа-Банк', icon: '🔴' },
+                { name: 'Газпромбанк', icon: '🔷' },
+                { name: 'Россельхозбанк', icon: '🟩' },
+                { name: 'Почта Банк', icon: '📮' },
+                { name: 'Совкомбанк', icon: '🟠' },
+                { name: 'Открытие', icon: '🌐' },
+                { name: 'Другой банк', icon: '🏦' },
+              ].map((bank) => (
+                <button
+                  key={bank.name}
+                  onClick={() => setSelectedBank(bank.name)}
+                  className={`flex items-center gap-2 rounded-xl border px-3 py-3 text-left text-sm font-medium transition-colors ${selectedBank === bank.name ? 'border-accent bg-accent/10 text-primary' : 'border-border bg-card text-primary hover:bg-secondary'}`}>
+                  <span className="text-base">{bank.icon}</span>
+                  <span className="leading-tight">{bank.name}</span>
+                  {selectedBank === bank.name && <Icon name="Check" size={14} className="ml-auto text-accent" />}
+                </button>
+              ))}
+            </div>
+          )}
+          {!bankSaved && (
+            <Button
+              disabled={!selectedBank}
+              className="mt-2 w-full bg-accent text-accent-foreground hover:bg-accent/90"
+              onClick={() => setBankSaved(true)}>
+              Сохранить выбор
+            </Button>
+          )}
         </DialogContent>
       </Dialog>
 
