@@ -5,9 +5,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiAdminSetPassword, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from './contractHtml';
+import { useState } from 'react';
 
 const BANKS = [
   { name: 'Сбербанк', icon: '🟢' },
@@ -53,6 +54,25 @@ const AdminEditModal = ({
   onSaved,
   onBlockToggled,
 }: Props) => {
+  const [newPassword, setNewPassword] = useState('');
+  const [pwdSaving, setPwdSaving] = useState(false);
+  const [pwdMsg, setPwdMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const handleSetPassword = async () => {
+    if (!selected || !newPassword) return;
+    setPwdSaving(true);
+    setPwdMsg(null);
+    try {
+      await apiAdminSetPassword(selected.phone, newPassword);
+      setPwdMsg({ ok: true, text: 'Пароль успешно изменён' });
+      setNewPassword('');
+    } catch (e: unknown) {
+      setPwdMsg({ ok: false, text: e instanceof Error ? e.message : 'Ошибка' });
+    } finally {
+      setPwdSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!selected) return;
     setSaving(true);
@@ -132,6 +152,29 @@ const AdminEditModal = ({
                   className="mt-1 flex items-center gap-1.5 text-accent hover:underline">
                   <Icon name="FileImage" size={14} /> Фото документа
                 </a>
+              )}
+            </div>
+
+            {/* Пароль клиента */}
+            <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Пароль клиента</p>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Новый пароль"
+                  value={newPassword}
+                  onChange={(e) => { setNewPassword(e.target.value); setPwdMsg(null); }}
+                  className="flex-1"
+                />
+                <Button size="sm" variant="outline" disabled={pwdSaving || !newPassword} onClick={handleSetPassword}>
+                  {pwdSaving
+                    ? <Icon name="Loader2" size={14} className="animate-spin" />
+                    : <Icon name="KeyRound" size={14} />}
+                  <span className="ml-1.5">Изменить</span>
+                </Button>
+              </div>
+              {pwdMsg && (
+                <p className={`text-xs ${pwdMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{pwdMsg.text}</p>
               )}
             </div>
 
