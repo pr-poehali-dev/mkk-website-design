@@ -382,6 +382,55 @@ const Admin = () => {
                 </div>
               )}
 
+              {/* Договор займа */}
+              {editForm.amount && editForm.days && (() => {
+                const amt = parseInt(editForm.amount) || 0;
+                const dys = parseInt(editForm.days) || 0;
+                const overpay = Math.round(amt * 0.008 * dys);
+                const total = amt + overpay;
+                const contractCode = `ДГ-${selected.ref_number}-${selected.created_at?.slice(0, 10).replace(/-/g, '')}`;
+                const returnDate = (() => {
+                  const d = new Date(selected.created_at || Date.now());
+                  d.setDate(d.getDate() + dys);
+                  return d.toLocaleDateString('ru-RU');
+                })();
+                const getHtml = () => `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Договор займа ${contractCode}</title><style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#111;font-size:13px;line-height:1.6}h1{font-size:18px;text-align:center;margin-bottom:4px}h2{font-size:14px;margin-top:24px;border-bottom:1px solid #ccc;padding-bottom:4px}p{margin:4px 0}.row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee}.label{color:#666}.val{font-weight:bold}.total{font-size:15px;color:#1a56db}.sign{margin-top:40px;display:flex;justify-content:space-between}.sign-box{text-align:center;width:45%}.sign-line{border-top:1px solid #111;margin-top:30px;padding-top:4px;font-size:11px;color:#666}</style></head><body><h1>ДОГОВОР ЗАЙМА</h1><p style="text-align:center;color:#666">${contractCode} &nbsp;·&nbsp; от ${selected.created_at?.slice(0,10)}</p><h2>Стороны</h2><p><b>Займодавец:</b> ООО МКК «Займы Плюс»</p><p><b>Заёмщик:</b> ${selected.full_name}, тел. ${selected.phone}</p><h2>Условия займа</h2><div class="row"><span class="label">Сумма займа</span><span class="val">${fmt(amt)} ₽</span></div><div class="row"><span class="label">Срок</span><span class="val">${dys} дней</span></div><div class="row"><span class="label">Процентная ставка</span><span class="val">0.8% в день</span></div><div class="row"><span class="label">Начисленные проценты</span><span class="val">${fmt(overpay)} ₽</span></div><div class="row"><span class="label">Дата возврата</span><span class="val">${returnDate}</span></div><div class="row"><span class="label total">Итого к возврату</span><span class="val total">${fmt(total)} ₽</span></div><h2>Реквизиты заявки</h2><p>Номер заявки: <b>${selected.ref_number}</b></p><p>Паспорт: <b>${selected.passport || '—'}</b></p><div class="sign"><div class="sign-box"><div class="sign-line">Займодавец / ООО МКК «Займы Плюс»</div></div><div class="sign-box"><div class="sign-line">Заёмщик / ${selected.full_name}</div></div></div></body></html>`;
+                return (
+                  <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Договор займа</p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <Icon name="FileText" size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-primary">{contractCode}</p>
+                        <p className="text-xs text-muted-foreground">К возврату {fmt(total)} ₽ · до {returnDate}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="flex-1 gap-1.5"
+                        onClick={() => {
+                          const blob = new Blob([getHtml()], { type: 'text/html' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url; a.download = `Договор_${contractCode}.html`; a.click();
+                          URL.revokeObjectURL(url);
+                        }}>
+                        <Icon name="Download" size={14} /> Скачать
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex-1 gap-1.5"
+                        onClick={() => {
+                          const blob = new Blob([getHtml()], { type: 'text/html' });
+                          const url = URL.createObjectURL(blob);
+                          window.open(url, '_blank');
+                        }}>
+                        <Icon name="Eye" size={14} /> Просмотреть
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Способ получения */}
               <div className="space-y-2">
                 <Label>Способ получения займа</Label>
