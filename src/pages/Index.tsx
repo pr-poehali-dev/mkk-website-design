@@ -212,7 +212,7 @@ const Index = () => {
             </div>
             <p className="text-primary-foreground/60 text-center">© 2014–2026 ООО МКК «Займы Плюс».<br className="hidden md:block" /> Все права защищены.</p>
           </div>
-          <p className="mt-6 text-xs text-primary-foreground/40">
+          <p className="mt-6 text-xs text-primary-foreground/40 text-center">
             Деятельность регулируется ФЗ №151. Расчёты на калькуляторе носят ознакомительный характер.
           </p>
         </div>
