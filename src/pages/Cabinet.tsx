@@ -35,10 +35,12 @@ const Cabinet = () => {
     const session = getSession();
     if (!session) { nav('/login'); return; }
     setUser(session);
+    if (session.payment_bank) setSelectedBank(session.payment_bank);
     setLoading(false);
     apiGetRequest(session.ref_number).then((fresh) => {
       saveSession(fresh);
       setUser(fresh);
+      if (fresh.payment_bank) setSelectedBank(fresh.payment_bank);
     }).catch(() => {});
   }, [nav]);
 
@@ -213,8 +215,8 @@ const Cabinet = () => {
           )}
         </div>
 
-        {/* Способ получения */}
-        <div className="mt-5 rounded-2xl border border-border bg-card p-5">
+        {/* Способ получения — только при статусе одобрено */}
+        {status === 'approved' && <div className="mt-5 rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -234,7 +236,7 @@ const Cabinet = () => {
               {selectedBank ? 'Изменить' : 'Выбрать'}
             </button>
           </div>
-        </div>
+        </div>}
 
         {status === 'issued' && (
           <Button size="lg" className="mt-6 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
@@ -314,7 +316,14 @@ const Cabinet = () => {
             <Button
               disabled={!selectedBank}
               className="mt-2 w-full bg-accent text-accent-foreground hover:bg-accent/90"
-              onClick={() => setBankSaved(true)}>
+              onClick={async () => {
+                if (!user || !selectedBank) return;
+                await apiUpdateRequest({ ref_number: user.ref_number, payment_bank: selectedBank });
+                const fresh = await apiGetRequest(user.ref_number);
+                saveSession(fresh);
+                setUser(fresh);
+                setBankSaved(true);
+              }}>
               Сохранить выбор
             </Button>
           )}
