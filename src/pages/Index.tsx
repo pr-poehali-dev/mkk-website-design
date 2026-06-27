@@ -271,9 +271,10 @@ const Index = () => {
             </div>
             <p className="text-primary-foreground/60 text-center">© 2014–2026 ООО МКК «Займы Плюс».<br className="hidden md:block" /> Все права защищены.</p>
           </div>
-          <p className="mt-6 text-xs text-primary-foreground/40 text-center">
-            Деятельность регулируется ФЗ №151. Расчёты на калькуляторе носят ознакомительный характер.
-          </p>
+          <p className="mt-6 text-xs text-primary-foreground/40 text-center">Деятельность регулируется ФЗ №151. Расчёты на калькуляторе носят ознакомительный характер.
+
+ИНН: 220038299987
+ОГРН: 0092800992828288</p>
         </div>
       </footer>
     </div>
