@@ -86,7 +86,7 @@ const CabinetStatusCard = ({
               <a href="tel:+78001234567"
                 className="flex items-center gap-3 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-medium text-orange-700 hover:bg-orange-100 transition-colors">
                 <Icon name="Phone" size={18} className="shrink-0" />
-                <span>Позвонить: 8-800-123-45-67</span>
+                <span>Позвонить: +7(499)961-07-36</span>
               </a>
               <a href="https://t.me/zaimyplus_support" target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors">
