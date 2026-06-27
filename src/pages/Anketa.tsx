@@ -57,9 +57,7 @@ const SuccessScreen = ({ nav }: { nav: (path: string) => void }) => {
           <h1 className="font-display text-2xl font-bold leading-snug text-white">
             Проверяем данные,<br />не закрывайте страницу
           </h1>
-          <p className="mt-3 text-sm text-white/50">
-            Возможно нам потребуется дополнительная информация
-          </p>
+          <p className="mt-3 text-sm text-white/50"></p>
         </div>
 
         {/* Светлый блок с кнопками */}
