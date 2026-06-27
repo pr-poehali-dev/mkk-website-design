@@ -12,6 +12,7 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import MaintenanceBanner from "./components/MaintenanceBanner";
 import { MaintenanceProvider } from "./lib/maintenanceContext";
+import CookieBanner from "./components/CookieBanner";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
       <BrowserRouter>
         <MaintenanceProvider>
           <MaintenanceBanner />
+          <CookieBanner />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/anketa" element={<Anketa />} />
