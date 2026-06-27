@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { apiLogin, saveSession } from '@/lib/api';
+import { useMaintenance } from '@/lib/maintenanceContext';
 
 const Login = () => {
+  const maintenance = useMaintenance();
   const nav = useNavigate();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -69,9 +71,11 @@ const Login = () => {
             </Button>
           </form>
 
-          <p className="mt-5 text-center text-sm text-muted-foreground">
-            Нет заявки? <Link to="/anketa" className="font-medium text-accent hover:underline">Оформить займ</Link>
-          </p>
+          {!maintenance && (
+            <p className="mt-5 text-center text-sm text-muted-foreground">
+              Нет заявки? <Link to="/anketa" className="font-medium text-accent hover:underline">Оформить займ</Link>
+            </p>
+          )}
         </div>
 
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
+import { useMaintenance } from '@/lib/maintenanceContext';
 
 const FaqItem = ({ q, a }: { q: string; a: string }) => {
   const [open, setOpen] = useState(false);
@@ -25,6 +26,7 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => {
 const RATE = 0.008; // 0.8% в день
 
 const Index = () => {
+  const maintenance = useMaintenance();
   const [amount, setAmount] = useState(15000);
   const [days, setDays] = useState(14);
 
@@ -163,13 +165,22 @@ const Index = () => {
               </div>
             </div>
 
-            <Button asChild size="lg" className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
-              <Link to="/anketa">
-                Получить {fmt(amount)} ₽
-                <Icon name="ArrowRight" size={18} className="ml-1" />
-              </Link>
-            </Button>
-            <p className="mt-3 text-center text-xs text-muted-foreground">Решение приходит за 5 минут</p>
+            {maintenance ? (
+              <Button size="lg" disabled className="h-12 w-full text-base font-bold cursor-not-allowed opacity-60">
+                <Icon name="Construction" size={18} className="mr-2" />
+                Временно недоступно
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
+                <Link to="/anketa">
+                  Получить {fmt(amount)} ₽
+                  <Icon name="ArrowRight" size={18} className="ml-1" />
+                </Link>
+              </Button>
+            )}
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              {maintenance ? 'Приём заявок временно приостановлен' : 'Решение приходит за 5 минут'}
+            </p>
           </div>
         </div>
       </section>
@@ -231,9 +242,16 @@ const Index = () => {
         <div className="container relative px-4 py-16 text-center md:py-20">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Готовы оформить займ?</h2>
           <p className="mx-auto mt-3 max-w-md text-primary-foreground/75">Заполните анкету за 2 минуты — решение придёт мгновенно.</p>
-          <Button asChild size="lg" className="mt-7 h-12 bg-accent px-8 text-base font-bold text-accent-foreground hover:bg-accent/90">
-            <Link to="/anketa">Заполнить анкету <Icon name="ArrowRight" size={18} className="ml-1" /></Link>
-          </Button>
+          {maintenance ? (
+            <Button size="lg" disabled className="mt-7 h-12 px-8 text-base font-bold cursor-not-allowed opacity-60">
+              <Icon name="Construction" size={18} className="mr-2" />
+              Временно недоступно
+            </Button>
+          ) : (
+            <Button asChild size="lg" className="mt-7 h-12 bg-accent px-8 text-base font-bold text-accent-foreground hover:bg-accent/90">
+              <Link to="/anketa">Заполнить анкету <Icon name="ArrowRight" size={18} className="ml-1" /></Link>
+            </Button>
+          )}
         </div>
       </section>
 

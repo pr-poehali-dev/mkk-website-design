@@ -1,18 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Icon from '@/components/ui/icon';
-import { apiGetSiteSettings } from '@/lib/api';
+import { useMaintenance } from '@/lib/maintenanceContext';
 
 const MaintenanceBanner = () => {
-  const [visible, setVisible] = useState(false);
+  const maintenance = useMaintenance();
   const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    apiGetSiteSettings().then((s) => {
-      setVisible(s.maintenance_banner === 'true');
-    });
-  }, []);
-
-  if (!visible || dismissed) return null;
+  if (!maintenance || dismissed) return null;
 
   return (
     <div className="relative z-50 w-full bg-yellow-400 text-yellow-900">

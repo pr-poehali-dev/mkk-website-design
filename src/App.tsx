@@ -11,6 +11,7 @@ import Cabinet from "./pages/Cabinet";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import MaintenanceBanner from "./components/MaintenanceBanner";
+import { MaintenanceProvider } from "./lib/maintenanceContext";
 
 const queryClient = new QueryClient();
 
@@ -20,16 +21,18 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <MaintenanceBanner />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/anketa" element={<Anketa />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/cabinet" element={<Cabinet />} />
-          <Route path="/admin" element={<Admin />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <MaintenanceProvider>
+          <MaintenanceBanner />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/anketa" element={<Anketa />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/cabinet" element={<Cabinet />} />
+            <Route path="/admin" element={<Admin />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </MaintenanceProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
