@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Cabinet from "./pages/Cabinet";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import MaintenanceBanner from "./components/MaintenanceBanner";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <MaintenanceBanner />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/anketa" element={<Anketa />} />

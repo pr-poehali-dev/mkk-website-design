@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiGetAll, apiUpdateRequest, apiDeleteRequests, type UserSession } from '@/lib/api';
+import { apiGetAll, apiUpdateRequest, apiDeleteRequests, apiGetSiteSettings, apiSaveSiteSettings, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 
 const ADMIN_PASS = 'admin';
@@ -23,6 +23,8 @@ const Admin = () => {
   const [editForm, setEditForm] = useState({ status: '', amount: '', days: '', operator_comment: '', payment_bank: '' });
   const [checkedRefs, setCheckedRefs] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
+  const [maintenanceBanner, setMaintenanceBanner] = useState(false);
+  const [bannerSaving, setBannerSaving] = useState(false);
 
   const BANKS = [
     { name: 'Сбербанк', icon: '🟢' },
@@ -51,7 +53,12 @@ const Admin = () => {
     }
   }, []);
 
-  useEffect(() => { if (authed) fetchAll(); }, [authed, fetchAll]);
+  useEffect(() => {
+    if (authed) {
+      fetchAll();
+      apiGetSiteSettings().then((s) => setMaintenanceBanner(s.maintenance_banner === 'true'));
+    }
+  }, [authed, fetchAll]);
 
   const openModal = (r: UserSession) => {
     setSelected(r);
@@ -140,6 +147,44 @@ const Admin = () => {
 
       <main className="container px-4 py-8">
         <h1 className="font-display text-2xl font-bold text-primary">Управление заявками</h1>
+
+        {/* Блок технических работ */}
+        <div className={`mt-5 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${maintenanceBanner ? 'border-yellow-300 bg-yellow-50' : 'border-border bg-card'}`}>
+          <div className="flex items-start gap-3">
+            <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${maintenanceBanner ? 'bg-yellow-200 text-yellow-700' : 'bg-secondary text-muted-foreground'}`}>
+              <Icon name="Construction" size={18} />
+            </div>
+            <div>
+              <p className="font-semibold text-primary">Баннер «Технические работы»</p>
+              <p className="text-sm text-muted-foreground">
+                {maintenanceBanner
+                  ? 'Сейчас показывается на сайте — клиенты видят уведомление'
+                  : 'Сейчас скрыт — клиенты работают в обычном режиме'}
+              </p>
+            </div>
+          </div>
+          <Button
+            disabled={bannerSaving}
+            size="sm"
+            onClick={async () => {
+              setBannerSaving(true);
+              const next = !maintenanceBanner;
+              try {
+                await apiSaveSiteSettings({ maintenance_banner: next ? 'true' : 'false' });
+                setMaintenanceBanner(next);
+              } catch (_e) { /* ignore */ } finally { setBannerSaving(false); }
+            }}
+            className={maintenanceBanner
+              ? 'bg-green-600 text-white hover:bg-green-700'
+              : 'bg-yellow-500 text-white hover:bg-yellow-600'}>
+            {bannerSaving
+              ? <span className="flex items-center gap-1.5"><Icon name="Loader2" size={14} className="animate-spin" /> Сохранение...</span>
+              : maintenanceBanner
+                ? <span className="flex items-center gap-1.5"><Icon name="EyeOff" size={14} /> Отключить баннер</span>
+                : <span className="flex items-center gap-1.5"><Icon name="Eye" size={14} /> Включить баннер</span>
+            }
+          </Button>
+        </div>
 
         {/* Статистика */}
         <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">

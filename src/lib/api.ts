@@ -134,3 +134,19 @@ export async function apiDeleteRequests(ref_numbers: string[]): Promise<void> {
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка удаления');
 }
+
+export async function apiGetSiteSettings(): Promise<Record<string, string>> {
+  const res = await fetch(`${URLS.get}?action=settings`);
+  if (!res.ok) return {};
+  return res.json();
+}
+
+export async function apiSaveSiteSettings(settings: Record<string, string>): Promise<void> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'save_settings', settings }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка сохранения');
+}

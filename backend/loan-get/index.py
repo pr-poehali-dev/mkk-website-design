@@ -34,6 +34,15 @@ def handler(event: dict, context) -> dict:
     req_headers = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
     is_admin = req_headers.get('x-admin-token') == ADMIN_TOKEN
 
+    # Публичный запрос настроек сайта
+    if params.get('action') == 'settings':
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(f"SELECT key, value FROM {SCHEMA}.site_settings")
+        rows = cur.fetchall()
+        conn.close()
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({r[0]: r[1] for r in rows})}
+
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
 
