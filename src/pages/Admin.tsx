@@ -1,52 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiGetAll, apiUpdateRequest, apiDeleteRequests, apiGetSiteSettings, apiSaveSiteSettings, type UserSession } from '@/lib/api';
+import { apiGetAll, apiDeleteRequests, apiGetSiteSettings, apiSaveSiteSettings, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
+import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
+import AdminRequestCard from '@/components/admin/AdminRequestCard';
+import AdminEditModal, { type EditForm } from '@/components/admin/AdminEditModal';
 
-const ADMIN_PASS = 'admin';
+const fmt = (n: number) => n.toLocaleString('ru-RU');
 
 const Admin = () => {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('zaimy_admin') === '1');
-  const [pass, setPass] = useState('');
-  const [err, setErr] = useState('');
   const [requests, setRequests] = useState<UserSession[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [selected, setSelected] = useState<UserSession | null>(null);
   const [saving, setSaving] = useState(false);
-  const [editForm, setEditForm] = useState({ status: '', amount: '', days: '', operator_comment: '', payment_bank: '' });
+  const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', payment_bank: '' });
   const [checkedRefs, setCheckedRefs] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
   const [maintenanceBanner, setMaintenanceBanner] = useState(false);
   const [bannerSaving, setBannerSaving] = useState(false);
-
-  const BANKS = [
-    { name: 'Сбербанк', icon: '🟢' },
-    { name: 'Тинькофф', icon: '🟡' },
-    { name: 'ВТБ', icon: '🔵' },
-    { name: 'Альфа-Банк', icon: '🔴' },
-    { name: 'Газпромбанк', icon: '🔷' },
-    { name: 'Россельхозбанк', icon: '🟩' },
-    { name: 'Почта Банк', icon: '📮' },
-    { name: 'Совкомбанк', icon: '🟠' },
-    { name: 'Открытие', icon: '🌐' },
-    { name: 'Другой банк', icon: '🏦' },
-  ];
-
-  const fmt = (n: number) => n.toLocaleString('ru-RU');
 
   const fetchAll = useCallback(async () => {
     setLoadingList(true);
     try {
       const data = await apiGetAll();
       setRequests(data);
-    } catch (_) {
+    } catch (_e) {
       // ignore
     } finally {
       setLoadingList(false);
@@ -71,54 +52,14 @@ const Admin = () => {
     });
   };
 
-  const handleSave = async () => {
-    if (!selected) return;
-    setSaving(true);
-    try {
-      await apiUpdateRequest({
-        ref_number: selected.ref_number,
-        status: editForm.status,
-        amount: parseInt(editForm.amount),
-        days: parseInt(editForm.days),
-        operator_comment: editForm.operator_comment,
-        payment_bank: editForm.payment_bank || null,
-      });
-      setRequests((prev) => prev.map((r) => r.ref_number === selected.ref_number
-        ? { ...r, status: editForm.status, amount: parseInt(editForm.amount), days: parseInt(editForm.days), operator_comment: editForm.operator_comment }
-        : r
-      ));
-      setSelected(null);
-    } catch (_) {
-      // ignore
-    } finally {
-      setSaving(false);
-    }
+  const handleCheck = (ref: string, checked: boolean) => {
+    const next = new Set(checkedRefs);
+    if (checked) next.add(ref); else next.delete(ref);
+    setCheckedRefs(next);
   };
 
   if (!authed) {
-    return (
-      <div className="relative flex min-h-screen items-center justify-center bg-primary px-4 text-primary-foreground">
-        <div className="hero-grid absolute inset-0 opacity-40" />
-        <div className="animate-fade-up relative w-full max-w-sm rounded-2xl bg-background p-8 text-foreground shadow-2xl">
-          <div className="mb-4 flex items-center gap-2 text-primary">
-            <Icon name="ShieldAlert" size={22} className="text-accent" />
-            <h1 className="font-display text-xl font-bold">Панель администратора</h1>
-          </div>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            if (pass === ADMIN_PASS) { sessionStorage.setItem('zaimy_admin', '1'); setAuthed(true); }
-            else setErr('Неверный пароль');
-          }} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="ap">Пароль администратора</Label>
-              <Input id="ap" type="password" value={pass} onChange={(e) => { setPass(e.target.value); setErr(''); }} placeholder="••••" />
-            </div>
-            {err && <p className="text-sm text-red-600">{err}</p>}
-            <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Войти</Button>
-          </form>
-        </div>
-      </div>
-    );
+    return <AdminLoginScreen onAuth={() => setAuthed(true)} />;
   }
 
   const stats = (Object.keys(STATUS_META) as StatusKey[]).map((k) => ({
@@ -148,7 +89,7 @@ const Admin = () => {
       <main className="container px-4 py-8">
         <h1 className="font-display text-2xl font-bold text-primary">Управление заявками</h1>
 
-        {/* Блок технических работ */}
+        {/* Баннер технических работ */}
         <div className={`mt-5 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${maintenanceBanner ? 'border-yellow-300 bg-yellow-50' : 'border-border bg-card'}`}>
           <div className="flex items-start gap-3">
             <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${maintenanceBanner ? 'bg-yellow-200 text-yellow-700' : 'bg-secondary text-muted-foreground'}`}>
@@ -172,7 +113,9 @@ const Admin = () => {
               try {
                 await apiSaveSiteSettings({ maintenance_banner: next ? 'true' : 'false' });
                 setMaintenanceBanner(next);
-              } catch (_e) { /* ignore */ } finally { setBannerSaving(false); }
+              } catch (_e) {
+                // ignore
+              } finally { setBannerSaving(false); }
             }}
             className={maintenanceBanner
               ? 'bg-green-600 text-white hover:bg-green-700'
@@ -193,8 +136,8 @@ const Admin = () => {
               <div className={`mb-2 flex h-10 w-10 items-center justify-center rounded-xl ${s.bg} ${s.color}`}>
                 <Icon name={s.icon} size={20} />
               </div>
-              <p className="font-display text-2xl font-bold text-primary">{s.count}</p>
-              <p className="text-xs text-muted-foreground">{s.label}</p>
+              <p className="text-2xl font-bold text-primary">{s.count}</p>
+              <p className="text-sm text-muted-foreground">{s.label}</p>
             </div>
           ))}
         </div>
@@ -217,7 +160,9 @@ const Admin = () => {
                     await apiDeleteRequests(Array.from(checkedRefs));
                     setRequests((prev) => prev.filter((r) => !checkedRefs.has(r.ref_number)));
                     setCheckedRefs(new Set());
-                  } catch (_e) { /* ignore */ } finally { setDeleting(false); }
+                  } catch (_e) {
+                    // ignore
+                  } finally { setDeleting(false); }
                 }}>
                 {deleting
                   ? <span className="flex items-center gap-1.5"><Icon name="Loader2" size={14} className="animate-spin" /> Удаление...</span>
@@ -238,47 +183,16 @@ const Admin = () => {
           {!loadingList && requests.length === 0 && (
             <p className="py-12 text-center text-muted-foreground">Заявок пока нет</p>
           )}
-          {requests.map((r) => {
-            const status = (r.status as StatusKey) in STATUS_META ? (r.status as StatusKey) : 'review';
-            const meta = STATUS_META[status];
-            return (
-              <div key={r.ref_number}
-                className={`animate-fade-up flex flex-col gap-4 rounded-2xl border bg-card p-5 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between ${checkedRefs.has(r.ref_number) ? 'border-red-300 bg-red-50' : 'border-border'}`}>
-                <div className="flex items-center gap-4">
-                  <input type="checkbox" checked={checkedRefs.has(r.ref_number)}
-                    onChange={(e) => {
-                      const next = new Set(checkedRefs);
-                      if (e.target.checked) next.add(r.ref_number); else next.delete(r.ref_number);
-                      setCheckedRefs(next);
-                    }}
-                    className="h-4 w-4 shrink-0 cursor-pointer accent-red-600" />
-                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${meta.bg} ${meta.color}`}>
-                    <Icon name={meta.icon} size={22} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-primary">
-                      {r.full_name} <span className="text-xs font-normal text-muted-foreground">· {r.ref_number}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {r.phone} · {fmt(r.amount)} ₽ / {r.days} дн. · {r.created_at?.slice(0, 10)}
-                    </p>
-                    {r.operator_comment && (
-                      <p className="mt-1 flex items-center gap-1 text-xs text-accent">
-                        <Icon name="MessageSquare" size={12} /> {r.operator_comment}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`hidden text-sm font-medium sm:block ${meta.color}`}>{meta.label}</span>
-                  <Button size="sm" variant="outline" onClick={() => openModal(r)}
-                    className="flex items-center gap-1.5">
-                    <Icon name="Pencil" size={14} /> Изменить
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+          {requests.map((r) => (
+            <AdminRequestCard
+              key={r.ref_number}
+              r={r}
+              checked={checkedRefs.has(r.ref_number)}
+              onCheck={handleCheck}
+              onEdit={openModal}
+              fmt={fmt}
+            />
+          ))}
         </div>
 
         <Link to="/" className="mt-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
@@ -286,236 +200,23 @@ const Admin = () => {
         </Link>
       </main>
 
-      {/* Модалка редактирования */}
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
-          <DialogHeader className="shrink-0">
-            <DialogTitle className="font-display text-xl text-primary">
-              Заявка {selected?.ref_number}
-            </DialogTitle>
-          </DialogHeader>
-
-          {selected && (
-            <div className="space-y-5 overflow-y-auto flex-1 pr-1">
-              {/* Данные клиента — только просмотр */}
-              <div className="rounded-xl bg-secondary p-4 text-sm space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Данные клиента</p>
-                {[
-                  { label: 'ФИО', value: selected.full_name },
-                  { label: 'Телефон', value: selected.phone },
-                  { label: 'Дата рождения', value: selected.birth_date },
-                  { label: 'Паспорт', value: selected.passport ? `${selected.passport}${selected.passport_by ? ` · ${selected.passport_by}` : ''}` : undefined },
-                  { label: 'Адрес проживания', value: selected.address_residence },
-                  { label: 'Адрес регистрации', value: selected.address_registration },
-                  { label: 'Место работы', value: selected.work_place },
-                  { label: 'Рабочий телефон', value: selected.work_phone },
-                  { label: 'Дата заявки', value: selected.created_at?.slice(0, 10) },
-                ].filter(f => f.value).map(f => (
-                  <div key={f.label} className="flex justify-between gap-4 border-b border-border pb-1.5 last:border-0 last:pb-0">
-                    <span className="text-muted-foreground shrink-0">{f.label}</span>
-                    <span className="font-medium text-primary text-right">{f.value}</span>
-                  </div>
-                ))}
-                {selected.income_doc_url && (
-                  <a href={selected.income_doc_url} target="_blank" rel="noopener noreferrer"
-                    className="mt-1 flex items-center gap-1.5 text-accent hover:underline">
-                    <Icon name="FileImage" size={14} /> Фото документа
-                  </a>
-                )}
-              </div>
-
-              {/* Статус */}
-              <div className="space-y-1.5">
-                <Label>Статус заявки</Label>
-                <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(STATUS_META) as StatusKey[]).map((k) => (
-                      <SelectItem key={k} value={k}>{STATUS_META[k].label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Сумма и срок */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-amount">Сумма займа (₽)</Label>
-                  <Input id="edit-amount" type="number" min={1000} max={500000}
-                    value={editForm.amount}
-                    onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-days">Срок (дней)</Label>
-                  <Input id="edit-days" type="number" min={1} max={365}
-                    value={editForm.days}
-                    onChange={(e) => setEditForm({ ...editForm, days: e.target.value })} />
-                </div>
-              </div>
-
-              {/* Расчёт займа */}
-              {editForm.amount && editForm.days && (
-                <div className="rounded-xl bg-accent/5 border border-accent/20 p-4 text-sm space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-accent">Расчёт займа</p>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Сумма займа</span>
-                    <span className="font-medium">{fmt(parseInt(editForm.amount) || 0)} ₽</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Срок</span>
-                    <span className="font-medium">{editForm.days} дн.</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Ставка</span>
-                    <span className="font-medium">0.8% / день</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Переплата</span>
-                    <span className="font-medium">{fmt(Math.round((parseInt(editForm.amount) || 0) * 0.008 * (parseInt(editForm.days) || 0)))} ₽</span>
-                  </div>
-                  <div className="flex justify-between border-t border-accent/20 pt-2">
-                    <span className="font-semibold text-primary">К возврату</span>
-                    <span className="font-bold text-primary text-base">
-                      {fmt((parseInt(editForm.amount) || 0) + Math.round((parseInt(editForm.amount) || 0) * 0.008 * (parseInt(editForm.days) || 0)))} ₽
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Договор займа */}
-              {editForm.amount && editForm.days && (() => {
-                const amt = parseInt(editForm.amount) || 0;
-                const dys = parseInt(editForm.days) || 0;
-                const overpay = Math.round(amt * 0.008 * dys);
-                const total = amt + overpay;
-                const contractCode = `ДГ-${selected.ref_number}-${selected.created_at?.slice(0, 10).replace(/-/g, '')}`;
-                const returnDate = (() => {
-                  const d = new Date(selected.created_at || Date.now());
-                  d.setDate(d.getDate() + dys);
-                  return d.toLocaleDateString('ru-RU');
-                })();
-                const getHtml = () => `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Договор займа ${contractCode}</title><style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#111;font-size:13px;line-height:1.6}h1{font-size:18px;text-align:center;margin-bottom:4px}h2{font-size:14px;margin-top:24px;border-bottom:1px solid #ccc;padding-bottom:4px}p{margin:4px 0}.row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee}.label{color:#666}.val{font-weight:bold}.total{font-size:15px;color:#1a56db}.sign{margin-top:40px;display:flex;justify-content:space-between}.sign-box{text-align:center;width:45%}.sign-line{border-top:1px solid #111;margin-top:30px;padding-top:4px;font-size:11px;color:#666}</style></head><body><h1>ДОГОВОР ЗАЙМА</h1><p style="text-align:center;color:#666">${contractCode} &nbsp;·&nbsp; от ${selected.created_at?.slice(0,10)}</p><h2>Стороны</h2><p><b>Займодавец:</b> ООО МКК «Займы Плюс»</p><p><b>Заёмщик:</b> ${selected.full_name}, тел. ${selected.phone}</p><h2>Условия займа</h2><div class="row"><span class="label">Сумма займа</span><span class="val">${fmt(amt)} ₽</span></div><div class="row"><span class="label">Срок</span><span class="val">${dys} дней</span></div><div class="row"><span class="label">Процентная ставка</span><span class="val">0.8% в день</span></div><div class="row"><span class="label">Начисленные проценты</span><span class="val">${fmt(overpay)} ₽</span></div><div class="row"><span class="label">Дата возврата</span><span class="val">${returnDate}</span></div><div class="row"><span class="label total">Итого к возврату</span><span class="val total">${fmt(total)} ₽</span></div><h2>Реквизиты заявки</h2><p>Номер заявки: <b>${selected.ref_number}</b></p><p>Паспорт: <b>${selected.passport || '—'}</b></p><div class="sign"><div class="sign-box"><div class="sign-line">Займодавец / ООО МКК «Займы Плюс»</div></div><div class="sign-box"><div class="sign-line">Заёмщик / ${selected.full_name}</div></div></div></body></html>`;
-                return (
-                  <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Договор займа</p>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                        <Icon name="FileText" size={18} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-primary">{contractCode}</p>
-                        <p className="text-xs text-muted-foreground">К возврату {fmt(total)} ₽ · до {returnDate}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="flex-1 gap-1.5"
-                        onClick={() => {
-                          const blob = new Blob([getHtml()], { type: 'text/html' });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url; a.download = `Договор_${contractCode}.html`; a.click();
-                          URL.revokeObjectURL(url);
-                        }}>
-                        <Icon name="Download" size={14} /> Скачать
-                      </Button>
-                      <Button size="sm" variant="outline" className="flex-1 gap-1.5"
-                        onClick={() => {
-                          const blob = new Blob([getHtml()], { type: 'text/html' });
-                          const url = URL.createObjectURL(blob);
-                          window.open(url, '_blank');
-                        }}>
-                        <Icon name="Eye" size={14} /> Просмотреть
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Способ получения */}
-              <div className="space-y-2">
-                <Label>Способ получения займа</Label>
-                {editForm.payment_bank ? (
-                  <div className="flex items-center justify-between rounded-xl border border-accent/40 bg-accent/5 px-4 py-3">
-                    <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                      <Icon name="Smartphone" size={16} className="text-accent" />
-                      {BANKS.find(b => b.name === editForm.payment_bank)?.icon} {editForm.payment_bank} · СБП
-                    </div>
-                    <button onClick={() => setEditForm({ ...editForm, payment_bank: '' })}
-                      className="text-xs text-muted-foreground hover:text-red-500">Сбросить</button>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">Клиент ещё не выбрал банк</p>
-                )}
-                <div className="grid grid-cols-2 gap-1.5">
-                  {BANKS.map((bank) => (
-                    <button key={bank.name}
-                      onClick={() => setEditForm({ ...editForm, payment_bank: bank.name })}
-                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${editForm.payment_bank === bank.name ? 'border-accent bg-accent/10 text-primary' : 'border-border bg-card text-primary hover:bg-secondary'}`}>
-                      <span>{bank.icon}</span>
-                      <span>{bank.name}</span>
-                      {editForm.payment_bank === bank.name && <Icon name="Check" size={12} className="ml-auto text-accent" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Комментарий оператора */}
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-comment">Комментарий оператора</Label>
-                <Textarea id="edit-comment" rows={3}
-                  placeholder="Будет виден клиенту в личном кабинете..."
-                  value={editForm.operator_comment}
-                  onChange={(e) => setEditForm({ ...editForm, operator_comment: e.target.value })} />
-              </div>
-
-              <div className="flex gap-3">
-                <Button onClick={handleSave} disabled={saving}
-                  className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90">
-                  {saving
-                    ? <span className="flex items-center gap-2"><Icon name="Loader2" size={16} className="animate-spin" /> Сохранение...</span>
-                    : <span className="flex items-center gap-2"><Icon name="Save" size={16} /> Сохранить</span>
-                  }
-                </Button>
-                <Button variant="outline" onClick={() => setSelected(null)} className="flex-1">
-                  Отмена
-                </Button>
-              </div>
-
-              {/* Блокировка кабинета */}
-              <div className={`rounded-xl border p-4 ${selected.is_blocked ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-primary">
-                      {selected.is_blocked ? 'Кабинет заблокирован' : 'Кабинет активен'}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {selected.is_blocked ? 'Клиент не может войти в личный кабинет' : 'Клиент имеет доступ к личному кабинету'}
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={saving}
-                    onClick={async () => {
-                      if (!selected) return;
-                      setSaving(true);
-                      const newBlocked = !selected.is_blocked;
-                      try {
-                        await apiUpdateRequest({ ref_number: selected.ref_number, is_blocked: newBlocked });
-                        setRequests((prev) => prev.map((r) => r.ref_number === selected.ref_number ? { ...r, is_blocked: newBlocked } : r));
-                        setSelected({ ...selected, is_blocked: newBlocked });
-                      } catch (_e) { /* ignore */ } finally { setSaving(false); }
-                    }}
-                    className={selected.is_blocked ? 'border-green-400 text-green-700 hover:bg-green-100' : 'border-red-400 text-red-600 hover:bg-red-100'}>
-                    <Icon name={selected.is_blocked ? 'LockOpen' : 'Lock'} size={14} className="mr-1.5" />
-                    {selected.is_blocked ? 'Разблокировать' : 'Заблокировать'}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <AdminEditModal
+        selected={selected}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        saving={saving}
+        setSaving={setSaving}
+        onClose={() => setSelected(null)}
+        onSaved={(updated) => {
+          setRequests((prev) => prev.map((r) =>
+            r.ref_number === updated.ref_number ? { ...r, ...updated } : r
+          ));
+        }}
+        onBlockToggled={(ref_number, is_blocked) => {
+          setRequests((prev) => prev.map((r) => r.ref_number === ref_number ? { ...r, is_blocked } : r));
+          setSelected((prev) => prev ? { ...prev, is_blocked } : null);
+        }}
+      />
     </div>
   );
 };
