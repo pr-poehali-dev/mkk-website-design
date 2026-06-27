@@ -50,6 +50,10 @@ def handler(event: dict, context) -> dict:
         fields.append('operator_comment = %s')
         values.append(body['operator_comment'] or None)
 
+    if 'payment_bank' in body:
+        fields.append('payment_bank = %s')
+        values.append(body['payment_bank'] or None)
+
     if not fields:
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нет полей для обновления'})}
 
