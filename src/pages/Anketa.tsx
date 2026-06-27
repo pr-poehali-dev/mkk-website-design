@@ -107,6 +107,20 @@ const Anketa = () => {
   const [incomeUploading, setIncomeUploading] = useState(false);
 
   const upd1 = (k: keyof typeof f1) => (e: React.ChangeEvent<HTMLInputElement>) => setF1({ ...f1, [k]: e.target.value });
+
+  const handlePhone = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.startsWith('8')) v = '7' + v.slice(1);
+    if (v.startsWith('7')) v = v.slice(0, 11);
+    else v = ('7' + v).slice(0, 11);
+    const d = v.slice(1);
+    let fmt = '+7';
+    if (d.length > 0) fmt += ' (' + d.slice(0, 3);
+    if (d.length >= 3) fmt += ') ' + d.slice(3, 6);
+    if (d.length >= 6) fmt += '-' + d.slice(6, 8);
+    if (d.length >= 8) fmt += '-' + d.slice(8, 10);
+    setF1({ ...f1, phone: fmt });
+  };
   const upd2 = (k: keyof typeof f2) => (e: React.ChangeEvent<HTMLInputElement>) => setF2({ ...f2, [k]: e.target.value });
   const upd4 = (k: keyof typeof f4) => (e: React.ChangeEvent<HTMLInputElement>) => setF4({ ...f4, [k]: e.target.value });
 
@@ -252,7 +266,7 @@ const Anketa = () => {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="phone">Телефон *</Label>
-                  <Input id="phone" type="tel" placeholder="+7 (___) ___-__-__" value={f1.phone} onChange={upd1('phone')} required />
+                  <Input id="phone" type="tel" placeholder="+7 (___) ___-__-__" value={f1.phone} onChange={handlePhone} onFocus={() => { if (!f1.phone) setF1({ ...f1, phone: '+7 ' }); }} required />
                 </div>
               </div>
               <div className="space-y-1.5">
