@@ -79,11 +79,25 @@ const CabinetStatusCard = ({
               );
             })}
           </div>
+        ) : status === 'transfer_error' ? (
+          <div className="p-6 space-y-4">
+            <p className="text-sm text-muted-foreground">При переводе средств произошла ошибка. Пожалуйста, свяжитесь с нами удобным способом — мы решим вопрос в кратчайшие сроки.</p>
+            <div className="flex flex-col gap-2">
+              <a href="tel:+78001234567"
+                className="flex items-center gap-3 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-medium text-orange-700 hover:bg-orange-100 transition-colors">
+                <Icon name="Phone" size={18} className="shrink-0" />
+                <span>Позвонить: 8-800-123-45-67</span>
+              </a>
+              <a href="https://t.me/zaimyplus_support" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors">
+                <Icon name="MessageCircle" size={18} className="shrink-0" />
+                <span>Написать в чат поддержки</span>
+              </a>
+            </div>
+          </div>
         ) : (
           <div className="p-6 text-sm text-muted-foreground">
-            {status === 'transfer_error'
-              ? 'При переводе средств произошла ошибка. Пожалуйста, обратитесь в поддержку или дождитесь звонка оператора.'
-              : 'К сожалению, по заявке принято отрицательное решение. Вы можете подать новую заявку через 7 дней.'}
+            К сожалению, по заявке принято отрицательное решение. Вы можете подать новую заявку через 7 дней.
           </div>
         )}
       </div>
