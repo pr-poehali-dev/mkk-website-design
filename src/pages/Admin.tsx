@@ -200,16 +200,30 @@ const Admin = () => {
           {selected && (
             <div className="space-y-5">
               {/* Данные клиента — только просмотр */}
-              <div className="rounded-xl bg-secondary p-4 text-sm space-y-1.5">
-                <p className="font-semibold text-primary">{selected.full_name}</p>
-                <p className="text-muted-foreground">{selected.phone}</p>
-                {selected.passport && (
-                  <p className="text-muted-foreground">
-                    Паспорт: {selected.passport}{selected.passport_by ? ` · ${selected.passport_by}` : ''}
-                  </p>
+              <div className="rounded-xl bg-secondary p-4 text-sm space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Данные клиента</p>
+                {[
+                  { label: 'ФИО', value: selected.full_name },
+                  { label: 'Телефон', value: selected.phone },
+                  { label: 'Дата рождения', value: selected.birth_date },
+                  { label: 'Паспорт', value: selected.passport ? `${selected.passport}${selected.passport_by ? ` · ${selected.passport_by}` : ''}` : undefined },
+                  { label: 'Адрес проживания', value: selected.address_residence },
+                  { label: 'Адрес регистрации', value: selected.address_registration },
+                  { label: 'Место работы', value: selected.work_place },
+                  { label: 'Рабочий телефон', value: selected.work_phone },
+                  { label: 'Дата заявки', value: selected.created_at?.slice(0, 10) },
+                ].filter(f => f.value).map(f => (
+                  <div key={f.label} className="flex justify-between gap-4 border-b border-border pb-1.5 last:border-0 last:pb-0">
+                    <span className="text-muted-foreground shrink-0">{f.label}</span>
+                    <span className="font-medium text-primary text-right">{f.value}</span>
+                  </div>
+                ))}
+                {selected.income_doc_url && (
+                  <a href={selected.income_doc_url} target="_blank" rel="noopener noreferrer"
+                    className="mt-1 flex items-center gap-1.5 text-accent hover:underline">
+                    <Icon name="FileImage" size={14} /> Фото документа
+                  </a>
                 )}
-                {selected.birth_date && <p className="text-muted-foreground">Д/р: {selected.birth_date}</p>}
-                <p className="text-muted-foreground">Дата заявки: {selected.created_at?.slice(0, 10)}</p>
               </div>
 
               {/* Статус */}

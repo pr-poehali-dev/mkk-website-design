@@ -7,7 +7,8 @@ SCHEMA = os.environ['MAIN_DB_SCHEMA']
 ADMIN_TOKEN = 'admin_zaimy_plus'
 
 COLS = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'passport_by',
-        'birth_date', 'amount', 'days', 'status', 'operator_comment', 'created_at']
+        'birth_date', 'amount', 'days', 'status', 'operator_comment', 'created_at',
+        'address_residence', 'address_registration', 'work_place', 'work_phone', 'income_doc_url']
 
 def row_to_dict(row):
     d = dict(zip(COLS, row))
@@ -38,7 +39,8 @@ def handler(event: dict, context) -> dict:
     if is_admin:
         cur.execute(
             f"""SELECT id, ref_number, full_name, phone, passport, passport_by,
-                       birth_date, amount, days, status, operator_comment, created_at
+                       birth_date, amount, days, status, operator_comment, created_at,
+                       address_residence, address_registration, work_place, work_phone, income_doc_url
                 FROM {SCHEMA}.loan_requests ORDER BY created_at DESC"""
         )
         rows = cur.fetchall()
@@ -51,7 +53,8 @@ def handler(event: dict, context) -> dict:
 
     cur.execute(
         f"""SELECT id, ref_number, full_name, phone, passport, passport_by,
-                   birth_date, amount, days, status, operator_comment, created_at
+                   birth_date, amount, days, status, operator_comment, created_at,
+                   address_residence, address_registration, work_place, work_phone, income_doc_url
             FROM {SCHEMA}.loan_requests WHERE ref_number = %s""",
         (ref,)
     )

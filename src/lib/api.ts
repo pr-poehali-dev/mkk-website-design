@@ -22,6 +22,11 @@ export interface UserSession {
   status: string;
   operator_comment?: string | null;
   created_at: string;
+  address_residence?: string;
+  address_registration?: string;
+  work_place?: string;
+  work_phone?: string;
+  income_doc_url?: string;
 }
 
 export function getSession(): UserSession | null {
