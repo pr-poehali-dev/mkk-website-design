@@ -387,6 +387,93 @@ const Cabinet = () => {
             <DialogTitle className="font-display text-xl text-primary">Мои документы</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto flex-1 pr-1">
+
+            {/* Договор займа */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Договор займа</p>
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon name="FileText" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-primary">{contractCode}</p>
+                    <p className="text-xs text-muted-foreground">от {user.created_at?.slice(0, 10)}</p>
+                  </div>
+                </div>
+                <dl className="space-y-1.5 text-sm border-t border-border pt-3">
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Сумма займа</dt>
+                    <dd className="font-semibold">{fmt(user.amount)} ₽</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Срок</dt>
+                    <dd className="font-semibold">{user.days} дн.</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Ставка</dt>
+                    <dd className="font-semibold">0.8% / день</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Проценты</dt>
+                    <dd className="font-semibold text-orange-600">{fmt(Math.round(user.amount * 0.008 * user.days))} ₽</dd>
+                  </div>
+                  <div className="flex justify-between border-t border-border pt-1.5">
+                    <dt className="font-semibold text-primary">К возврату</dt>
+                    <dd className="font-bold text-accent">{fmt(user.amount + Math.round(user.amount * 0.008 * user.days))} ₽</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Дата возврата</dt>
+                    <dd className="font-semibold">
+                      {(() => {
+                        const d = new Date(user.created_at || Date.now());
+                        d.setDate(d.getDate() + user.days);
+                        return d.toLocaleDateString('ru-RU');
+                      })()}
+                    </dd>
+                  </div>
+                </dl>
+                <Button size="sm" variant="outline"
+                  className="w-full mt-1 gap-2"
+                  onClick={() => {
+                    const returnDate = (() => {
+                      const d = new Date(user.created_at || Date.now());
+                      d.setDate(d.getDate() + user.days);
+                      return d.toLocaleDateString('ru-RU');
+                    })();
+                    const overpay = Math.round(user.amount * 0.008 * user.days);
+                    const total = user.amount + overpay;
+                    const html = `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Договор займа ${contractCode}</title><style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#111;font-size:13px;line-height:1.6}h1{font-size:18px;text-align:center;margin-bottom:4px}h2{font-size:14px;margin-top:24px;border-bottom:1px solid #ccc;padding-bottom:4px}p{margin:4px 0}.row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee}.label{color:#666}.val{font-weight:bold}.total{font-size:15px;color:#1a56db}.sign{margin-top:40px;display:flex;justify-content:space-between}.sign-box{text-align:center;width:45%}.sign-line{border-top:1px solid #111;margin-top:30px;padding-top:4px;font-size:11px;color:#666}</style></head><body>
+                    <h1>ДОГОВОР ЗАЙМА</h1><p style="text-align:center;color:#666">${contractCode} &nbsp;·&nbsp; от ${user.created_at?.slice(0,10)}</p>
+                    <h2>Стороны</h2>
+                    <p><b>Займодавец:</b> ООО МКК «Займы Плюс»</p>
+                    <p><b>Заёмщик:</b> ${user.full_name}, тел. ${user.phone}</p>
+                    <h2>Условия займа</h2>
+                    <div class="row"><span class="label">Сумма займа</span><span class="val">${fmt(user.amount)} ₽</span></div>
+                    <div class="row"><span class="label">Срок</span><span class="val">${user.days} дней</span></div>
+                    <div class="row"><span class="label">Процентная ставка</span><span class="val">0.8% в день</span></div>
+                    <div class="row"><span class="label">Начисленные проценты</span><span class="val">${fmt(overpay)} ₽</span></div>
+                    <div class="row"><span class="label">Дата возврата</span><span class="val">${returnDate}</span></div>
+                    <div class="row"><span class="label total">Итого к возврату</span><span class="val total">${fmt(total)} ₽</span></div>
+                    <h2>Реквизиты заявки</h2>
+                    <p>Номер заявки: <b>${user.ref_number}</b></p>
+                    <p>Паспорт: <b>${user.passport || '—'}</b></p>
+                    <div class="sign"><div class="sign-box"><div class="sign-line">Займодавец / ООО МКК «Займы Плюс»</div></div><div class="sign-box"><div class="sign-line">Заёмщик / ${user.full_name}</div></div></div>
+                    </body></html>`;
+                    const blob = new Blob([html], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Договор_${contractCode}.html`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}>
+                  <Icon name="Download" size={14} />
+                  Скачать договор
+                </Button>
+              </div>
+            </div>
+
             {/* Фото с анкеты */}
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Фото документов</p>
