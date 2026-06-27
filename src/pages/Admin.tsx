@@ -205,15 +205,15 @@ const Admin = () => {
 
       {/* Модалка редактирования */}
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="font-display text-xl text-primary">
               Заявка {selected?.ref_number}
             </DialogTitle>
           </DialogHeader>
 
           {selected && (
-            <div className="space-y-5">
+            <div className="space-y-5 overflow-y-auto flex-1 pr-1">
               {/* Данные клиента — только просмотр */}
               <div className="rounded-xl bg-secondary p-4 text-sm space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Данные клиента</p>
