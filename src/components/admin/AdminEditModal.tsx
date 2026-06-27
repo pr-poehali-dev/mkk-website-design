@@ -170,19 +170,32 @@ const AdminEditModal = ({
                   <span className="font-medium text-primary text-right">{f.value}</span>
                 </div>
               ))}
-              {selected.passport_photo_url && (
-                <a href={selected.passport_photo_url} target="_blank" rel="noopener noreferrer"
-                  className="mt-1 flex items-center gap-1.5 text-accent hover:underline text-xs">
-                  <Icon name="FileImage" size={14} /> Фото паспорта
-                </a>
-              )}
-              {selected.income_doc_url && (
-                <a href={selected.income_doc_url} target="_blank" rel="noopener noreferrer"
-                  className="mt-1 flex items-center gap-1.5 text-accent hover:underline text-xs">
-                  <Icon name="FileImage" size={14} /> Справка с места работы
-                </a>
-              )}
             </div>
+
+            {/* Документы клиента */}
+            {(selected.passport_photo_url || selected.registration_photo_url || selected.income_doc_url) && (
+              <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Документы клиента</p>
+                {selected.passport_photo_url && (
+                  <a href={selected.passport_photo_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs text-accent hover:underline">
+                    <Icon name="FileImage" size={13} /> Фото паспорта
+                  </a>
+                )}
+                {selected.registration_photo_url && (
+                  <a href={selected.registration_photo_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs text-accent hover:underline">
+                    <Icon name="FileImage" size={13} /> Фото регистрации
+                  </a>
+                )}
+                {selected.income_doc_url && (
+                  <a href={selected.income_doc_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs text-accent hover:underline">
+                    <Icon name="FileImage" size={13} /> Справка о доходах
+                  </a>
+                )}
+              </div>
+            )}
 
             {/* Документы — загрузка администратором */}
             <div className="rounded-xl border border-border bg-card p-4 space-y-3">

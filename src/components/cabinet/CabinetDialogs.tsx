@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, apiChangePassword, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, saveSession, type UserSession } from '@/lib/api';
 import { buildContractHtml } from '@/components/admin/contractHtml';
 
 const BANKS = [
@@ -80,6 +80,24 @@ const CabinetDialogs = ({
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
+
+  const [docUploading, setDocUploading] = useState<string | null>(null);
+  const [docSaved, setDocSaved] = useState<string | null>(null);
+
+  const handleUploadDoc = async (file: File, field: 'passport_photo_url' | 'registration_photo_url' | 'income_doc_url') => {
+    setDocUploading(field);
+    setDocSaved(null);
+    try {
+      const url = await apiUploadFile(file);
+      await apiUpdateClientDocs({ ref_number: user.ref_number, [field]: url });
+      const fresh = await apiGetRequest(user.ref_number);
+      saveSession(fresh);
+      setUser(fresh);
+      setDocSaved(field);
+    } finally {
+      setDocUploading(null);
+    }
+  };
 
   const handleChangePassword = async () => {
     setPwError('');
@@ -352,49 +370,59 @@ const CabinetDialogs = ({
               </div>
             </div>
 
-            {/* Фото документов */}
+            {/* Фото документов — загрузка клиентом */}
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Фото документов</p>
               <div className="space-y-2">
-                {user.passport_photo_url && (
-                  <a href={user.passport_photo_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-xl border border-border bg-secondary p-4 hover:bg-accent/5 transition-colors">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <Icon name="FileImage" size={20} />
+                {(
+                  [
+                    { field: 'passport_photo_url' as const, label: 'Фото паспорта', hint: 'Разворот с фотографией' },
+                    { field: 'registration_photo_url' as const, label: 'Фото регистрации', hint: 'Страница с пропиской' },
+                    { field: 'income_doc_url' as const, label: 'Справка о доходах', hint: 'С места работы' },
+                  ]
+                ).map(({ field, label, hint }) => {
+                  const url = user[field];
+                  const isLoading = docUploading === field;
+                  const isSaved = docSaved === field;
+                  return (
+                    <div key={field} className="rounded-xl border border-border bg-card overflow-hidden">
+                      <div className="flex items-center gap-3 p-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Icon name={url ? 'FileCheck' : 'FileImage'} size={18} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-primary">{label}</p>
+                          <p className="text-xs text-muted-foreground">{hint}</p>
+                        </div>
+                        {url && (
+                          <a href={url} target="_blank" rel="noopener noreferrer"
+                            className="shrink-0 text-xs text-accent hover:underline">
+                            Открыть
+                          </a>
+                        )}
+                      </div>
+                      <label className={`flex cursor-pointer items-center justify-center gap-2 border-t border-border px-3 py-2 text-xs transition-colors ${isLoading ? 'pointer-events-none bg-secondary text-muted-foreground' : 'hover:bg-accent/5 text-accent'}`}>
+                        {isLoading
+                          ? <><Icon name="Loader2" size={13} className="animate-spin" /> Загрузка...</>
+                          : isSaved
+                            ? <><Icon name="Check" size={13} className="text-green-600" /> <span className="text-green-600">Сохранено</span></>
+                            : <><Icon name="Upload" size={13} /> {url ? 'Заменить файл' : 'Загрузить'}</>}
+                        <input type="file" accept="image/*,application/pdf" className="hidden"
+                          disabled={isLoading}
+                          onChange={e => { const f = e.target.files?.[0]; if (f) handleUploadDoc(f, field); e.target.value = ''; }} />
+                      </label>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-primary">Фото паспорта</p>
-                      <p className="text-xs text-accent">Открыть →</p>
-                    </div>
-                  </a>
-                )}
-                {user.income_doc_url && (
-                  <a href={user.income_doc_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-xl border border-border bg-secondary p-4 hover:bg-accent/5 transition-colors">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <Icon name="FileImage" size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-primary">Справка с места работы</p>
-                      <p className="text-xs text-accent">Открыть →</p>
-                    </div>
-                  </a>
-                )}
-                {user.doc_urls && user.doc_urls.length > 0 && user.doc_urls.map((url, i) => (
-                  <a key={url} href={url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-xl border border-border bg-secondary p-4 hover:bg-accent/5 transition-colors">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <Icon name="FileImage" size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-primary">Документ {i + 1}</p>
-                      <p className="text-xs text-accent">Открыть →</p>
-                    </div>
-                  </a>
-                ))}
-                {!user.passport_photo_url && !user.income_doc_url && (!user.doc_urls || user.doc_urls.length === 0) && (
-                  <div className="flex items-center gap-3 rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                    <Icon name="ImageOff" size={18} /> Документы не загружены
+                  );
+                })}
+                {user.doc_urls && user.doc_urls.length > 0 && (
+                  <div className="pt-1">
+                    <p className="mb-1.5 text-xs text-muted-foreground">Документы от оператора:</p>
+                    {user.doc_urls.map((url, i) => (
+                      <a key={url} href={url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-accent hover:underline mb-1">
+                        <Icon name="FileImage" size={13} /> Документ {i + 1}
+                      </a>
+                    ))}
                   </div>
                 )}
               </div>

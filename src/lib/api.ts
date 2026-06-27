@@ -32,6 +32,7 @@ export interface UserSession {
   email?: string | null;
   doc_urls?: string[] | null;
   passport_photo_url?: string | null;
+  registration_photo_url?: string | null;
 }
 
 export function getSession(): UserSession | null {
@@ -125,6 +126,21 @@ export async function apiUpdateRequest(data: {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
     body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+}
+
+export async function apiUpdateClientDocs(data: {
+  ref_number: string;
+  passport_photo_url?: string;
+  registration_photo_url?: string;
+  income_doc_url?: string;
+}): Promise<void> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'client_update_docs', ...data }),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка');

@@ -19,10 +19,40 @@ def handler(event: dict, context) -> dict:
 
     req_headers = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
     token = req_headers.get('x-admin-token', '')
-    if token != ADMIN_TOKEN:
-        return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
+    is_admin = token == ADMIN_TOKEN
 
     body = json.loads(event.get('body') or '{}')
+
+    # Клиент обновляет свои документы (без admin-токена)
+    if not is_admin and body.get('action') == 'client_update_docs':
+        ref = body.get('ref_number')
+        if not ref:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}
+        fields = []
+        values = []
+        for field in ('passport_photo_url', 'registration_photo_url', 'income_doc_url'):
+            if field in body:
+                fields.append(f'{field} = %s')
+                values.append(body[field] or None)
+        if not fields:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нет полей для обновления'})}
+        fields.append('updated_at = NOW()')
+        values.append(ref)
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {SCHEMA}.loan_requests SET {', '.join(fields)} WHERE ref_number = %s RETURNING id",
+            values
+        )
+        updated = cur.fetchone()
+        conn.commit()
+        conn.close()
+        if not updated:
+            return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
+
+    if not is_admin:
+        return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
 
     # Сохранение настроек сайта
     if body.get('action') == 'save_settings':
