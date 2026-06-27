@@ -4,6 +4,24 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
 
+const FaqItem = ({ q, a }: { q: string; a: string }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="group">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors hover:bg-secondary/50"
+      >
+        <span className="font-medium text-primary">{q}</span>
+        <Icon name={open ? 'ChevronUp' : 'ChevronDown'} size={18} className="shrink-0 text-muted-foreground" />
+      </button>
+      {open && (
+        <div className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">{a}</div>
+      )}
+    </div>
+  );
+};
+
 const RATE = 0.008; // 0.8% в день
 
 const Index = () => {
@@ -22,6 +40,15 @@ const Index = () => {
     { icon: 'ShieldCheck', title: 'Защита данных', text: 'Шифрование уровня банков. Документы под надёжной защитой.' },
     { icon: 'Percent', title: 'Прозрачные условия', text: 'Никаких скрытых комиссий. Вы видите итоговую сумму сразу.' },
     { icon: 'CreditCard', title: 'Деньги на карту', text: 'Перевод на карту любого банка России круглосуточно.' },
+  ];
+
+  const faqs = [
+    { q: 'Какова максимальная сумма займа?', a: 'Мы выдаём займы от 1 000 до 100 000 ₽. Первый займ — до 30 000 ₽, повторным клиентам доступна полная сумма.' },
+    { q: 'Как быстро придут деньги?', a: 'Средства поступают на карту в течение 5–15 минут после одобрения. Переводы работают круглосуточно, включая праздники.' },
+    { q: 'Какие документы нужны для займа?', a: 'Достаточно паспорта гражданина РФ. Справки о доходах, поручители и залог не требуются.' },
+    { q: 'Какая процентная ставка?', a: 'Ставка составляет 0,8% в день. Итоговая сумма к возврату всегда отображается в калькуляторе до подачи заявки — никаких скрытых комиссий.' },
+    { q: 'Можно ли погасить займ досрочно?', a: 'Да, досрочное погашение возможно в любой день. Проценты начисляются только за фактический срок пользования деньгами.' },
+    { q: 'Что делать, если не могу вовремя оплатить?', a: 'Свяжитесь с нами заранее — оператор предложит удобный вариант: пролонгацию или реструктуризацию долга. Не ждите до последнего.' },
   ];
 
   const steps = [
@@ -48,6 +75,7 @@ const Index = () => {
             <a href="#calc" className="text-muted-foreground transition-colors hover:text-primary">Калькулятор</a>
             <a href="#how" className="text-muted-foreground transition-colors hover:text-primary">Как это работает</a>
             <a href="#why" className="text-muted-foreground transition-colors hover:text-primary">Преимущества</a>
+            <a href="#faq" className="text-muted-foreground transition-colors hover:text-primary">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="text-primary hover:bg-secondary">
@@ -181,6 +209,19 @@ const Index = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="container px-4 py-16 md:py-24">
+        <div className="mb-12 text-center">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-accent">Часто спрашивают</p>
+          <h2 className="font-display text-3xl font-bold text-primary sm:text-4xl">Вопросы и ответы</h2>
+        </div>
+        <div className="mx-auto max-w-2xl divide-y divide-border rounded-2xl border border-border bg-card">
+          {faqs.map((item, i) => (
+            <FaqItem key={i} q={item.q} a={item.a} />
+          ))}
         </div>
       </section>
 
