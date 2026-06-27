@@ -200,7 +200,7 @@ const Index = () => {
       <footer className="bg-primary text-primary-foreground/70">
         <div className="container border-t border-primary-foreground/10 px-4 py-10 text-sm">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <p className="font-display text-lg font-bold tracking-wide text-primary-foreground">ЗАЙМЫ ПЛЮС</p>
+            <p className="font-display text-lg font-bold tracking-wide text-primary-foreground text-center">ЗАЙМЫ ПЛЮС</p>
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/40">Служба поддержки</p>
               <a href="tel:84999610736" className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
