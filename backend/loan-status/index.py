@@ -1,4 +1,4 @@
-"""Обновление заявки администратором: статус, сумма, срок, комментарий оператора."""
+"""Обновление/удаление заявок администратором."""
 import json
 import os
 import psycopg2
@@ -10,7 +10,7 @@ VALID_STATUSES = ('review', 'approved', 'issued', 'rejected')
 def handler(event: dict, context) -> dict:
     headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
     }
 
@@ -23,6 +23,20 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
 
     body = json.loads(event.get('body') or '{}')
+
+    # Удаление списка заявок
+    if event.get('httpMethod') == 'DELETE' or body.get('action') == 'delete':
+        refs = body.get('ref_numbers', [])
+        if not refs:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_numbers обязателен'})}
+        placeholders = ', '.join(['%s'] * len(refs))
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {SCHEMA}.loan_requests WHERE ref_number IN ({placeholders}) RETURNING ref_number", refs)
+        deleted = [row[0] for row in cur.fetchall()]
+        conn.commit()
+        conn.close()
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True, 'deleted': deleted})}
     ref = body.get('ref_number')
     if not ref:
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}

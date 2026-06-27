@@ -1,0 +1,6 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+    {"name": "No admin token", "method": "POST", "path": "/", "body": {"ref_numbers": ["ZP-0001"]}, "expectedStatus": 403}
+  ]
+}

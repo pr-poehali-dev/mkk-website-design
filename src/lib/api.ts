@@ -124,3 +124,13 @@ export async function apiUpdateRequest(data: {
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка');
 }
+
+export async function apiDeleteRequests(ref_numbers: string[]): Promise<void> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'delete', ref_numbers }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка удаления');
+}

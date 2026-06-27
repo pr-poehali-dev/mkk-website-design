@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiGetAll, apiUpdateRequest, type UserSession } from '@/lib/api';
+import { apiGetAll, apiUpdateRequest, apiDeleteRequests, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 
 const ADMIN_PASS = 'admin';
@@ -21,6 +21,8 @@ const Admin = () => {
   const [selected, setSelected] = useState<UserSession | null>(null);
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState({ status: '', amount: '', days: '', operator_comment: '', payment_bank: '' });
+  const [checkedRefs, setCheckedRefs] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
 
   const BANKS = [
     { name: 'Сбербанк', icon: '🟢' },
@@ -152,6 +154,35 @@ const Admin = () => {
           ))}
         </div>
 
+        {/* Панель удаления */}
+        {checkedRefs.size > 0 && (
+          <div className="mt-4 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            <span className="text-sm font-medium text-red-700">Выбрано: {checkedRefs.size}</span>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setCheckedRefs(new Set())}
+                className="border-red-200 text-red-600 hover:bg-red-100">
+                Отменить
+              </Button>
+              <Button size="sm" disabled={deleting}
+                className="bg-red-600 text-white hover:bg-red-700"
+                onClick={async () => {
+                  if (!confirm(`Удалить ${checkedRefs.size} заявок(у)? Это действие необратимо.`)) return;
+                  setDeleting(true);
+                  try {
+                    await apiDeleteRequests(Array.from(checkedRefs));
+                    setRequests((prev) => prev.filter((r) => !checkedRefs.has(r.ref_number)));
+                    setCheckedRefs(new Set());
+                  } catch (_e) { /* ignore */ } finally { setDeleting(false); }
+                }}>
+                {deleting
+                  ? <span className="flex items-center gap-1.5"><Icon name="Loader2" size={14} className="animate-spin" /> Удаление...</span>
+                  : <span className="flex items-center gap-1.5"><Icon name="Trash2" size={14} /> Удалить</span>
+                }
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Список заявок */}
         <div className="mt-6 space-y-3">
           {loadingList && requests.length === 0 && (
@@ -167,8 +198,15 @@ const Admin = () => {
             const meta = STATUS_META[status];
             return (
               <div key={r.ref_number}
-                className="animate-fade-up flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
+                className={`animate-fade-up flex flex-col gap-4 rounded-2xl border bg-card p-5 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between ${checkedRefs.has(r.ref_number) ? 'border-red-300 bg-red-50' : 'border-border'}`}>
                 <div className="flex items-center gap-4">
+                  <input type="checkbox" checked={checkedRefs.has(r.ref_number)}
+                    onChange={(e) => {
+                      const next = new Set(checkedRefs);
+                      if (e.target.checked) next.add(r.ref_number); else next.delete(r.ref_number);
+                      setCheckedRefs(next);
+                    }}
+                    className="h-4 w-4 shrink-0 cursor-pointer accent-red-600" />
                   <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${meta.bg} ${meta.color}`}>
                     <Icon name={meta.icon} size={22} />
                   </div>
