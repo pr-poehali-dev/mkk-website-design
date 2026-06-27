@@ -159,6 +159,26 @@ const Cabinet = () => {
                   <dd className="font-bold text-accent text-base">{fmt(user.amount + Math.round(user.amount * 0.008 * user.days))} ₽</dd>
                 </div>
               </dl>
+              {/* Способ получения */}
+              <div className="mt-4 flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon name="Smartphone" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Способ получения</p>
+                    {selectedBank
+                      ? <p className="text-sm font-semibold text-primary">{BANKS.find(b => b.name === selectedBank)?.icon} {selectedBank} · СБП</p>
+                      : <p className="text-sm font-semibold text-muted-foreground">Не выбран</p>
+                    }
+                  </div>
+                </div>
+                <button onClick={() => { setCardsOpen(true); setBankSaved(false); }}
+                  className="text-sm font-medium text-accent hover:underline">
+                  {selectedBank ? 'Изменить' : 'Выбрать'}
+                </button>
+              </div>
+
               <div className="mt-4 rounded-lg bg-secondary p-3 text-xs text-muted-foreground">
                 Номер договора: <span className="font-mono font-semibold text-primary">{contractCode}</span>
               </div>
@@ -214,29 +234,6 @@ const Cabinet = () => {
             </div>
           )}
         </div>
-
-        {/* Способ получения — только при статусе одобрено */}
-        {status === 'approved' && <div className="mt-5 rounded-2xl border border-border bg-card p-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Icon name="Smartphone" size={20} />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Способ получения</p>
-                {selectedBank
-                  ? <p className="font-semibold text-primary">{BANKS.find(b => b.name === selectedBank)?.icon} {selectedBank} · СБП</p>
-                  : <p className="font-semibold text-muted-foreground">Не выбран</p>
-                }
-              </div>
-            </div>
-            <button
-              onClick={() => { setCardsOpen(true); setBankSaved(false); }}
-              className="text-sm font-medium text-accent hover:underline">
-              {selectedBank ? 'Изменить' : 'Выбрать'}
-            </button>
-          </div>
-        </div>}
 
         {status === 'issued' && (
           <Button size="lg" className="mt-6 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
