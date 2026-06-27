@@ -96,6 +96,7 @@ const Anketa = () => {
   // Step 2
   const [f2, setF2] = useState({ series: '', issued: '', issued_date: '' });
   const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
+  const [passportFile, setPassportFile] = useState<File | null>(null);
   // Step 3
   const [amount, setAmount] = useState(15000);
   const [days, setDays] = useState(14);
@@ -119,7 +120,10 @@ const Anketa = () => {
 
   const handlePassportPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setPassportPhoto(URL.createObjectURL(file));
+    if (file) {
+      setPassportFile(file);
+      setPassportPhoto(URL.createObjectURL(file));
+    }
   };
 
   const handleIncomeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,6 +143,10 @@ const Anketa = () => {
     setApiError('');
     try {
       let income_doc_url: string | undefined;
+      let passport_photo_url: string | undefined;
+      if (passportFile) {
+        passport_photo_url = await apiUploadFile(passportFile);
+      }
       if (incomeFile) {
         setIncomeUploading(true);
         income_doc_url = await apiUploadFile(incomeFile);
@@ -160,6 +168,7 @@ const Anketa = () => {
         work_phone: f4.work_phone || undefined,
         income_doc_url,
         email: f1.email || undefined,
+        passport_photo_url,
       });
       setStep(5);
     } catch (err: unknown) {

@@ -170,10 +170,16 @@ const AdminEditModal = ({
                   <span className="font-medium text-primary text-right">{f.value}</span>
                 </div>
               ))}
+              {selected.passport_photo_url && (
+                <a href={selected.passport_photo_url} target="_blank" rel="noopener noreferrer"
+                  className="mt-1 flex items-center gap-1.5 text-accent hover:underline text-xs">
+                  <Icon name="FileImage" size={14} /> Фото паспорта
+                </a>
+              )}
               {selected.income_doc_url && (
                 <a href={selected.income_doc_url} target="_blank" rel="noopener noreferrer"
                   className="mt-1 flex items-center gap-1.5 text-accent hover:underline text-xs">
-                  <Icon name="FileImage" size={14} /> Документ клиента
+                  <Icon name="FileImage" size={14} /> Справка с места работы
                 </a>
               )}
             </div>

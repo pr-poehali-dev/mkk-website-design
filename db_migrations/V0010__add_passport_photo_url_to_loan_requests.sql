@@ -1,0 +1,1 @@
+ALTER TABLE loan_requests ADD COLUMN IF NOT EXISTS passport_photo_url TEXT;

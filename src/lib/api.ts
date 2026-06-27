@@ -31,6 +31,7 @@ export interface UserSession {
   is_blocked?: boolean;
   email?: string | null;
   doc_urls?: string[] | null;
+  passport_photo_url?: string | null;
 }
 
 export function getSession(): UserSession | null {
@@ -54,7 +55,7 @@ export async function apiRegister(data: {
   passport?: string; passport_by?: string; birth_date?: string;
   address_residence?: string; address_registration?: string;
   work_place?: string; work_phone?: string; income_doc_url?: string;
-  email?: string;
+  email?: string; passport_photo_url?: string;
 }) {
   const res = await fetch(URLS.register, {
     method: 'POST',
