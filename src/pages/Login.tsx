@@ -79,6 +79,12 @@ const Login = () => {
               Нет заявки? <Link to="/anketa" className="font-medium text-accent hover:underline">Оформить займ</Link>
             </p>
           )}
+
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            Если вы забыли пароль — позвоните нам{' '}
+            <a href="tel:+74999610736" className="font-medium text-accent hover:underline">+7 (499) 961-07-36</a>
+            {' '}или напишите нам в чат
+          </p>
         </div>
 
 
