@@ -38,7 +38,7 @@ export function buildContractHtml(
 <p style="text-align:center;color:#666">${contractCode} &nbsp;·&nbsp; от ${selected.created_at?.slice(0, 10)}</p>
 <h2>Стороны</h2>
 <p><b>Займодавец:</b> ООО МКК «Займы Плюс»</p>
-<p><b>Заёмщик:</b> ${selected.full_name}, тел. ${selected.phone}</p>
+<p><b>Заёмщик:</b> ${selected.full_name}, тел. ${selected.phone}${selected.email ? `, email: ${selected.email}` : ''}</p>
 <h2>Условия займа</h2>
 <div class="row"><span class="label">Сумма займа</span><span class="val">${fmt(amt)} ₽</span></div>
 <div class="row"><span class="label">Срок</span><span class="val">${dys} дней</span></div>

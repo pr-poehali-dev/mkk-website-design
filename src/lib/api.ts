@@ -29,6 +29,7 @@ export interface UserSession {
   income_doc_url?: string;
   payment_bank?: string | null;
   is_blocked?: boolean;
+  email?: string | null;
 }
 
 export function getSession(): UserSession | null {
@@ -52,6 +53,7 @@ export async function apiRegister(data: {
   passport?: string; passport_by?: string; birth_date?: string;
   address_residence?: string; address_registration?: string;
   work_place?: string; work_phone?: string; income_doc_url?: string;
+  email?: string;
 }) {
   const res = await fetch(URLS.register, {
     method: 'POST',

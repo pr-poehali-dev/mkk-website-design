@@ -140,6 +140,7 @@ const AdminEditModal = ({
                 { label: 'Адрес регистрации', value: selected.address_registration },
                 { label: 'Место работы', value: selected.work_place },
                 { label: 'Рабочий телефон', value: selected.work_phone },
+                { label: 'Email', value: selected.email },
                 { label: 'Дата заявки', value: selected.created_at?.slice(0, 10) },
               ].filter(f => f.value).map(f => (
                 <div key={f.label} className="flex justify-between gap-4 border-b border-border pb-1.5 last:border-0 last:pb-0">

@@ -159,6 +159,7 @@ const Anketa = () => {
         work_place: f4.work_place || undefined,
         work_phone: f4.work_phone || undefined,
         income_doc_url,
+        email: f1.email || undefined,
       });
       setStep(5);
     } catch (err: unknown) {
