@@ -120,20 +120,20 @@ const CabinetStatusCard = ({
               </div>
             </dl>
             {/* Способ получения */}
-            <div className="mt-4 flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
+            <div className={`mt-4 flex items-center justify-between rounded-xl border px-4 py-3 ${!selectedBank ? 'border-orange-300 bg-orange-50' : 'border-border bg-card'}`}>
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon name="Smartphone" size={18} />
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${!selectedBank ? 'bg-orange-100 text-orange-500' : 'bg-primary/10 text-primary'}`}>
+                  <Icon name={selectedBank ? 'Smartphone' : 'AlertCircle'} size={18} />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Способ получения</p>
+                  <p className="text-xs text-muted-foreground">Способ получения <span className="text-red-500">*</span></p>
                   {selectedBank
                     ? <p className="text-sm font-semibold text-primary">{BANKS.find(b => b.name === selectedBank)?.icon} {selectedBank} · СБП</p>
-                    : <p className="text-sm font-semibold text-muted-foreground">Не выбран</p>
+                    : <p className="text-sm font-semibold text-orange-600">Обязательно выберите банк</p>
                   }
                 </div>
               </div>
-              <button onClick={onOpenCards} className="text-sm font-medium text-accent hover:underline">
+              <button onClick={onOpenCards} className={`text-sm font-medium hover:underline ${!selectedBank ? 'text-orange-600' : 'text-accent'}`}>
                 {selectedBank ? 'Изменить' : 'Выбрать'}
               </button>
             </div>
@@ -146,8 +146,12 @@ const CabinetStatusCard = ({
                 <Icon name="CheckCircle2" size={16} /> Договор подписан
               </div>
             ) : (
-              <Button size="sm" className="mt-4 w-full bg-accent text-accent-foreground hover:bg-accent/90"
-                disabled={signing}
+              <>
+              {!selectedBank && (
+                <p className="mt-3 text-center text-xs text-orange-600">Выберите способ получения, чтобы подписать договор</p>
+              )}
+              <Button size="sm" className="mt-2 w-full bg-accent text-accent-foreground hover:bg-accent/90"
+                disabled={signing || !selectedBank}
                 onClick={async () => {
                   setSigning(true);
                   setContractSigned(true);
@@ -167,6 +171,7 @@ const CabinetStatusCard = ({
                   : <span className="flex items-center gap-2"><Icon name="PenLine" size={15} /> Подписать договор</span>
                 }
               </Button>
+              </>
             )}
           </div>
         ) : (
