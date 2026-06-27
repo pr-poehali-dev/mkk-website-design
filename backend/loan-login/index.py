@@ -25,7 +25,7 @@ def handler(event: dict, context) -> dict:
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
     cur.execute(
-        f"""SELECT id, ref_number, full_name, phone, passport, amount, days, status, created_at
+        f"""SELECT id, ref_number, full_name, phone, passport, amount, days, status, created_at, is_blocked
             FROM {SCHEMA}.loan_requests
             WHERE phone = %s AND password_hash = %s""",
         (phone, hash_password(password))
@@ -36,8 +36,11 @@ def handler(event: dict, context) -> dict:
     if not row:
         return {'statusCode': 401, 'headers': headers, 'body': json.dumps({'error': 'Неверный телефон или пароль'})}
 
-    cols = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'amount', 'days', 'status', 'created_at']
+    cols = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'amount', 'days', 'status', 'created_at', 'is_blocked']
     user = dict(zip(cols, row))
     user['created_at'] = user['created_at'].isoformat()
+
+    if user.get('is_blocked'):
+        return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Доступ в личный кабинет заблокирован. Обратитесь к оператору.'})}
 
     return {'statusCode': 200, 'headers': headers, 'body': json.dumps(user)}

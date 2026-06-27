@@ -348,6 +348,38 @@ const Admin = () => {
                   Отмена
                 </Button>
               </div>
+
+              {/* Блокировка кабинета */}
+              <div className={`rounded-xl border p-4 ${selected.is_blocked ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-primary">
+                      {selected.is_blocked ? 'Кабинет заблокирован' : 'Кабинет активен'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {selected.is_blocked ? 'Клиент не может войти в личный кабинет' : 'Клиент имеет доступ к личному кабинету'}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={saving}
+                    onClick={async () => {
+                      if (!selected) return;
+                      setSaving(true);
+                      const newBlocked = !selected.is_blocked;
+                      try {
+                        await apiUpdateRequest({ ref_number: selected.ref_number, is_blocked: newBlocked });
+                        setRequests((prev) => prev.map((r) => r.ref_number === selected.ref_number ? { ...r, is_blocked: newBlocked } : r));
+                        setSelected({ ...selected, is_blocked: newBlocked });
+                      } catch (_e) { /* ignore */ } finally { setSaving(false); }
+                    }}
+                    className={selected.is_blocked ? 'border-green-400 text-green-700 hover:bg-green-100' : 'border-red-400 text-red-600 hover:bg-red-100'}>
+                    <Icon name={selected.is_blocked ? 'LockOpen' : 'Lock'} size={14} className="mr-1.5" />
+                    {selected.is_blocked ? 'Разблокировать' : 'Заблокировать'}
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>

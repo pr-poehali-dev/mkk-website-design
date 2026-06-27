@@ -54,6 +54,10 @@ def handler(event: dict, context) -> dict:
         fields.append('payment_bank = %s')
         values.append(body['payment_bank'] or None)
 
+    if 'is_blocked' in body:
+        fields.append('is_blocked = %s')
+        values.append(bool(body['is_blocked']))
+
     if not fields:
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нет полей для обновления'})}
 
