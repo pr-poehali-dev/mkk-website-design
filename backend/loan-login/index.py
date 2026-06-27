@@ -1,4 +1,4 @@
-"""Вход клиента по телефону и паролю."""
+"""Вход клиента по телефону и паролю. Смена пароля."""
 import json
 import os
 import hashlib
@@ -16,6 +16,26 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 200, 'headers': headers, 'body': ''}
 
     body = json.loads(event.get('body') or '{}')
+    if body.get('action') == 'change_password':
+        phone = body.get('phone', '').strip()
+        old_password = body.get('old_password', '').strip()
+        new_password = body.get('new_password', '').strip()
+        if not phone or not old_password or not new_password:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Заполните все поля'})}
+        if len(new_password) < 4:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Новый пароль должен быть не менее 4 символов'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(f"SELECT id FROM {SCHEMA}.loan_requests WHERE phone = %s AND password_hash = %s", (phone, hash_password(old_password)))
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return {'statusCode': 401, 'headers': headers, 'body': json.dumps({'error': 'Текущий пароль неверный'})}
+        cur.execute(f"UPDATE {SCHEMA}.loan_requests SET password_hash = %s WHERE phone = %s", (hash_password(new_password), phone))
+        conn.commit()
+        conn.close()
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
+
     phone = body.get('phone', '').strip()
     password = body.get('password', '').strip()
 

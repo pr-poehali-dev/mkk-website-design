@@ -135,6 +135,16 @@ export async function apiDeleteRequests(ref_numbers: string[]): Promise<void> {
   if (!res.ok) throw new Error(json.error || 'Ошибка удаления');
 }
 
+export async function apiChangePassword(phone: string, old_password: string, new_password: string): Promise<void> {
+  const res = await fetch(URLS.login, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'change_password', phone, old_password, new_password }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка смены пароля');
+}
+
 export async function apiGetSiteSettings(): Promise<Record<string, string>> {
   const res = await fetch(`${URLS.get}?action=settings`);
   if (!res.ok) return {};

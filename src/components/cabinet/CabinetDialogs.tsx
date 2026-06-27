@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiChangePassword, saveSession, type UserSession } from '@/lib/api';
 import { buildContractHtml } from '@/components/admin/contractHtml';
 
 const BANKS = [
@@ -70,6 +71,31 @@ const CabinetDialogs = ({
     a.download = `Договор_${contractCode}.html`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pwOld, setPwOld] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwNew2, setPwNew2] = useState('');
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+
+  const handleChangePassword = async () => {
+    setPwError('');
+    if (!pwOld || !pwNew || !pwNew2) { setPwError('Заполните все поля'); return; }
+    if (pwNew !== pwNew2) { setPwError('Новые пароли не совпадают'); return; }
+    if (pwNew.length < 4) { setPwError('Минимум 4 символа'); return; }
+    setPwLoading(true);
+    try {
+      await apiChangePassword(user.phone, pwOld, pwNew);
+      setPwSuccess(true);
+      setPwOld(''); setPwNew(''); setPwNew2('');
+    } catch (e: unknown) {
+      setPwError(e instanceof Error ? e.message : 'Ошибка');
+    } finally {
+      setPwLoading(false);
+    }
   };
 
   return (
@@ -206,6 +232,69 @@ const CabinetDialogs = ({
               <dd className="font-semibold">{user.ref_number}</dd>
             </div>
           </dl>
+          <Button
+            variant="outline"
+            className="mt-4 w-full"
+            onClick={() => { setProfileOpen(false); setPwSuccess(false); setPwError(''); setPwOpen(true); }}
+          >
+            <Icon name="KeyRound" size={16} className="mr-2" />
+            Сменить пароль
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Поп-ап Смена пароля */}
+      <Dialog open={pwOpen} onOpenChange={(v) => { setPwOpen(v); if (!v) { setPwSuccess(false); setPwError(''); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-primary">Смена пароля</DialogTitle>
+          </DialogHeader>
+          {pwSuccess ? (
+            <div className="flex flex-col items-center gap-3 py-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <Icon name="CheckCircle" size={32} />
+              </div>
+              <p className="text-center text-sm font-medium text-primary">Пароль успешно изменён</p>
+              <Button className="mt-2 w-full" onClick={() => setPwOpen(false)}>Закрыть</Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs text-muted-foreground">Текущий пароль</label>
+                <input
+                  type="password"
+                  value={pwOld}
+                  onChange={e => setPwOld(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="Введите текущий пароль"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-muted-foreground">Новый пароль</label>
+                <input
+                  type="password"
+                  value={pwNew}
+                  onChange={e => setPwNew(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="Минимум 4 символа"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-muted-foreground">Повторите новый пароль</label>
+                <input
+                  type="password"
+                  value={pwNew2}
+                  onChange={e => setPwNew2(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="Повторите пароль"
+                />
+              </div>
+              {pwError && <p className="text-xs text-red-500">{pwError}</p>}
+              <Button className="w-full" onClick={handleChangePassword} disabled={pwLoading}>
+                {pwLoading ? 'Сохраняем...' : 'Сохранить пароль'}
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
