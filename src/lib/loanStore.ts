@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-export type StatusKey = 'review' | 'approved' | 'issued' | 'rejected';
+export type StatusKey = 'review' | 'approved' | 'issued' | 'rejected' | 'transfer_error';
 
 export interface LoanRequest {
   id: string;
@@ -19,6 +19,7 @@ export const STATUS_META: Record<StatusKey, { label: string; icon: string; color
   approved: { label: 'Одобрено', icon: 'CheckCircle2', color: 'text-blue-600', bg: 'bg-blue-100', step: 2 },
   issued: { label: 'Деньги выданы', icon: 'BadgeCheck', color: 'text-emerald-600', bg: 'bg-emerald-100', step: 3 },
   rejected: { label: 'Отказано', icon: 'XCircle', color: 'text-red-600', bg: 'bg-red-100', step: 0 },
+  transfer_error: { label: 'Ошибка перевода', icon: 'AlertTriangle', color: 'text-orange-600', bg: 'bg-orange-100', step: 0 },
 };
 
 const KEY = 'zaimy_requests';
