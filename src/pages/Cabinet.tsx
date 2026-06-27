@@ -17,6 +17,7 @@ const Cabinet = () => {
   const [cardsOpen, setCardsOpen] = useState(false);
   const [selectedBank, setSelectedBank] = useState<string | null>(null);
   const [bankSaved, setBankSaved] = useState(false);
+  const [docsOpen, setDocsOpen] = useState(false);
 
   const BANKS = [
     { name: 'Сбербанк', icon: '🟢' },
@@ -274,6 +275,11 @@ const Cabinet = () => {
               {selectedBank && <span className="ml-auto text-xs text-muted-foreground">{selectedBank}</span>}
             </button>
             <button
+              onClick={() => { setDocsOpen(true); setMenuOpen(false); }}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="FolderOpen" size={18} className="text-accent" /> Мои документы
+            </button>
+            <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
               <Icon name="LogOut" size={18} /> Выйти из кабинета
@@ -371,6 +377,52 @@ const Cabinet = () => {
               <dd className="font-semibold">{user.ref_number}</dd>
             </div>
           </dl>
+        </DialogContent>
+      </Dialog>
+
+      {/* Поп-ап Мои документы */}
+      <Dialog open={docsOpen} onOpenChange={setDocsOpen}>
+        <DialogContent className="max-w-sm max-h-[90vh] flex flex-col">
+          <DialogHeader className="shrink-0">
+            <DialogTitle className="font-display text-xl text-primary">Мои документы</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 overflow-y-auto flex-1 pr-1">
+            {/* Фото с анкеты */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Фото документов</p>
+              {user.income_doc_url ? (
+                <a href={user.income_doc_url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 rounded-xl border border-border bg-secondary p-4 hover:bg-accent/5 transition-colors">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon name="FileImage" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-primary">Фото паспорта</p>
+                    <p className="text-xs text-accent">Открыть →</p>
+                  </div>
+                </a>
+              ) : (
+                <div className="flex items-center gap-3 rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                  <Icon name="ImageOff" size={18} /> Фото не загружено
+                </div>
+              )}
+            </div>
+
+            {/* Согласие на обработку персональных данных */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Согласие на обработку ПД</p>
+              <div className="rounded-xl border border-border bg-secondary p-4 text-xs text-muted-foreground leading-relaxed space-y-2 max-h-64 overflow-y-auto">
+                <p className="font-semibold text-primary text-sm">Согласие на обработку персональных данных</p>
+                <p>Я, нижеподписавшийся, даю своё согласие ООО МКК «Займы Плюс» (далее — Оператор) на обработку моих персональных данных в соответствии с Федеральным законом № 152-ФЗ «О персональных данных».</p>
+                <p>Перечень персональных данных: фамилия, имя, отчество; дата рождения; серия и номер паспорта; адрес регистрации и проживания; номер телефона; место работы.</p>
+                <p>Цель обработки: рассмотрение заявки на предоставление микрозайма, заключение и исполнение договора займа, проверка кредитоспособности, передача данных в бюро кредитных историй.</p>
+                <p>Способы обработки: сбор, запись, систематизация, накопление, хранение, уточнение, использование, передача (в том числе третьим лицам в рамках закона), обезличивание, блокирование, удаление.</p>
+                <p>Срок обработки: в течение 5 лет с момента погашения займа либо до отзыва согласия.</p>
+                <p>Настоящее согласие может быть отозвано путём направления письменного заявления по адресу Оператора. Отзыв согласия не прекращает обработку данных, необходимую для исполнения договора и требований законодательства.</p>
+                <p className="pt-1 font-medium text-primary">Заявка: {user.ref_number} · Дата: {user.created_at?.slice(0, 10)}</p>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
