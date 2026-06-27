@@ -34,7 +34,7 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
-        <div className="container flex h-16 items-center justify-between px-4">
+        <div className="container flex h-16 items-center justify-between px-4 rounded-sm">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Icon name="Landmark" size={20} />
