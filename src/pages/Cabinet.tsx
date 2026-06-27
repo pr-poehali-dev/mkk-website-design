@@ -18,6 +18,19 @@ const Cabinet = () => {
   const [selectedBank, setSelectedBank] = useState<string | null>(null);
   const [bankSaved, setBankSaved] = useState(false);
 
+  const BANKS = [
+    { name: 'Сбербанк', icon: '🟢' },
+    { name: 'Тинькофф', icon: '🟡' },
+    { name: 'ВТБ', icon: '🔵' },
+    { name: 'Альфа-Банк', icon: '🔴' },
+    { name: 'Газпромбанк', icon: '🔷' },
+    { name: 'Россельхозбанк', icon: '🟩' },
+    { name: 'Почта Банк', icon: '📮' },
+    { name: 'Совкомбанк', icon: '🟠' },
+    { name: 'Открытие', icon: '🌐' },
+    { name: 'Другой банк', icon: '🏦' },
+  ];
+
   useEffect(() => {
     const session = getSession();
     if (!session) { nav('/login'); return; }
@@ -200,6 +213,29 @@ const Cabinet = () => {
           )}
         </div>
 
+        {/* Способ получения */}
+        <div className="mt-5 rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Icon name="Smartphone" size={20} />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Способ получения</p>
+                {selectedBank
+                  ? <p className="font-semibold text-primary">{BANKS.find(b => b.name === selectedBank)?.icon} {selectedBank} · СБП</p>
+                  : <p className="font-semibold text-muted-foreground">Не выбран</p>
+                }
+              </div>
+            </div>
+            <button
+              onClick={() => { setCardsOpen(true); setBankSaved(false); }}
+              className="text-sm font-medium text-accent hover:underline">
+              {selectedBank ? 'Изменить' : 'Выбрать'}
+            </button>
+          </div>
+        </div>
+
         {status === 'issued' && (
           <Button size="lg" className="mt-6 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
             Погасить займ <Icon name="ArrowRight" size={18} className="ml-1" />
@@ -233,9 +269,10 @@ const Cabinet = () => {
               <Icon name="User" size={18} className="text-accent" /> Мои данные
             </button>
             <button
-              onClick={() => { setCardsOpen(true); setMenuOpen(false); }}
+              onClick={() => { setCardsOpen(true); setBankSaved(false); setMenuOpen(false); }}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="CreditCard" size={18} className="text-accent" /> Мои карты
+              {selectedBank && <span className="ml-auto text-xs text-muted-foreground">{selectedBank}</span>}
             </button>
             <button
               onClick={handleLogout}
@@ -261,18 +298,7 @@ const Cabinet = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
-              {[
-                { name: 'Сбербанк', icon: '🟢' },
-                { name: 'Тинькофф', icon: '🟡' },
-                { name: 'ВТБ', icon: '🔵' },
-                { name: 'Альфа-Банк', icon: '🔴' },
-                { name: 'Газпромбанк', icon: '🔷' },
-                { name: 'Россельхозбанк', icon: '🟩' },
-                { name: 'Почта Банк', icon: '📮' },
-                { name: 'Совкомбанк', icon: '🟠' },
-                { name: 'Открытие', icon: '🌐' },
-                { name: 'Другой банк', icon: '🏦' },
-              ].map((bank) => (
+              {BANKS.map((bank) => (
                 <button
                   key={bank.name}
                   onClick={() => setSelectedBank(bank.name)}
