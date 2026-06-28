@@ -94,13 +94,7 @@ const Index = () => {
         <div className="container relative grid items-center gap-10 px-4 py-14 md:grid-cols-2 md:py-20">
           {/* Left */}
           <div className="animate-fade-up">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/5 px-4 py-1.5 text-xs font-medium">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-pulse-ring absolute inline-flex h-full w-full rounded-full bg-accent" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-              </span>
-              Одобрение 96% заявок · работаем 24/7
-            </div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/5 px-4 py-1.5 text-xs font-medium">Одобрение 96% заявок · работаем с 09:00 до 18:00 по мск.</div>
             <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
               Деньги на карту
               <span className="block text-accent">за 5 минут</span>
