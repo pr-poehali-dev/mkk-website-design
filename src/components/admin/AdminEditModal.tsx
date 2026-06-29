@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiAdminSetPassword, apiUploadFile, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiAdminSetPassword, apiUploadFile, apiAdminSetDocStatus, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from './contractHtml';
 import { useState } from 'react';
@@ -59,6 +59,27 @@ const AdminEditModal = ({
   const [pwdMsg, setPwdMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [docUrls, setDocUrls] = useState<string[]>(selected?.doc_urls || []);
   const [docUploading, setDocUploading] = useState(false);
+  const [docStatusSaving, setDocStatusSaving] = useState<string | null>(null);
+  const [docStatuses, setDocStatuses] = useState<Record<string, string>>({
+    passport_photo_status: selected?.passport_photo_status || 'pending',
+    registration_photo_status: selected?.registration_photo_status || 'pending',
+    income_doc_status: selected?.income_doc_status || 'pending',
+  });
+
+  const handleDocStatus = async (field: string, newStatus: string) => {
+    if (!selected) return;
+    setDocStatusSaving(field);
+    try {
+      await apiAdminSetDocStatus({ ref_number: selected.ref_number, [field]: newStatus });
+      setDocStatuses(prev => ({ ...prev, [field]: newStatus }));
+      if (newStatus === 'rejected') {
+        const urlField = field.replace('_status', '_url');
+        onBlockToggled?.({ ...selected, [urlField]: null, [field]: 'rejected' });
+      }
+    } finally {
+      setDocStatusSaving(null);
+    }
+  };
 
   const handleSetPassword = async () => {
     if (!selected || !newPassword) return;
@@ -174,26 +195,55 @@ const AdminEditModal = ({
 
             {/* Документы клиента */}
             {(selected.passport_photo_url || selected.registration_photo_url || selected.income_doc_url) && (
-              <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Документы клиента</p>
-                {selected.passport_photo_url && (
-                  <a href={selected.passport_photo_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs text-accent hover:underline">
-                    <Icon name="FileImage" size={13} /> Фото паспорта
-                  </a>
-                )}
-                {selected.registration_photo_url && (
-                  <a href={selected.registration_photo_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs text-accent hover:underline">
-                    <Icon name="FileImage" size={13} /> Фото регистрации
-                  </a>
-                )}
-                {selected.income_doc_url && (
-                  <a href={selected.income_doc_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs text-accent hover:underline">
-                    <Icon name="FileImage" size={13} /> Справка о доходах
-                  </a>
-                )}
+                {([
+                  { urlKey: 'passport_photo_url' as const, statusKey: 'passport_photo_status', label: 'Фото паспорта' },
+                  { urlKey: 'registration_photo_url' as const, statusKey: 'registration_photo_status', label: 'Фото регистрации' },
+                  { urlKey: 'income_doc_url' as const, statusKey: 'income_doc_status', label: 'Справка о доходах' },
+                ]).filter(d => selected[d.urlKey]).map(({ urlKey, statusKey, label }) => {
+                  const st = docStatuses[statusKey] || 'pending';
+                  const isSaving = docStatusSaving === statusKey;
+                  return (
+                    <div key={urlKey} className={`rounded-lg border p-3 space-y-2 ${st === 'approved' ? 'border-green-300 bg-green-50' : st === 'rejected' ? 'border-red-300 bg-red-50' : 'border-orange-200 bg-orange-50'}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <a href={selected[urlKey]!} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline">
+                          <Icon name="FileImage" size={13} /> {label}
+                        </a>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${st === 'approved' ? 'bg-green-100 text-green-700' : st === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`}>
+                          {st === 'approved' ? '✓ Принято' : st === 'rejected' ? '✗ Отклонено' : '⏳ На проверке'}
+                        </span>
+                      </div>
+                      {st !== 'approved' && (
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline"
+                            className="flex-1 h-7 text-xs border-green-400 text-green-700 hover:bg-green-50"
+                            disabled={isSaving}
+                            onClick={() => handleDocStatus(statusKey, 'approved')}>
+                            {isSaving ? <Icon name="Loader2" size={12} className="animate-spin" /> : <Icon name="Check" size={12} />}
+                            <span className="ml-1">Принять</span>
+                          </Button>
+                          {st !== 'rejected' && (
+                            <Button size="sm" variant="outline"
+                              className="flex-1 h-7 text-xs border-red-400 text-red-600 hover:bg-red-50"
+                              disabled={isSaving}
+                              onClick={() => handleDocStatus(statusKey, 'rejected')}>
+                              {isSaving ? <Icon name="Loader2" size={12} className="animate-spin" /> : <Icon name="X" size={12} />}
+                              <span className="ml-1">Отклонить</span>
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                      {st === 'approved' && (
+                        <button className="text-xs text-muted-foreground hover:text-red-500 transition-colors"
+                          onClick={() => handleDocStatus(statusKey, 'pending')}>
+                          Отменить принятие
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 

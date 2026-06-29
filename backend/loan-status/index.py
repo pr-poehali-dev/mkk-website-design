@@ -30,10 +30,14 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}
         fields = []
         values = []
+        # При загрузке нового файла — сбрасываем статус в pending
         for field in ('passport_photo_url', 'registration_photo_url', 'income_doc_url'):
             if field in body:
                 fields.append(f'{field} = %s')
                 values.append(body[field] or None)
+                status_field = field.replace('_url', '_status')
+                fields.append(f'{status_field} = %s')
+                values.append('pending')
         if not fields:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нет полей для обновления'})}
         fields.append('updated_at = NOW()')
@@ -119,6 +123,21 @@ def handler(event: dict, context) -> dict:
     if 'doc_urls' in body:
         fields.append('doc_urls = %s')
         values.append(body['doc_urls'] or [])
+
+    # Статусы документов (принять/отклонить) — только для админа
+    VALID_DOC_STATUSES = ('pending', 'approved', 'rejected')
+    for doc_status_field in ('passport_photo_status', 'registration_photo_status', 'income_doc_status'):
+        if doc_status_field in body:
+            val = body[doc_status_field]
+            if val not in VALID_DOC_STATUSES:
+                return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': f'Неверный статус документа: {val}'})}
+            fields.append(f'{doc_status_field} = %s')
+            values.append(val)
+            # При отклонении — сбрасываем URL файла
+            if val == 'rejected':
+                url_field = doc_status_field.replace('_status', '_url')
+                fields.append(f'{url_field} = %s')
+                values.append(None)
 
     if not fields:
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нет полей для обновления'})}

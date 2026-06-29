@@ -376,39 +376,48 @@ const CabinetDialogs = ({
               <div className="space-y-2">
                 {(
                   [
-                    { field: 'passport_photo_url' as const, label: 'Фото паспорта', hint: 'Разворот с фотографией' },
-                    { field: 'registration_photo_url' as const, label: 'Фото регистрации', hint: 'Страница с пропиской' },
-                    { field: 'income_doc_url' as const, label: 'Справка о доходах', hint: 'С места работы' },
+                    { field: 'passport_photo_url' as const, statusField: 'passport_photo_status' as const, label: 'Фото паспорта', hint: 'Разворот с фотографией' },
+                    { field: 'registration_photo_url' as const, statusField: 'registration_photo_status' as const, label: 'Фото регистрации', hint: 'Страница с пропиской' },
+                    { field: 'income_doc_url' as const, statusField: 'income_doc_status' as const, label: 'Справка о доходах', hint: 'С места работы' },
                   ]
-                ).map(({ field, label, hint }) => {
+                ).map(({ field, statusField, label, hint }) => {
                   const url = user[field];
+                  const docStatus = user[statusField];
                   const isLoading = docUploading === field;
                   const isSaved = docSaved === field;
+                  const isApproved = docStatus === 'approved';
+                  const isRejected = docStatus === 'rejected';
+                  const isPending = url && docStatus === 'pending';
                   return (
-                    <div key={field} className="rounded-xl border border-border bg-card overflow-hidden">
+                    <div key={field} className={`rounded-xl border bg-card overflow-hidden ${isRejected ? 'border-red-300' : isApproved ? 'border-green-300' : isPending ? 'border-orange-300' : 'border-border'}`}>
                       <div className="flex items-center gap-3 p-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          <Icon name={url ? 'FileCheck' : 'FileImage'} size={18} />
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${isApproved ? 'bg-green-100 text-green-600' : isRejected ? 'bg-red-100 text-red-500' : isPending ? 'bg-orange-100 text-orange-500' : 'bg-primary/10 text-primary'}`}>
+                          <Icon name={isApproved ? 'BadgeCheck' : isRejected ? 'XCircle' : isPending ? 'Clock' : 'FileImage'} size={18} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-primary">{label}</p>
-                          <p className="text-xs text-muted-foreground">{hint}</p>
+                          {isApproved && <p className="text-xs font-semibold text-green-600">Принято ✓</p>}
+                          {isRejected && <p className="text-xs font-semibold text-red-500">Отклонено — загрузите снова</p>}
+                          {isPending && <p className="text-xs text-orange-600">На проверке...</p>}
+                          {!url && <p className="text-xs text-muted-foreground">{hint}</p>}
                         </div>
-                        {url && (
+                        {url && !isRejected && (
                           <a href={url} target="_blank" rel="noopener noreferrer"
                             className="shrink-0 text-xs text-accent hover:underline">
                             Открыть
                           </a>
                         )}
                       </div>
-                      <label className={`flex cursor-pointer items-center justify-center gap-2 border-t border-border px-3 py-2 text-xs transition-colors ${isLoading ? 'pointer-events-none bg-secondary text-muted-foreground' : 'hover:bg-accent/5 text-accent'}`}>
+                      <label className={`flex cursor-pointer items-center justify-center gap-2 border-t border-border px-3 py-2 text-xs transition-colors ${isLoading ? 'pointer-events-none bg-secondary text-muted-foreground' : isApproved ? 'pointer-events-none bg-green-50 text-green-600' : 'hover:bg-accent/5 text-accent'}`}>
                         {isLoading
                           ? <><Icon name="Loader2" size={13} className="animate-spin" /> Загрузка...</>
                           : isSaved
-                            ? <><Icon name="Check" size={13} className="text-green-600" /> <span className="text-green-600">Сохранено</span></>
-                            : <><Icon name="Upload" size={13} /> {url ? 'Заменить файл' : 'Загрузить'}</>}
+                            ? <><Icon name="Check" size={13} className="text-green-600" /> <span className="text-green-600">Отправлено на проверку</span></>
+                            : isApproved
+                              ? <><Icon name="ShieldCheck" size={13} /> Документ принят</>
+                              : <><Icon name="Upload" size={13} /> {url && !isRejected ? 'Заменить файл' : 'Загрузить'}</>}
                         <input type="file" accept="image/*,application/pdf" className="hidden"
-                          disabled={isLoading}
+                          disabled={isLoading || isApproved}
                           onChange={e => { const f = e.target.files?.[0]; if (f) handleUploadDoc(f, field); e.target.value = ''; }} />
                       </label>
                     </div>

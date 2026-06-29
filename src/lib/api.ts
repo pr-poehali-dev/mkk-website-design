@@ -33,6 +33,9 @@ export interface UserSession {
   doc_urls?: string[] | null;
   passport_photo_url?: string | null;
   registration_photo_url?: string | null;
+  passport_photo_status?: string | null;
+  registration_photo_status?: string | null;
+  income_doc_status?: string | null;
 }
 
 export function getSession(): UserSession | null {
@@ -121,6 +124,21 @@ export async function apiUpdateRequest(data: {
   payment_bank?: string | null;
   is_blocked?: boolean;
   doc_urls?: string[];
+}): Promise<void> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+}
+
+export async function apiAdminSetDocStatus(data: {
+  ref_number: string;
+  passport_photo_status?: string;
+  registration_photo_status?: string;
+  income_doc_status?: string;
 }): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',
