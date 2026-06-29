@@ -172,7 +172,14 @@ const Anketa = () => {
       });
       setStep(5);
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : 'Ошибка отправки');
+      const msg = err instanceof Error ? err.message : 'Ошибка отправки';
+      if (msg.includes('уже зарегистрирован')) {
+        setApiError('Этот номер телефона уже зарегистрирован. Войдите в личный кабинет или используйте другой номер.');
+      } else if (msg.includes('загрузки файла') || msg.includes('upload')) {
+        setApiError('Ошибка загрузки файла. Попробуйте уменьшить размер изображения или загрузить другой файл.');
+      } else {
+        setApiError(msg || 'Не удалось отправить заявку. Проверьте данные и попробуйте снова.');
+      }
     } finally {
       setLoading(false);
       setIncomeUploading(false);
