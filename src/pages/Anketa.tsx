@@ -172,13 +172,15 @@ const Anketa = () => {
       });
       setStep(5);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Ошибка отправки';
+      const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes('уже зарегистрирован')) {
         setApiError('Этот номер телефона уже зарегистрирован. Войдите в личный кабинет или используйте другой номер.');
-      } else if (msg.includes('загрузки файла') || msg.includes('upload')) {
-        setApiError('Ошибка загрузки файла. Попробуйте уменьшить размер изображения или загрузить другой файл.');
+      } else if (msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('network') || msg.toLowerCase().includes('failed')) {
+        setApiError('Ошибка соединения с сервером. Проверьте интернет и попробуйте ещё раз.');
+      } else if (msg.includes('загрузки файла')) {
+        setApiError('Не удалось загрузить файл. Попробуйте уменьшить размер или выбрать другой файл.');
       } else {
-        setApiError(msg || 'Не удалось отправить заявку. Проверьте данные и попробуйте снова.');
+        setApiError(msg || 'Не удалось отправить заявку. Попробуйте ещё раз.');
       }
     } finally {
       setLoading(false);
