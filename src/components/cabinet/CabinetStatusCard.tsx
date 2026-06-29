@@ -193,7 +193,31 @@ const CabinetStatusCard = ({
             )}
           </div>
         ) : (
-          <div className={`rounded-2xl border p-6 ${status === 'issued' ? 'border-accent/40 bg-accent/5' : 'border-border bg-card'}`}>
+          <>
+          {status === 'issued' && (
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 p-4">
+                <Icon name="CheckCircle2" size={22} className="text-green-600 shrink-0" />
+                <div>
+                  <p className="font-semibold text-green-700">Договор подписан</p>
+                  <p className="text-xs text-green-600">№ {contractCode}</p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-accent/30 bg-accent/5 p-5 text-center">
+                <div className="flex justify-center mb-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
+                    <Icon name="Clock" size={22} className="text-accent" />
+                  </div>
+                </div>
+                <p className="font-display font-bold text-primary text-base">Ожидайте зачисления средств</p>
+                <p className="text-sm text-muted-foreground mt-1">Деньги поступят на вашу карту <span className="font-semibold text-primary">в течение 15 минут</span></p>
+                {user.payment_bank && (
+                  <p className="mt-2 text-xs text-muted-foreground">Перевод через СБП · {user.payment_bank}</p>
+                )}
+              </div>
+            </div>
+          )}
+          <div className={`rounded-2xl border p-6 ${status === 'issued' ? 'mt-4 border-accent/40 bg-accent/5' : 'border-border bg-card'}`}>
             <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-primary">
               <Icon name={status === 'issued' ? 'BadgeDollarSign' : 'Wallet'} size={18} className="text-accent" />
               {status === 'issued' ? 'Активный займ' : 'Параметры займа'}
@@ -213,6 +237,7 @@ const CabinetStatusCard = ({
               <div className="flex justify-between"><dt className="text-muted-foreground">Дата заявки</dt><dd className="font-semibold">{user.created_at?.slice(0, 10)}</dd></div>
             </dl>
           </div>
+          </>
         )}
       </div>
 
