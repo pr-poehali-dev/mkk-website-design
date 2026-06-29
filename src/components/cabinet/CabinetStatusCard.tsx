@@ -142,8 +142,26 @@ const CabinetStatusCard = ({
               Номер договора: <span className="font-mono font-semibold text-primary">{contractCode}</span>
             </div>
             {contractSigned ? (
-              <div className="mt-4 flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-700">
-                <Icon name="CheckCircle2" size={16} /> Договор подписан
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 p-4">
+                  <Icon name="CheckCircle2" size={20} className="text-green-600 shrink-0" />
+                  <div>
+                    <p className="font-semibold text-green-700 text-sm">Договор подписан</p>
+                    <p className="text-xs text-green-600">№ {contractCode}</p>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 text-center">
+                  <div className="flex justify-center mb-2">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
+                      <Icon name="Clock" size={22} className="text-accent" />
+                    </div>
+                  </div>
+                  <p className="font-display font-bold text-primary text-base">Ожидайте зачисления</p>
+                  <p className="text-sm text-muted-foreground mt-1">Деньги поступят на вашу карту <span className="font-semibold text-primary">в течение 15 минут</span></p>
+                  {selectedBank && (
+                    <p className="mt-2 text-xs text-muted-foreground">Перевод через СБП · {selectedBank}</p>
+                  )}
+                </div>
               </div>
             ) : (
               <>
