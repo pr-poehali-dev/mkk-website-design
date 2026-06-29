@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
+import { useState, useEffect } from 'react';
 
 const BANKS = [
   { name: 'Сбербанк', icon: '🟢' },
@@ -51,6 +52,14 @@ const CabinetStatusCard = ({
   const status = (user.status as StatusKey) in STATUS_META ? (user.status as StatusKey) : 'review';
   const meta = STATUS_META[status];
   const activeStep = meta.step;
+
+  const [showMoneySent, setShowMoneySent] = useState(true);
+  useEffect(() => {
+    if (status !== 'money_sent') return;
+    setShowMoneySent(true);
+    const t = setTimeout(() => setShowMoneySent(false), 2 * 60 * 1000);
+    return () => clearTimeout(t);
+  }, [status]);
 
   return (
     <>
@@ -218,7 +227,7 @@ const CabinetStatusCard = ({
               </div>
             </div>
           )}
-          {status === 'money_sent' && (
+          {status === 'money_sent' && showMoneySent && (
             <div className="mt-6 space-y-3">
               <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50 p-5 text-center">
                 <div className="flex justify-center mb-3">
