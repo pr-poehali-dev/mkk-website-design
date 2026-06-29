@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-export type StatusKey = 'review' | 'approved' | 'issued' | 'rejected' | 'transfer_error';
+export type StatusKey = 'review' | 'approved' | 'issued' | 'money_sent' | 'rejected' | 'transfer_error';
 
 export interface LoanRequest {
   id: string;
@@ -17,7 +17,8 @@ export interface LoanRequest {
 export const STATUS_META: Record<StatusKey, { label: string; icon: string; color: string; bg: string; step: number }> = {
   review: { label: 'На рассмотрении', icon: 'Clock', color: 'text-amber-600', bg: 'bg-amber-100', step: 1 },
   approved: { label: 'Одобрено', icon: 'CheckCircle2', color: 'text-blue-600', bg: 'bg-blue-100', step: 2 },
-  issued: { label: 'Деньги выданы', icon: 'BadgeCheck', color: 'text-emerald-600', bg: 'bg-emerald-100', step: 3 },
+  issued: { label: 'Договор подписан', icon: 'PenLine', color: 'text-indigo-600', bg: 'bg-indigo-100', step: 3 },
+  money_sent: { label: 'Деньги выданы', icon: 'BadgeCheck', color: 'text-emerald-600', bg: 'bg-emerald-100', step: 4 },
   rejected: { label: 'Отказано', icon: 'XCircle', color: 'text-red-600', bg: 'bg-red-100', step: 0 },
   transfer_error: { label: 'Ошибка перевода', icon: 'AlertTriangle', color: 'text-orange-600', bg: 'bg-orange-100', step: 0 },
 };

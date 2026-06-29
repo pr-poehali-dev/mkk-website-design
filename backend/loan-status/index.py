@@ -5,7 +5,7 @@ import psycopg2
 
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
 ADMIN_TOKEN = 'admin_zaimy_plus'
-VALID_STATUSES = ('review', 'approved', 'issued', 'rejected', 'transfer_error')
+VALID_STATUSES = ('review', 'approved', 'issued', 'money_sent', 'rejected', 'transfer_error')
 
 def handler(event: dict, context) -> dict:
     headers = {

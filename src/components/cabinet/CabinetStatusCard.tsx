@@ -21,7 +21,8 @@ const fmt = (n: number) => n.toLocaleString('ru-RU');
 const steps = [
   { key: 'review', label: 'Заявка принята', icon: 'FileCheck' },
   { key: 'approved', label: 'Одобрено', icon: 'CheckCircle2' },
-  { key: 'issued', label: 'Деньги выданы', icon: 'BadgeCheck' },
+  { key: 'issued', label: 'Договор подписан', icon: 'PenLine' },
+  { key: 'money_sent', label: 'Деньги выданы', icon: 'BadgeCheck' },
 ];
 
 interface Props {
@@ -66,7 +67,7 @@ const CabinetStatusCard = ({
         </div>
 
         {status !== 'rejected' && status !== 'transfer_error' ? (
-          <div className="grid grid-cols-3 gap-2 p-6">
+          <div className="grid grid-cols-4 gap-2 p-4">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
               return (
@@ -196,11 +197,11 @@ const CabinetStatusCard = ({
           <>
           {status === 'issued' && (
             <div className="mt-6 space-y-3">
-              <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 p-4">
-                <Icon name="CheckCircle2" size={22} className="text-green-600 shrink-0" />
+              <div className="flex items-center gap-3 rounded-xl bg-indigo-50 border border-indigo-200 p-4">
+                <Icon name="PenLine" size={22} className="text-indigo-600 shrink-0" />
                 <div>
-                  <p className="font-semibold text-green-700">Договор подписан</p>
-                  <p className="text-xs text-green-600">№ {contractCode}</p>
+                  <p className="font-semibold text-indigo-700">Договор подписан</p>
+                  <p className="text-xs text-indigo-500">№ {contractCode}</p>
                 </div>
               </div>
               <div className="rounded-xl border border-accent/30 bg-accent/5 p-5 text-center">
@@ -214,6 +215,25 @@ const CabinetStatusCard = ({
                 {user.payment_bank && (
                   <p className="mt-2 text-xs text-muted-foreground">Перевод через СБП · {user.payment_bank}</p>
                 )}
+              </div>
+            </div>
+          )}
+          {status === 'money_sent' && (
+            <div className="mt-6 space-y-3">
+              <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50 p-5 text-center">
+                <div className="flex justify-center mb-3">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+                    <Icon name="BadgeCheck" size={28} className="text-emerald-600" />
+                  </div>
+                </div>
+                <p className="font-display font-bold text-emerald-700 text-lg">Деньги выданы!</p>
+                <p className="text-sm text-emerald-600 mt-1">Средства зачислены на вашу карту</p>
+                {user.payment_bank && (
+                  <p className="mt-1 text-xs text-muted-foreground">{user.payment_bank} · СБП</p>
+                )}
+                <div className="mt-3 rounded-lg bg-white border border-emerald-200 px-4 py-2 inline-block">
+                  <p className="text-2xl font-bold text-emerald-600">{fmt(user.amount)} ₽</p>
+                </div>
               </div>
             </div>
           )}
@@ -241,7 +261,7 @@ const CabinetStatusCard = ({
         )}
       </div>
 
-      {status === 'issued' && (
+      {(status === 'issued' || status === 'money_sent') && (
         <Button size="lg" className="mt-6 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
           Погасить займ <Icon name="ArrowRight" size={18} className="ml-1" />
         </Button>
