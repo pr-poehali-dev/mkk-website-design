@@ -29,6 +29,7 @@ const Index = () => {
   const maintenance = useMaintenance();
   const [amount, setAmount] = useState(15000);
   const [days, setDays] = useState(14);
+  const [modal, setModal] = useState<'privacy' | 'about' | null>(null);
 
   const { total, overpay } = useMemo(() => {
     const op = Math.round(amount * RATE * days);
@@ -265,12 +266,85 @@ const Index = () => {
             </div>
             <p className="text-primary-foreground/60 text-center">© 2014–2026 ООО МКК «Займы Плюс».<br className="hidden md:block" /> Все права защищены.</p>
           </div>
-          <p className="mt-6 text-xs text-primary-foreground/40 text-center">Деятельность регулируется ФЗ №151. Расчёты на калькуляторе носят ознакомительный характер.
-
-ИНН: 220038299987
-ОГРН: 0092800992828288</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <button onClick={() => setModal('privacy')}
+              className="text-xs text-primary-foreground/50 hover:text-accent underline underline-offset-2 transition-colors">
+              Политика конфиденциальности
+            </button>
+            <span className="text-primary-foreground/20 text-xs">·</span>
+            <button onClick={() => setModal('about')}
+              className="text-xs text-primary-foreground/50 hover:text-accent underline underline-offset-2 transition-colors">
+              О компании
+            </button>
+          </div>
+          <p className="mt-4 text-xs text-primary-foreground/40 text-center">Деятельность регулируется ФЗ №151. Расчёты на калькуляторе носят ознакомительный характер. ИНН: 220038299987 · ОГРН: 0092800992828288</p>
         </div>
       </footer>
+
+      {/* Политика конфиденциальности */}
+      {modal === 'privacy' && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4" onClick={() => setModal(null)}>
+          <div className="w-full max-w-lg rounded-2xl bg-background p-6 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-xl font-bold text-primary">Политика конфиденциальности</h2>
+              <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-primary">
+                <Icon name="X" size={20} />
+              </button>
+            </div>
+            <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+              <p className="font-semibold text-primary">ООО МКК «Займы Плюс»</p>
+              <p>Настоящая политика описывает порядок обработки персональных данных пользователей в соответствии с Федеральным законом №152-ФЗ «О персональных данных».</p>
+              <p><span className="font-medium text-primary">Какие данные собираем:</span> ФИО, дата рождения, паспортные данные, адрес регистрации и проживания, номер телефона, место работы, фотографии документов.</p>
+              <p><span className="font-medium text-primary">Цели обработки:</span> рассмотрение заявки на займ, заключение и исполнение договора, проверка кредитоспособности, передача данных в бюро кредитных историй.</p>
+              <p><span className="font-medium text-primary">Хранение:</span> данные хранятся не более 5 лет с момента погашения займа или до отзыва согласия.</p>
+              <p><span className="font-medium text-primary">Передача третьим лицам:</span> данные могут передаваться в бюро кредитных историй, государственные органы — строго в рамках законодательства РФ.</p>
+              <p><span className="font-medium text-primary">Права субъекта:</span> вы вправе запросить доступ к своим данным, потребовать их исправления или удаления, направив обращение на email: zaymy.plyus@bk.ru.</p>
+              <p><span className="font-medium text-primary">Защита данных:</span> передача данных осуществляется по защищённому каналу HTTPS. Доступ к данным ограничен кругом уполномоченных сотрудников.</p>
+              <p className="pt-2 text-xs">Используя наш сайт и подавая заявку, вы соглашаетесь с настоящей политикой.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* О компании */}
+      {modal === 'about' && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4" onClick={() => setModal(null)}>
+          <div className="w-full max-w-lg rounded-2xl bg-background p-6 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-xl font-bold text-primary">О компании</h2>
+              <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-primary">
+                <Icon name="X" size={20} />
+              </button>
+            </div>
+            <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+              <p className="font-semibold text-primary text-base">ООО МКК «Займы Плюс»</p>
+              <p>Микрокредитная компания «Займы Плюс» работает на рынке потребительского кредитования с 2014 года. Мы помогаем людям решать финансовые вопросы быстро и прозрачно.</p>
+              <div className="rounded-xl bg-secondary p-4 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">ИНН</span>
+                  <span className="font-mono font-semibold text-primary">220038299987</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">ОГРН</span>
+                  <span className="font-mono font-semibold text-primary">0092800992828288</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Год основания</span>
+                  <span className="font-semibold text-primary">2014</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Регулятор</span>
+                  <span className="font-semibold text-primary">Банк России (ФЗ №151)</span>
+                </div>
+              </div>
+              <p><span className="font-medium text-primary">Деятельность:</span> предоставление микрозаймов физическим лицам. Внесены в государственный реестр микрофинансовых организаций Банка России.</p>
+              <p><span className="font-medium text-primary">Контакты:</span></p>
+              <p>Телефон: <a href="tel:84999610736" className="text-accent hover:underline">8 499 961-07-36</a></p>
+              <p>Email: <a href="mailto:zaymy.plyus@bk.ru" className="text-accent hover:underline">zaymy.plyus@bk.ru</a></p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
