@@ -118,20 +118,33 @@ const Anketa = () => {
 
   const fmt = (n: number) => n.toLocaleString('ru-RU');
 
+  const MAX_FILE_MB = 5;
+  const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
+
   const handlePassportPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPassportFile(file);
-      setPassportPhoto(URL.createObjectURL(file));
+    if (!file) return;
+    if (file.size > MAX_FILE_BYTES) {
+      setApiError(`Фото паспорта слишком большое. Максимум ${MAX_FILE_MB} МБ.`);
+      e.target.value = '';
+      return;
     }
+    setApiError('');
+    setPassportFile(file);
+    setPassportPhoto(URL.createObjectURL(file));
   };
 
   const handleIncomeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setIncomeFile(file);
-      setIncomePreview(URL.createObjectURL(file));
+    if (!file) return;
+    if (file.size > MAX_FILE_BYTES) {
+      setApiError(`Файл справки слишком большой. Максимум ${MAX_FILE_MB} МБ.`);
+      e.target.value = '';
+      return;
     }
+    setApiError('');
+    setIncomeFile(file);
+    setIncomePreview(URL.createObjectURL(file));
   };
 
   const next = () => { setApiError(''); setStep((s) => s + 1); };
@@ -330,7 +343,7 @@ const Anketa = () => {
                       </div>
                       <div>
                         <p className="font-medium text-primary">Нажмите, чтобы загрузить фото</p>
-                        <p className="text-sm text-muted-foreground">JPG или PNG, до 10 МБ</p>
+                        <p className="text-sm text-muted-foreground">JPG или PNG, до 5 МБ</p>
                       </div>
                     </>
                   )}
@@ -442,7 +455,7 @@ const Anketa = () => {
                       </div>
                       <div>
                         <p className="font-medium text-primary">Загрузить фото справки</p>
-                        <p className="text-sm text-muted-foreground">JPG, PNG или PDF · до 10 МБ · необязательно</p>
+                        <p className="text-sm text-muted-foreground">JPG, PNG или PDF · до 5 МБ · необязательно</p>
                       </div>
                     </>
                   )}
