@@ -115,25 +115,22 @@ const CabinetStatusCard = ({
         </div>
 
         {status !== 'rejected' && status !== 'transfer_error' ? (
-          <div className="p-4 space-y-0">
+          <div className="flex items-start p-4 gap-0">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
               const active = activeStep === i + 1;
               const isLast = i === steps.length - 1;
               return (
-                <div key={s.key} className="flex gap-3">
-                  <div className="flex flex-col items-center">
+                <div key={s.key} className="flex flex-1 flex-col items-center relative">
+                  <div className="flex w-full items-center">
+                    <div className={`h-0.5 flex-1 transition-all ${i === 0 ? 'invisible' : done ? 'bg-accent' : 'bg-border'}`} />
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all ${done ? 'bg-accent text-accent-foreground' : 'bg-secondary text-muted-foreground'}`}>
                       {done && !active ? <Icon name="Check" size={18} /> : <Icon name={s.icon} size={18} />}
                     </div>
-                    {!isLast && (
-                      <div className={`w-0.5 flex-1 my-1 min-h-[20px] rounded-full transition-all ${activeStep > i + 1 ? 'bg-accent' : 'bg-border'}`} />
-                    )}
+                    <div className={`h-0.5 flex-1 transition-all ${isLast ? 'invisible' : activeStep > i + 1 ? 'bg-accent' : 'bg-border'}`} />
                   </div>
-                  <div className={`pb-4 pt-1.5 ${isLast ? '' : ''}`}>
-                    <p className={`text-sm font-semibold leading-tight ${done ? 'text-primary' : 'text-muted-foreground'}`}>{s.label}</p>
-                    {active && <p className="mt-0.5 text-xs text-accent font-medium">Текущий статус</p>}
-                  </div>
+                  <p className={`mt-2 text-center text-xs font-medium leading-tight px-1 ${done ? 'text-primary' : 'text-muted-foreground'}`}>{s.label}</p>
+                  {active && <p className="mt-0.5 text-center text-[10px] text-accent font-semibold">Сейчас</p>}
                 </div>
               );
             })}
