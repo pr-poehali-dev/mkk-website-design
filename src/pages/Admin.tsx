@@ -229,16 +229,21 @@ const Admin = () => {
           {!loadingList && requests.length === 0 && (
             <p className="py-12 text-center text-muted-foreground">Заявок пока нет</p>
           )}
-          {requests.map((r) => (
-            <AdminRequestCard
-              key={r.ref_number}
-              r={r}
-              checked={checkedRefs.has(r.ref_number)}
-              onCheck={handleCheck}
-              onEdit={openModal}
-              fmt={fmt}
-            />
-          ))}
+          {requests.map((r) => {
+            const phoneCount = requests.filter((x) => x.phone === r.phone).length;
+            const isRepeat = phoneCount > 1;
+            return (
+              <AdminRequestCard
+                key={r.ref_number}
+                r={r}
+                checked={checkedRefs.has(r.ref_number)}
+                onCheck={handleCheck}
+                onEdit={openModal}
+                fmt={fmt}
+                isRepeat={isRepeat}
+              />
+            );
+          })}
         </div>
 
         <Link to="/" className="mt-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
