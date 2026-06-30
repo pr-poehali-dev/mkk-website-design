@@ -59,13 +59,19 @@ const CabinetStatusCard = ({
   const [consentContract, setConsentContract] = useState(false);
   const [showVerifying, setShowVerifying] = useState(false);
 
+  const sigKey = `sig_code_${user.ref_number}`;
+  const [signatureCode, setSignatureCode] = useState<string>(() => localStorage.getItem(sigKey) || '');
+
   const handleSignClick = () => {
+    const code = Math.random().toString(36).slice(2, 6).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    setSignatureCode(code);
     setConsentData(false);
     setConsentContract(false);
     setShowConsentModal(true);
   };
 
   const handleConfirmSign = async () => {
+    localStorage.setItem(sigKey, signatureCode);
     setShowConsentModal(false);
     setShowVerifying(true);
     setSigning(true);
@@ -322,6 +328,11 @@ const CabinetStatusCard = ({
           </DialogHeader>
           <div className="space-y-4 py-2">
             <p className="text-sm text-muted-foreground">Для подписания договора займа необходимо ваше согласие:</p>
+            <div className="rounded-xl border border-accent/40 bg-accent/5 p-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Код подписи</p>
+              <p className="font-mono text-xl font-bold tracking-widest text-accent">{signatureCode}</p>
+              <p className="text-xs text-muted-foreground mt-1">Этот код будет включён в ваш договор</p>
+            </div>
             <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
               <input
                 type="checkbox"

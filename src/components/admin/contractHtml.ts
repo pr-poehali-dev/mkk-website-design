@@ -8,6 +8,7 @@ export function buildContractHtml(
   dys: number,
   contractCode: string,
   returnDate: string,
+  signatureCode?: string,
 ): string {
   const overpay = Math.round(amt * 0.008 * dys);
   const total = amt + overpay;
@@ -65,6 +66,7 @@ export function buildContractHtml(
 <p>8. Моментом исполнения обязательств Заемщика перед Кредитором считается дата зачисления денежных средств на расчетный счет Кредитора.</p>
 <p>9. В случае выявления Кредитором излишне уплаченных денежных средств по Договору займа, на Зарегистрированный адрес электронной почты Заемщика направляется уведомление о наличии переплаты. С момента получения указанного уведомления Заемщику необходимо направить на официальную почту Кредитора банковские реквизиты для возврата излишне уплаченных денежных средств. Излишне уплаченные денежные средства перечисляются по реквизитам, указанным Заемщиком, в течение 10 (десяти) рабочих дней с момента предоставления сведений о банковских реквизитах Заемщика на официальную почту Кредитора. Начисление процентов за пользование излишне перечисленными денежными средствами не осуществляется.</p>
 <p>10. Заемщик выражает свое безусловное согласие (акцепт) на списание Кредитором либо по поручению Кредитора партнером суммы всей или части Задолженности с Карты Заемщика.</p>
+${signatureCode ? `<div style="margin-top:32px;border:1px solid #ccc;border-radius:8px;padding:12px;background:#f9fafb;text-align:center"><p style="color:#666;font-size:11px;margin:0 0 4px">Код электронной подписи</p><p style="font-family:monospace;font-size:18px;font-weight:bold;letter-spacing:4px;color:#1a56db;margin:0">${signatureCode}</p><p style="color:#666;font-size:10px;margin:4px 0 0">Подтверждает согласие заёмщика с условиями договора</p></div>` : ''}
 <div class="sign">
   <div class="sign-box"><div class="sign-line">Займодавец / ООО МКК «Займы Плюс»</div></div>
   <div class="sign-box"><div class="sign-line">Заёмщик / ${selected.full_name}</div></div>

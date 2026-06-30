@@ -63,7 +63,8 @@ const CabinetDialogs = ({
   const total = user.amount + overpay;
 
   const downloadContract = () => {
-    const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate);
+    const sigCode = localStorage.getItem(`sig_code_${user.ref_number}`) || undefined;
+    const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate, sigCode);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
