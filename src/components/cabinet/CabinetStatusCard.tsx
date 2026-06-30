@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
@@ -52,6 +53,37 @@ const CabinetStatusCard = ({
   const status = (user.status as StatusKey) in STATUS_META ? (user.status as StatusKey) : 'review';
   const meta = STATUS_META[status];
   const activeStep = meta.step;
+
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [consentData, setConsentData] = useState(false);
+  const [consentContract, setConsentContract] = useState(false);
+  const [showVerifying, setShowVerifying] = useState(false);
+
+  const handleSignClick = () => {
+    setConsentData(false);
+    setConsentContract(false);
+    setShowConsentModal(true);
+  };
+
+  const handleConfirmSign = async () => {
+    setShowConsentModal(false);
+    setShowVerifying(true);
+    setSigning(true);
+    setTimeout(async () => {
+      setShowVerifying(false);
+      setContractSigned(true);
+      try {
+        await apiUpdateRequest({ ref_number: user.ref_number, status: 'issued' });
+        const fresh = await apiGetRequest(user.ref_number);
+        saveSession(fresh);
+        setUser(fresh);
+      } catch (_e) {
+        setContractSigned(false);
+      } finally {
+        setSigning(false);
+      }
+    }, 2500);
+  };
 
   const [showMoneySent, setShowMoneySent] = useState(true);
   useEffect(() => {
@@ -180,20 +212,7 @@ const CabinetStatusCard = ({
               )}
               <Button size="sm" className="mt-2 w-full bg-accent text-accent-foreground hover:bg-accent/90"
                 disabled={signing || !selectedBank}
-                onClick={async () => {
-                  setSigning(true);
-                  setContractSigned(true);
-                  try {
-                    await apiUpdateRequest({ ref_number: user.ref_number, status: 'issued' });
-                    const fresh = await apiGetRequest(user.ref_number);
-                    saveSession(fresh);
-                    setUser(fresh);
-                  } catch (_e) {
-                    setContractSigned(false);
-                  } finally {
-                    setSigning(false);
-                  }
-                }}>
+                onClick={handleSignClick}>
                 {signing
                   ? <span className="flex items-center gap-2"><Icon name="Loader2" size={15} className="animate-spin" /> Оформляем...</span>
                   : <span className="flex items-center gap-2"><Icon name="PenLine" size={15} /> Подписать договор</span>
@@ -277,6 +296,61 @@ const CabinetStatusCard = ({
           Погасить займ <Icon name="ArrowRight" size={18} className="ml-1" />
         </Button>
       )}
+
+      {/* Поп-ап согласия */}
+      <Dialog open={showConsentModal} onOpenChange={setShowConsentModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-display text-lg">
+              <Icon name="ShieldCheck" size={20} className="text-accent" />
+              Подтверждение договора
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">Для подписания договора займа необходимо ваше согласие:</p>
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
+              <input
+                type="checkbox"
+                checked={consentData}
+                onChange={(e) => setConsentData(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
+              />
+              <span className="text-sm text-primary">Я даю согласие на обработку персональных данных в соответствии с требованиями 152-ФЗ</span>
+            </label>
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
+              <input
+                type="checkbox"
+                checked={consentContract}
+                onChange={(e) => setConsentContract(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
+              />
+              <span className="text-sm text-primary">Я ознакомился с условиями договора займа № <span className="font-mono font-semibold">{contractCode}</span> и согласен с ними</span>
+            </label>
+            <Button
+              className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+              disabled={!consentData || !consentContract}
+              onClick={handleConfirmSign}>
+              <Icon name="PenLine" size={16} className="mr-2" />
+              Подписать договор
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Экран проверки */}
+      <Dialog open={showVerifying}>
+        <DialogContent className="max-w-xs text-center">
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
+              <Icon name="Loader2" size={32} className="animate-spin text-accent" />
+            </div>
+            <div>
+              <p className="font-display font-bold text-primary text-lg">Идёт проверка документов</p>
+              <p className="mt-1 text-sm text-muted-foreground">Пожалуйста, подождите...</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
