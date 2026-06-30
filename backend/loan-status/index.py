@@ -124,6 +124,10 @@ def handler(event: dict, context) -> dict:
         fields.append('doc_urls = %s')
         values.append(body['doc_urls'] or [])
 
+    if 'insurance_enabled' in body:
+        fields.append('insurance_enabled = %s')
+        values.append(bool(body['insurance_enabled']))
+
     # Статусы документов (принять/отклонить) — только для админа
     VALID_DOC_STATUSES = ('pending', 'approved', 'rejected')
     for doc_status_field in ('passport_photo_status', 'registration_photo_status', 'income_doc_status'):

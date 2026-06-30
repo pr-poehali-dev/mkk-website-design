@@ -171,16 +171,29 @@ const CabinetStatusCard = ({
             <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-primary">
               <Icon name="FileSignature" size={18} className="text-accent" /> Условия займа
             </h2>
-            <dl className="space-y-3 text-sm">
-              <div className="flex justify-between"><dt className="text-muted-foreground">Сумма</dt><dd className="font-semibold">{fmt(user.amount)} ₽</dd></div>
-              <div className="flex justify-between"><dt className="text-muted-foreground">Срок</dt><dd className="font-semibold">{user.days} дн.</dd></div>
-              <div className="flex justify-between"><dt className="text-muted-foreground">Ставка</dt><dd className="font-semibold">0.8% / день</dd></div>
-              <div className="flex justify-between"><dt className="text-muted-foreground">Переплата</dt><dd className="font-semibold">{fmt(Math.round(user.amount * 0.008 * user.days))} ₽</dd></div>
-              <div className="flex justify-between border-t border-accent/20 pt-2">
-                <dt className="font-semibold text-primary">К возврату</dt>
-                <dd className="font-bold text-accent text-base">{fmt(user.amount + Math.round(user.amount * 0.008 * user.days))} ₽</dd>
-              </div>
-            </dl>
+            {(() => {
+              const overpay = Math.round(user.amount * 0.008 * user.days);
+              const insurance = user.insurance_enabled ? Math.round(356 + user.amount * 0.005) : 0;
+              const total = user.amount + overpay + insurance;
+              return (
+                <dl className="space-y-3 text-sm">
+                  <div className="flex justify-between"><dt className="text-muted-foreground">Сумма</dt><dd className="font-semibold">{fmt(user.amount)} ₽</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted-foreground">Срок</dt><dd className="font-semibold">{user.days} дн.</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted-foreground">Ставка</dt><dd className="font-semibold">0.8% / день</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted-foreground">Переплата</dt><dd className="font-semibold">{fmt(overpay)} ₽</dd></div>
+                  {user.insurance_enabled && (
+                    <div className="flex justify-between items-start rounded-lg bg-blue-50 border border-blue-200 px-3 py-2">
+                      <dt className="flex items-center gap-1.5 text-blue-700"><Icon name="ShieldCheck" size={13} className="shrink-0" /> Страховка займа</dt>
+                      <dd className="font-semibold text-blue-700">{fmt(insurance)} ₽</dd>
+                    </div>
+                  )}
+                  <div className="flex justify-between border-t border-accent/20 pt-2">
+                    <dt className="font-semibold text-primary">К возврату</dt>
+                    <dd className="font-bold text-accent text-base">{fmt(total)} ₽</dd>
+                  </div>
+                </dl>
+              );
+            })()}
             {/* Способ получения */}
             <div className={`mt-4 flex items-center justify-between rounded-xl border px-4 py-3 ${!selectedBank ? 'border-orange-300 bg-orange-50' : 'border-border bg-card'}`}>
               <div className="flex items-center gap-3">

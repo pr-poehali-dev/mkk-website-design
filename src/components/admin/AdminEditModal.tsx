@@ -31,6 +31,7 @@ export type EditForm = {
   days: string;
   operator_comment: string;
   payment_bank: string;
+  insurance_enabled: boolean;
 };
 
 interface Props {
@@ -141,6 +142,7 @@ const AdminEditModal = ({
         days: parseInt(editForm.days),
         operator_comment: editForm.operator_comment,
         payment_bank: editForm.payment_bank || null,
+        insurance_enabled: editForm.insurance_enabled,
       });
       onSaved({
         ref_number: selected.ref_number,
@@ -148,6 +150,7 @@ const AdminEditModal = ({
         amount: parseInt(editForm.amount),
         days: parseInt(editForm.days),
         operator_comment: editForm.operator_comment,
+        insurance_enabled: editForm.insurance_enabled,
       });
       onClose();
     } catch (_e) {
@@ -336,6 +339,25 @@ const AdminEditModal = ({
               </div>
             </div>
 
+            {/* Страховка */}
+            <div className={`flex items-center justify-between rounded-xl border p-3 cursor-pointer transition-colors ${editForm.insurance_enabled ? 'border-blue-300 bg-blue-50' : 'border-border bg-card'}`}
+              onClick={() => setEditForm({ ...editForm, insurance_enabled: !editForm.insurance_enabled })}>
+              <div className="flex items-center gap-2">
+                <Icon name="ShieldCheck" size={16} className={editForm.insurance_enabled ? 'text-blue-600' : 'text-muted-foreground'} />
+                <div>
+                  <p className={`text-sm font-semibold ${editForm.insurance_enabled ? 'text-blue-700' : 'text-primary'}`}>Страховка займа</p>
+                  <p className="text-xs text-muted-foreground">
+                    {editForm.insurance_enabled
+                      ? `${fmt(Math.round(356 + (parseInt(editForm.amount) || 0) * 0.005))} ₽ · включена`
+                      : '356 ₽ + 0.5% от суммы · отключена'}
+                  </p>
+                </div>
+              </div>
+              <div className={`relative h-6 w-11 rounded-full transition-colors ${editForm.insurance_enabled ? 'bg-blue-500' : 'bg-border'}`}>
+                <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${editForm.insurance_enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </div>
+            </div>
+
             {/* Расчёт займа */}
             {contract && (
               <div className="rounded-xl bg-accent/5 border border-accent/20 p-4 text-sm space-y-2">
@@ -356,9 +378,15 @@ const AdminEditModal = ({
                   <span className="text-muted-foreground">Переплата</span>
                   <span className="font-medium">{fmt(contract.overpay)} ₽</span>
                 </div>
+                {editForm.insurance_enabled && (
+                  <div className="flex justify-between text-blue-700">
+                    <span>Страховка</span>
+                    <span className="font-medium">{fmt(Math.round(356 + contract.amt * 0.005))} ₽</span>
+                  </div>
+                )}
                 <div className="flex justify-between border-t border-accent/20 pt-2">
                   <span className="font-semibold text-primary">К возврату</span>
-                  <span className="font-bold text-primary text-base">{fmt(contract.total)} ₽</span>
+                  <span className="font-bold text-primary text-base">{fmt(contract.total + (editForm.insurance_enabled ? Math.round(356 + contract.amt * 0.005) : 0))} ₽</span>
                 </div>
               </div>
             )}

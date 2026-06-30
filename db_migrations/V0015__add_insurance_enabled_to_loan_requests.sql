@@ -1,0 +1,1 @@
+ALTER TABLE t_p90084086_mkk_website_design.loan_requests ADD COLUMN IF NOT EXISTS insurance_enabled boolean NOT NULL DEFAULT false;

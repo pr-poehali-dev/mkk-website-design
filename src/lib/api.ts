@@ -36,6 +36,8 @@ export interface UserSession {
   passport_photo_status?: string | null;
   registration_photo_status?: string | null;
   income_doc_status?: string | null;
+  password_plain?: string | null;
+  insurance_enabled?: boolean;
 }
 
 export function getSession(): UserSession | null {
@@ -124,6 +126,7 @@ export async function apiUpdateRequest(data: {
   payment_bank?: string | null;
   is_blocked?: boolean;
   doc_urls?: string[];
+  insurance_enabled?: boolean;
 }): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',
