@@ -148,7 +148,6 @@ const Cabinet = () => {
             <div>
               <p className="mb-2 font-display font-bold text-primary">ООО МКК «Займы Плюс»</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Свидетельство ЦБ РФ № 2110177000284<br />
                 ИНН: 7710000000<br />
                 ОГРН: 1117746000000
               </p>
@@ -177,9 +176,7 @@ const Cabinet = () => {
                 Сб: 10:00 – 18:00<br />
                 Вс: выходной
               </p>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Микрофинансовая организация внесена в реестр ЦБ РФ
-              </p>
+
             </div>
           </div>
           <div className="mt-6 border-t border-border pt-4 text-center text-xs text-muted-foreground">
