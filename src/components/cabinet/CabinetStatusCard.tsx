@@ -72,6 +72,7 @@ const CabinetStatusCard = ({
   const [reapplyDone, setReapplyDone] = useState(false);
   const [reapplyError, setReapplyError] = useState('');
   const [showCalc, setShowCalc] = useState(false);
+  const [showReapplyLoading, setShowReapplyLoading] = useState(false);
 
   const calcOverpay = Math.round(calcAmount * 0.008 * calcDays);
   const calcTotal = calcAmount + calcOverpay;
@@ -97,10 +98,12 @@ const CabinetStatusCard = ({
         email: user.email || undefined,
       });
       setReapplyDone(true);
+      setShowCalc(false);
+      setShowReapplyLoading(true);
       const fresh = await apiGetRequest(result.ref_number);
       saveSession(fresh);
       setUser(fresh);
-      setShowCalc(false);
+      setShowReapplyLoading(false);
     } catch (e: unknown) {
       setReapplyError(e instanceof Error ? e.message : 'Ошибка отправки заявки');
     } finally {
@@ -448,6 +451,23 @@ const CabinetStatusCard = ({
           Оформить новый займ — до {fmt(MAX_AMOUNT)} ₽
         </Button>
       )}
+
+      {/* Поп-ап загрузки заявки */}
+      <Dialog open={showReapplyLoading}>
+        <DialogContent className="max-w-xs text-center [&>button]:hidden">
+          <div className="flex flex-col items-center gap-5 py-6">
+            <div className="relative flex h-20 w-20 items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-4 border-accent/20" />
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-accent animate-spin" />
+              <Icon name="FileText" size={28} className="text-accent" />
+            </div>
+            <div>
+              <p className="font-display text-lg font-bold text-primary">Идёт загрузка заявки</p>
+              <p className="mt-1 text-sm text-muted-foreground">Ожидайте, это займёт несколько секунд...</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Калькулятор повторной заявки */}
       <Dialog open={showCalc} onOpenChange={setShowCalc}>
