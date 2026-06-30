@@ -5,7 +5,7 @@ import Icon from '@/components/ui/icon';
 import { apiGetAll, apiDeleteRequests, apiGetSiteSettings, apiSaveSiteSettings, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
-import AdminRequestCard from '@/components/admin/AdminRequestCard';
+import AdminClientGroup from '@/components/admin/AdminClientGroup';
 import AdminEditModal, { type EditForm } from '@/components/admin/AdminEditModal';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
@@ -263,8 +263,8 @@ const Admin = () => {
           {!loadingList && requests.length === 0 && (
             <p className="py-12 text-center text-muted-foreground">Заявок пока нет</p>
           )}
-          {requests
-            .filter((r) => {
+          {(() => {
+            const filtered = requests.filter((r) => {
               if (statusFilter && r.status !== statusFilter) return false;
               if (!search.trim()) return true;
               const q = search.trim().toLowerCase();
@@ -272,22 +272,27 @@ const Admin = () => {
                 r.full_name?.toLowerCase().includes(q) ||
                 r.phone?.replace(/\D/g, '').includes(q.replace(/\D/g, ''))
               );
-            })
-            .map((r) => {
-              const phoneCount = requests.filter((x) => x.phone === r.phone).length;
-              const isRepeat = phoneCount > 1;
-              return (
-                <AdminRequestCard
-                  key={r.ref_number}
-                  r={r}
-                  checked={checkedRefs.has(r.ref_number)}
-                  onCheck={handleCheck}
-                  onEdit={openModal}
-                  fmt={fmt}
-                  isRepeat={isRepeat}
-                />
-              );
-            })}
+            });
+
+            // Группируем по телефону, сохраняя порядок первого появления
+            const groupMap = new Map<string, UserSession[]>();
+            filtered.forEach((r) => {
+              const key = r.phone;
+              if (!groupMap.has(key)) groupMap.set(key, []);
+              groupMap.get(key)!.push(r);
+            });
+
+            return Array.from(groupMap.values()).map((group) => (
+              <AdminClientGroup
+                key={group[0].phone}
+                requests={group}
+                checkedRefs={checkedRefs}
+                onCheck={handleCheck}
+                onEdit={openModal}
+                fmt={fmt}
+              />
+            ));
+          })()}
         </div>
 
         <Link to="/" className="mt-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
