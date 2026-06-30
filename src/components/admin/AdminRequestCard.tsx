@@ -32,11 +32,15 @@ const AdminRequestCard = ({ r, checked, onCheck, onEdit, fmt, isRepeat }: Props)
         <div>
           <p className="font-semibold text-primary flex items-center gap-2 flex-wrap">
             {r.full_name} <span className="text-xs font-normal text-muted-foreground">· {r.ref_number}</span>
-            {isRepeat && (
+            {isRepeat ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">
                 <Icon name="RefreshCw" size={10} /> Повторная заявка
               </span>
-            )}
+            ) : r.status === 'repaid' ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                <Icon name="CheckCircle2" size={10} /> Погашен
+              </span>
+            ) : null}
           </p>
           <p className="text-sm text-muted-foreground">
             {r.phone} · {fmt(r.amount)} ₽ / {r.days} дн. · {r.created_at?.slice(0, 10)}
