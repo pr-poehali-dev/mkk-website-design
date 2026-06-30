@@ -215,32 +215,22 @@ const AdminEditModal = ({
                           {st === 'approved' ? '✓ Принято' : st === 'rejected' ? '✗ Отклонено' : '⏳ На проверке'}
                         </span>
                       </div>
-                      {st !== 'approved' && (
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline"
-                            className="flex-1 h-7 text-xs border-green-400 text-green-700 hover:bg-green-50"
-                            disabled={isSaving}
-                            onClick={() => handleDocStatus(statusKey, 'approved')}>
-                            {isSaving ? <Icon name="Loader2" size={12} className="animate-spin" /> : <Icon name="Check" size={12} />}
-                            <span className="ml-1">Принять</span>
-                          </Button>
-                          {st !== 'rejected' && (
-                            <Button size="sm" variant="outline"
-                              className="flex-1 h-7 text-xs border-red-400 text-red-600 hover:bg-red-50"
-                              disabled={isSaving}
-                              onClick={() => handleDocStatus(statusKey, 'rejected')}>
-                              {isSaving ? <Icon name="Loader2" size={12} className="animate-spin" /> : <Icon name="X" size={12} />}
-                              <span className="ml-1">Отклонить</span>
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                      {st === 'approved' && (
-                        <button className="text-xs text-muted-foreground hover:text-red-500 transition-colors"
-                          onClick={() => handleDocStatus(statusKey, 'pending')}>
-                          Отменить принятие
-                        </button>
-                      )}
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline"
+                          className={`flex-1 h-7 text-xs ${st === 'approved' ? 'border-green-500 bg-green-100 text-green-700' : 'border-green-400 text-green-700 hover:bg-green-50'}`}
+                          disabled={isSaving}
+                          onClick={() => handleDocStatus(statusKey, st === 'approved' ? 'pending' : 'approved')}>
+                          {isSaving ? <Icon name="Loader2" size={12} className="animate-spin" /> : <Icon name="Check" size={12} />}
+                          <span className="ml-1">{st === 'approved' ? 'Принято ✓' : 'Принять'}</span>
+                        </Button>
+                        <Button size="sm" variant="outline"
+                          className={`flex-1 h-7 text-xs ${st === 'rejected' ? 'border-red-500 bg-red-100 text-red-600' : 'border-red-400 text-red-600 hover:bg-red-50'}`}
+                          disabled={isSaving}
+                          onClick={() => handleDocStatus(statusKey, st === 'rejected' ? 'pending' : 'rejected')}>
+                          {isSaving ? <Icon name="Loader2" size={12} className="animate-spin" /> : <Icon name="X" size={12} />}
+                          <span className="ml-1">{st === 'rejected' ? 'Отклонено ✗' : 'Отклонить'}</span>
+                        </Button>
+                      </div>
                     </div>
                   );
                 })}
