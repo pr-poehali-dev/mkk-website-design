@@ -9,7 +9,7 @@ import { useMaintenance } from '@/lib/maintenanceContext';
 import { formatPhone } from '@/lib/phone';
 
 const Login = () => {
-  const maintenance = useMaintenance();
+  const { maintenance } = useMaintenance();
   const nav = useNavigate();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');

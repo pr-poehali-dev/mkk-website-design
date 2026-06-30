@@ -26,7 +26,7 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => {
 const RATE = 0.008; // 0.8% в день
 
 const Index = () => {
-  const maintenance = useMaintenance();
+  const { maintenance } = useMaintenance();
   const [amount, setAmount] = useState(15000);
   const [days, setDays] = useState(14);
   const [modal, setModal] = useState<'privacy' | 'about' | null>(null);
