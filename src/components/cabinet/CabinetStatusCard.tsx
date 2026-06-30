@@ -108,15 +108,25 @@ const CabinetStatusCard = ({
         </div>
 
         {status !== 'rejected' && status !== 'transfer_error' ? (
-          <div className="grid grid-cols-4 gap-2 p-4">
+          <div className="p-4 space-y-0">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
+              const active = activeStep === i + 1;
+              const isLast = i === steps.length - 1;
               return (
-                <div key={s.key} className="flex flex-col items-center text-center">
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-full transition-all ${done ? 'bg-accent text-accent-foreground' : 'bg-secondary text-muted-foreground'}`}>
-                    <Icon name={s.icon} size={20} />
+                <div key={s.key} className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all ${done ? 'bg-accent text-accent-foreground' : 'bg-secondary text-muted-foreground'}`}>
+                      {done && !active ? <Icon name="Check" size={18} /> : <Icon name={s.icon} size={18} />}
+                    </div>
+                    {!isLast && (
+                      <div className={`w-0.5 flex-1 my-1 min-h-[20px] rounded-full transition-all ${activeStep > i + 1 ? 'bg-accent' : 'bg-border'}`} />
+                    )}
                   </div>
-                  <span className={`mt-2 text-xs font-medium ${done ? 'text-primary' : 'text-muted-foreground'}`}>{s.label}</span>
+                  <div className={`pb-4 pt-1.5 ${isLast ? '' : ''}`}>
+                    <p className={`text-sm font-semibold leading-tight ${done ? 'text-primary' : 'text-muted-foreground'}`}>{s.label}</p>
+                    {active && <p className="mt-0.5 text-xs text-accent font-medium">Текущий статус</p>}
+                  </div>
                 </div>
               );
             })}
