@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiRegister, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { useState, useEffect } from 'react';
 
@@ -58,6 +58,54 @@ const CabinetStatusCard = ({
   const [consentData, setConsentData] = useState(false);
   const [consentContract, setConsentContract] = useState(false);
   const [showVerifying, setShowVerifying] = useState(false);
+
+  const MAX_AMOUNT = 18000;
+  const rejectedAt = user.created_at ? new Date(user.created_at) : null;
+  const daysSinceRejected = rejectedAt ? Math.floor((Date.now() - rejectedAt.getTime()) / 86400000) : 0;
+  const canReapply = status === 'rejected' && daysSinceRejected >= 7;
+
+  const [calcAmount, setCalcAmount] = useState(10000);
+  const [calcDays, setCalcDays] = useState(14);
+  const [reapplyConsent1, setReapplyConsent1] = useState(false);
+  const [reapplyConsent2, setReapplyConsent2] = useState(false);
+  const [reapplyLoading, setReapplyLoading] = useState(false);
+  const [reapplyDone, setReapplyDone] = useState(false);
+  const [reapplyError, setReapplyError] = useState('');
+  const [showCalc, setShowCalc] = useState(false);
+
+  const calcOverpay = Math.round(calcAmount * 0.008 * calcDays);
+  const calcTotal = calcAmount + calcOverpay;
+
+  const handleReapply = async () => {
+    if (!reapplyConsent1 || !reapplyConsent2) return;
+    setReapplyLoading(true);
+    setReapplyError('');
+    try {
+      await apiRegister({
+        full_name: user.full_name,
+        phone: user.phone,
+        password: user.password_plain || '',
+        amount: calcAmount,
+        days: calcDays,
+        passport: user.passport,
+        passport_by: user.passport_by,
+        birth_date: user.birth_date,
+        address_residence: user.address_residence,
+        address_registration: user.address_registration,
+        work_place: user.work_place,
+        work_phone: user.work_phone,
+        email: user.email || undefined,
+      });
+      setReapplyDone(true);
+      const fresh = await apiGetRequest(user.ref_number);
+      saveSession(fresh);
+      setUser(fresh);
+    } catch (e: unknown) {
+      setReapplyError(e instanceof Error ? e.message : 'Ошибка отправки заявки');
+    } finally {
+      setReapplyLoading(false);
+    }
+  };
 
   const sigKey = `sig_code_${user.ref_number}`;
   const [signatureCode, setSignatureCode] = useState<string>(() => localStorage.getItem(sigKey) || '');
@@ -159,12 +207,28 @@ const CabinetStatusCard = ({
           </div>
         ) : (
           <div className="p-6 space-y-4">
-            <p className="text-sm text-muted-foreground">К сожалению, по заявке принято отрицательное решение. Вы можете подать новую заявку через 7 дней.</p>
+            <p className="text-sm text-muted-foreground">
+              К сожалению, по заявке принято отрицательное решение.{' '}
+              {canReapply
+                ? 'Прошло 7 дней — вы можете подать новую заявку.'
+                : `Вы сможете подать новую заявку через ${7 - daysSinceRejected} дн.`}
+            </p>
+
+            {canReapply && (
+              <Button
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold h-12"
+                onClick={() => setShowCalc(true)}
+              >
+                <Icon name="BadgeDollarSign" size={18} className="mr-2 shrink-0" />
+                Оформить займ — вам доступно до {fmt(MAX_AMOUNT)} ₽
+              </Button>
+            )}
+
             <a
               href="https://poluchit-zaim-momentalno.zaimstore.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition-colors"
+              className="flex items-center justify-center gap-2 w-full rounded-xl border border-accent/40 bg-accent/5 px-4 py-3 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors"
             >
               <Icon name="ExternalLink" size={16} className="shrink-0" />
               Наши партнёры — получить займ
@@ -338,6 +402,111 @@ const CabinetStatusCard = ({
           Погасить займ <Icon name="ArrowRight" size={18} className="ml-1" />
         </Button>
       )}
+
+      {/* Калькулятор повторной заявки */}
+      <Dialog open={showCalc} onOpenChange={setShowCalc}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-display text-lg">
+              <Icon name="Calculator" size={20} className="text-accent" />
+              Новая заявка на займ
+            </DialogTitle>
+          </DialogHeader>
+
+          {reapplyDone ? (
+            <div className="flex flex-col items-center gap-4 py-6 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                <Icon name="CheckCircle2" size={32} className="text-emerald-600" />
+              </div>
+              <p className="font-display font-bold text-primary text-lg">Заявка отправлена!</p>
+              <p className="text-sm text-muted-foreground">Мы рассмотрим вашу заявку в ближайшее время. Ожидайте звонка.</p>
+              <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setShowCalc(false)}>
+                Закрыть
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-5 py-2">
+              <div>
+                <div className="mb-1 flex justify-between text-sm">
+                  <span className="text-muted-foreground">Сумма займа</span>
+                  <span className="font-bold text-primary">{fmt(calcAmount)} ₽</span>
+                </div>
+                <input
+                  type="range" min={1000} max={MAX_AMOUNT} step={500}
+                  value={calcAmount}
+                  onChange={(e) => setCalcAmount(Number(e.target.value))}
+                  className="w-full accent-accent"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                  <span>1 000 ₽</span><span>{fmt(MAX_AMOUNT)} ₽</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-1 flex justify-between text-sm">
+                  <span className="text-muted-foreground">Срок</span>
+                  <span className="font-bold text-primary">{calcDays} дней</span>
+                </div>
+                <input
+                  type="range" min={7} max={30} step={1}
+                  value={calcDays}
+                  onChange={(e) => setCalcDays(Number(e.target.value))}
+                  className="w-full accent-accent"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                  <span>7 дней</span><span>30 дней</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Переплата (0.8%/день)</span>
+                  <span className="font-semibold">{fmt(calcOverpay)} ₽</span>
+                </div>
+                <div className="flex justify-between border-t border-accent/20 pt-2">
+                  <span className="font-semibold text-primary">Итого к возврату</span>
+                  <span className="font-bold text-accent text-base">{fmt(calcTotal)} ₽</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
+                  <input
+                    type="checkbox" checked={reapplyConsent1}
+                    onChange={(e) => setReapplyConsent1(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
+                  />
+                  <span className="text-sm text-primary">Я даю согласие на обработку персональных данных (152-ФЗ)</span>
+                </label>
+                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
+                  <input
+                    type="checkbox" checked={reapplyConsent2}
+                    onChange={(e) => setReapplyConsent2(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
+                  />
+                  <span className="text-sm text-primary">Я подтверждаю достоверность указанных данных и согласен с условиями займа</span>
+                </label>
+              </div>
+
+              {reapplyError && (
+                <p className="text-sm text-red-600 text-center">{reapplyError}</p>
+              )}
+
+              <Button
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 h-11 font-semibold"
+                disabled={!reapplyConsent1 || !reapplyConsent2 || reapplyLoading}
+                onClick={handleReapply}
+              >
+                {reapplyLoading ? (
+                  <><Icon name="Loader2" size={16} className="mr-2 animate-spin" />Отправка...</>
+                ) : (
+                  <><Icon name="Send" size={16} className="mr-2" />Отправить заявку</>
+                )}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Поп-ап согласия */}
       <Dialog open={showConsentModal} onOpenChange={setShowConsentModal}>
