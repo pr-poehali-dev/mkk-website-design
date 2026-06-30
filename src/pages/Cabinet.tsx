@@ -102,6 +102,52 @@ const Cabinet = () => {
         setUser={setUser}
         onLogout={handleLogout}
       />
+
+      <footer className="mt-10 border-t border-border bg-card">
+        <div className="container max-w-3xl px-4 py-8">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <div>
+              <p className="mb-2 font-display font-bold text-primary">ООО МКК «Займы Плюс»</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Свидетельство ЦБ РФ № 2110177000284<br />
+                ИНН: 7710000000<br />
+                ОГРН: 1117746000000
+              </p>
+            </div>
+            <div>
+              <p className="mb-2 text-sm font-semibold text-primary">Контакты</p>
+              <ul className="space-y-1.5 text-xs text-muted-foreground">
+                <li className="flex items-center gap-1.5">
+                  <Icon name="Phone" size={12} className="shrink-0 text-accent" />
+                  <a href="tel:+74999610736" className="hover:text-primary transition-colors">+7 (499) 961-07-36</a>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Icon name="MessageCircle" size={12} className="shrink-0 text-accent" />
+                  <a href="https://t.me/zaimyplus_support" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Telegram поддержка</a>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Icon name="Globe" size={12} className="shrink-0 text-accent" />
+                  <a href="https://займы-плюс.рф" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">займы-плюс.рф</a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <p className="mb-2 text-sm font-semibold text-primary">Режим работы</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Пн–Пт: 9:00 – 20:00<br />
+                Сб: 10:00 – 18:00<br />
+                Вс: выходной
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Микрофинансовая организация внесена в реестр ЦБ РФ
+              </p>
+            </div>
+          </div>
+          <div className="mt-6 border-t border-border pt-4 text-center text-xs text-muted-foreground">
+            © {new Date().getFullYear()} ООО МКК «Займы Плюс». Все права защищены.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
