@@ -158,8 +158,17 @@ const CabinetStatusCard = ({
             </div>
           </div>
         ) : (
-          <div className="p-6 text-sm text-muted-foreground">
-            К сожалению, по заявке принято отрицательное решение. Вы можете подать новую заявку через 7 дней.
+          <div className="p-6 space-y-4">
+            <p className="text-sm text-muted-foreground">К сожалению, по заявке принято отрицательное решение. Вы можете подать новую заявку через 7 дней.</p>
+            <a
+              href="https://poluchit-zaim-momentalno.zaimstore.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition-colors"
+            >
+              <Icon name="ExternalLink" size={16} className="shrink-0" />
+              Наши партнёры — получить займ
+            </a>
           </div>
         )}
       </div>

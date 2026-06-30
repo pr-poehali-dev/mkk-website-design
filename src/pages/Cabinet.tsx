@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { getSession, clearSession, apiGetRequest, saveSession, type UserSession } from '@/lib/api';
 import CabinetHeader from '@/components/cabinet/CabinetHeader';
 import CabinetStatusCard from '@/components/cabinet/CabinetStatusCard';
 import CabinetDialogs from '@/components/cabinet/CabinetDialogs';
+
+const PARTNERS_URL = 'https://poluchit-zaim-momentalno.zaimstore.com/';
+const PARTNERS_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/38902d8a-c1a6-420c-8a06-6cc3eb5ab02d.jpg';
 
 const Cabinet = () => {
   const nav = useNavigate();
@@ -18,6 +21,8 @@ const Cabinet = () => {
   const [selectedBank, setSelectedBank] = useState<string | null>(null);
   const [bankSaved, setBankSaved] = useState(false);
   const [docsOpen, setDocsOpen] = useState(false);
+  const [partnersPopup, setPartnersPopup] = useState(false);
+  const popupShown = useRef(false);
 
   useEffect(() => {
     const session = getSession();
@@ -29,6 +34,10 @@ const Cabinet = () => {
       saveSession(fresh);
       setUser(fresh);
       if (fresh.payment_bank) setSelectedBank(fresh.payment_bank);
+      if (fresh.status === 'rejected' && !popupShown.current) {
+        popupShown.current = true;
+        setPartnersPopup(true);
+      }
     }).catch(() => {});
   }, [nav]);
 
@@ -47,6 +56,36 @@ const Cabinet = () => {
 
   return (
     <div className="min-h-screen bg-secondary/40">
+
+      {/* Поп-окно для отказанных клиентов */}
+      {partnersPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setPartnersPopup(false)}>
+          <div className="relative w-full max-w-sm rounded-2xl bg-card shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setPartnersPopup(false)}
+              className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+            >
+              <Icon name="X" size={16} />
+            </button>
+            <img src={PARTNERS_IMG} alt="Займы одобрили тут" className="w-full object-cover" />
+            <div className="p-5">
+              <h3 className="text-lg font-bold text-primary">Займы одобрили тут!</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Наши партнёры одобряют займы даже при плохой кредитной истории. Попробуйте прямо сейчас!</p>
+              <a
+                href={PARTNERS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 flex items-center justify-center gap-2 w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition-colors"
+                onClick={() => setPartnersPopup(false)}
+              >
+                <Icon name="ExternalLink" size={16} className="shrink-0" />
+                Получить займ у партнёров
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       <CabinetHeader
         initials={initials}
         firstName={user.full_name.split(' ')[0]}
