@@ -38,9 +38,17 @@ const AdminRequestCard = ({ r, checked, onCheck, onEdit, fmt, isRepeat }: Props)
               </span>
             ) : r.status === 'repaid' ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-                <Icon name="CheckCircle2" size={10} /> Погашен
+                <Icon name="CheckCircle2" size={10} /> Займ погашен
               </span>
-            ) : null}
+            ) : r.status === 'rejected' ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-700">
+                <Icon name="XCircle" size={10} /> Отказ
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700">
+                <Icon name="FilePlus" size={10} /> Новая заявка
+              </span>
+            )}
           </p>
           <p className="text-sm text-muted-foreground">
             {r.phone} · {fmt(r.amount)} ₽ / {r.days} дн. · {r.created_at?.slice(0, 10)}
