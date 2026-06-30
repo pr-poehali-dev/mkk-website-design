@@ -21,6 +21,8 @@ const Admin = () => {
   const [deleting, setDeleting] = useState(false);
   const [maintenanceBanner, setMaintenanceBanner] = useState(false);
   const [bannerSaving, setBannerSaving] = useState(false);
+  const [siteClosed, setSiteClosed] = useState(false);
+  const [siteClosedSaving, setSiteClosedSaving] = useState(false);
 
   const fetchAll = useCallback(async () => {
     setLoadingList(true);
@@ -37,7 +39,10 @@ const Admin = () => {
   useEffect(() => {
     if (authed) {
       fetchAll();
-      apiGetSiteSettings().then((s) => setMaintenanceBanner(s.maintenance_banner === 'true'));
+      apiGetSiteSettings().then((s) => {
+        setMaintenanceBanner(s.maintenance_banner === 'true');
+        setSiteClosed(s.site_closed === 'true');
+      });
     }
   }, [authed, fetchAll]);
 
@@ -126,6 +131,46 @@ const Admin = () => {
               : maintenanceBanner
                 ? <span className="flex items-center gap-1.5"><Icon name="EyeOff" size={14} /> Отключить баннер</span>
                 : <span className="flex items-center gap-1.5"><Icon name="Eye" size={14} /> Включить баннер</span>
+            }
+          </Button>
+        </div>
+
+        {/* Закрытие сайта */}
+        <div className={`mt-4 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${siteClosed ? 'border-red-300 bg-red-50' : 'border-border bg-card'}`}>
+          <div className="flex items-start gap-3">
+            <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${siteClosed ? 'bg-red-200 text-red-700' : 'bg-secondary text-muted-foreground'}`}>
+              <Icon name="ShieldOff" size={18} />
+            </div>
+            <div>
+              <p className="font-semibold text-primary">Закрыть сайт полностью</p>
+              <p className="text-sm text-muted-foreground">
+                {siteClosed
+                  ? 'Сайт закрыт — посетители видят страницу «Сайт на доработке»'
+                  : 'Сайт открыт — работает в обычном режиме'}
+              </p>
+            </div>
+          </div>
+          <Button
+            disabled={siteClosedSaving}
+            size="sm"
+            onClick={async () => {
+              setSiteClosedSaving(true);
+              const next = !siteClosed;
+              try {
+                await apiSaveSiteSettings({ site_closed: next ? 'true' : 'false' });
+                setSiteClosed(next);
+              } catch (_e) {
+                // ignore
+              } finally { setSiteClosedSaving(false); }
+            }}
+            className={siteClosed
+              ? 'bg-green-600 text-white hover:bg-green-700'
+              : 'bg-red-600 text-white hover:bg-red-700'}>
+            {siteClosedSaving
+              ? <span className="flex items-center gap-1.5"><Icon name="Loader2" size={14} className="animate-spin" /> Сохранение...</span>
+              : siteClosed
+                ? <span className="flex items-center gap-1.5"><Icon name="Globe" size={14} /> Открыть сайт</span>
+                : <span className="flex items-center gap-1.5"><Icon name="ShieldOff" size={14} /> Закрыть сайт</span>
             }
           </Button>
         </div>

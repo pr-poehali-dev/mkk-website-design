@@ -3,7 +3,7 @@ import Icon from '@/components/ui/icon';
 import { useMaintenance } from '@/lib/maintenanceContext';
 
 const MaintenanceBanner = () => {
-  const maintenance = useMaintenance();
+  const { maintenance } = useMaintenance();
   const [dismissed, setDismissed] = useState(false);
 
   if (!maintenance || dismissed) return null;
