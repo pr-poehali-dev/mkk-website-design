@@ -25,11 +25,24 @@ def handler(event: dict, context) -> dict:
     cur = conn.cursor()
 
     # Проверяем существующую заявку по телефону
-    cur.execute(f"SELECT id, status, password_hash FROM {SCHEMA}.loan_requests WHERE phone = %s ORDER BY created_at DESC LIMIT 1", (body['phone'],))
+    cur.execute(
+        f"SELECT id, status, password_hash, ref_number, created_at FROM {SCHEMA}.loan_requests WHERE phone = %s ORDER BY created_at DESC LIMIT 1",
+        (body['phone'],)
+    )
     existing = cur.fetchone()
-    if existing and existing[1] not in ('repaid', 'rejected'):
-        conn.close()
-        return {'statusCode': 409, 'headers': headers, 'body': json.dumps({'error': 'Телефон уже зарегистрирован'})}
+    if existing:
+        ex_status = existing[1]
+        ex_ref = existing[3]
+        ex_created = existing[4]
+        if ex_status not in ('repaid', 'rejected'):
+            # Заявка уже активна — возвращаем её как успех
+            conn.close()
+            return {'statusCode': 201, 'headers': headers, 'body': json.dumps({
+                'id': existing[0],
+                'ref_number': ex_ref,
+                'status': ex_status,
+                'created_at': ex_created.isoformat(),
+            })}
 
     # Пароль: plain → hash, или hash напрямую, или берём из существующей заявки
     if body.get('password'):

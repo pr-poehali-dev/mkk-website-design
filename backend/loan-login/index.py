@@ -64,7 +64,8 @@ def handler(event: dict, context) -> dict:
     cur.execute(
         f"""SELECT id, ref_number, full_name, phone, passport, amount, days, status, created_at, is_blocked
             FROM {SCHEMA}.loan_requests
-            WHERE phone = %s AND password_hash = %s""",
+            WHERE phone = %s AND password_hash = %s
+            ORDER BY created_at DESC LIMIT 1""",
         (phone, hash_password(password))
     )
     row = cur.fetchone()
