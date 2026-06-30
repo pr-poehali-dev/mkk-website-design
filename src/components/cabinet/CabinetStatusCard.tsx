@@ -81,7 +81,7 @@ const CabinetStatusCard = ({
     setReapplyLoading(true);
     setReapplyError('');
     try {
-      await apiRegister({
+      const result = await apiRegister({
         full_name: user.full_name,
         phone: user.phone,
         ...(user.password_plain ? { password: user.password_plain } : {}),
@@ -97,9 +97,10 @@ const CabinetStatusCard = ({
         email: user.email || undefined,
       });
       setReapplyDone(true);
-      const fresh = await apiGetRequest(user.ref_number);
+      const fresh = await apiGetRequest(result.ref_number);
       saveSession(fresh);
       setUser(fresh);
+      setShowCalc(false);
     } catch (e: unknown) {
       setReapplyError(e instanceof Error ? e.message : 'Ошибка отправки заявки');
     } finally {
