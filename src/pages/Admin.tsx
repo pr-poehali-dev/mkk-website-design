@@ -216,6 +216,10 @@ const Admin = () => {
           setRequests((prev) => prev.map((r) => r.ref_number === ref_number ? { ...r, is_blocked } : r));
           setSelected((prev) => prev ? { ...prev, is_blocked } : null);
         }}
+        onDocStatusChanged={(ref_number, patch) => {
+          setRequests((prev) => prev.map((r) => r.ref_number === ref_number ? { ...r, ...patch } : r));
+          setSelected((prev) => prev ? { ...prev, ...patch } : null);
+        }}
       />
     </div>
   );

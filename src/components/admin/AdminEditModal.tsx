@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiAdminSetPassword, apiUploadFile, apiAdminSetDocStatus, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from './contractHtml';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const BANKS = [
   { name: 'Сбербанк', icon: '🟢' },
@@ -42,6 +42,7 @@ interface Props {
   onClose: () => void;
   onSaved: (updated: Partial<UserSession> & { ref_number: string }) => void;
   onBlockToggled: (ref_number: string, is_blocked: boolean) => void;
+  onDocStatusChanged?: (ref_number: string, patch: Partial<UserSession>) => void;
 }
 
 const AdminEditModal = ({
@@ -53,6 +54,7 @@ const AdminEditModal = ({
   onClose,
   onSaved,
   onBlockToggled,
+  onDocStatusChanged,
 }: Props) => {
   const [newPassword, setNewPassword] = useState('');
   const [pwdSaving, setPwdSaving] = useState(false);
@@ -66,16 +68,28 @@ const AdminEditModal = ({
     income_doc_status: selected?.income_doc_status || 'pending',
   });
 
+  useEffect(() => {
+    if (selected) {
+      setDocStatuses({
+        passport_photo_status: selected.passport_photo_status || 'pending',
+        registration_photo_status: selected.registration_photo_status || 'pending',
+        income_doc_status: selected.income_doc_status || 'pending',
+      });
+    }
+  }, [selected?.passport_photo_status, selected?.registration_photo_status, selected?.income_doc_status]);
+
   const handleDocStatus = async (field: string, newStatus: string) => {
     if (!selected) return;
     setDocStatusSaving(field);
     try {
       await apiAdminSetDocStatus({ ref_number: selected.ref_number, [field]: newStatus });
       setDocStatuses(prev => ({ ...prev, [field]: newStatus }));
+      const patch: Partial<UserSession> = { [field]: newStatus };
       if (newStatus === 'rejected') {
-        const urlField = field.replace('_status', '_url');
-        onBlockToggled?.({ ...selected, [urlField]: null, [field]: 'rejected' });
+        const urlField = field.replace('_status', '_url') as keyof UserSession;
+        patch[urlField] = null as never;
       }
+      onDocStatusChanged?.(selected.ref_number, patch);
     } finally {
       setDocStatusSaving(null);
     }
