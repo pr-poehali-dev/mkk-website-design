@@ -123,7 +123,7 @@ const Cabinet = () => {
                 </li>
                 <li className="flex items-center gap-1.5">
                   <Icon name="MessageCircle" size={12} className="shrink-0 text-accent" />
-                  <a href="https://t.me/zaimyplus_support" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Telegram поддержка</a>
+                  <a href="https://t.me/zaymiplus263" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">@zaymiplus263 — поддержка</a>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <Icon name="Globe" size={12} className="shrink-0 text-accent" />
