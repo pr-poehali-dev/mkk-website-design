@@ -56,7 +56,7 @@ def handler(event: dict, context) -> dict:
             ref_number,
             body['full_name'],
             body['phone'],
-            hash_password(body['password']),
+            pwd_hash,
             body.get('birth_date') or None,
             body.get('passport') or None,
             body.get('passport_by') or None,
