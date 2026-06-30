@@ -69,9 +69,11 @@ const Admin = () => {
     return <AdminLoginScreen onAuth={() => setAuthed(true)} />;
   }
 
-  const stats = (Object.keys(STATUS_META) as StatusKey[]).map((k) => ({
-    key: k, ...STATUS_META[k], count: requests.filter((r) => r.status === k).length,
-  }));
+  const stats = (Object.keys(STATUS_META) as StatusKey[])
+    .filter((k) => k !== 'repaid' && k !== 'rejected')
+    .map((k) => ({
+      key: k, ...STATUS_META[k], count: requests.filter((r) => r.status === k).length,
+    }));
 
   return (
     <div className="min-h-screen bg-secondary/40">
