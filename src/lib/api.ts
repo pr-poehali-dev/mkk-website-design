@@ -56,7 +56,7 @@ export function clearSession() {
 }
 
 export async function apiRegister(data: {
-  full_name: string; phone: string; password: string;
+  full_name: string; phone: string; password?: string; password_hash?: string;
   amount: number; days: number;
   passport?: string; passport_by?: string; birth_date?: string;
   address_residence?: string; address_registration?: string;

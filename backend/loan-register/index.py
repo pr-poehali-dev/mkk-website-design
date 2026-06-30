@@ -16,7 +16,7 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 200, 'headers': headers, 'body': ''}
 
     body = json.loads(event.get('body') or '{}')
-    required = ['full_name', 'phone', 'password', 'amount', 'days']
+    required = ['full_name', 'phone', 'amount', 'days']
     for field in required:
         if not body.get(field):
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': f'Поле {field} обязательно'})}
@@ -24,10 +24,23 @@ def handler(event: dict, context) -> dict:
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
 
-    cur.execute(f"SELECT id FROM {SCHEMA}.loan_requests WHERE phone = %s", (body['phone'],))
-    if cur.fetchone():
+    # Проверяем существующую заявку по телефону
+    cur.execute(f"SELECT id, status, password_hash FROM {SCHEMA}.loan_requests WHERE phone = %s ORDER BY created_at DESC LIMIT 1", (body['phone'],))
+    existing = cur.fetchone()
+    if existing and existing[1] not in ('repaid', 'rejected'):
         conn.close()
         return {'statusCode': 409, 'headers': headers, 'body': json.dumps({'error': 'Телефон уже зарегистрирован'})}
+
+    # Пароль: plain → hash, или hash напрямую, или берём из существующей заявки
+    if body.get('password'):
+        pwd_hash = hash_password(body['password'])
+    elif body.get('password_hash'):
+        pwd_hash = body['password_hash']
+    elif existing and existing[2]:
+        pwd_hash = existing[2]
+    else:
+        conn.close()
+        return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Поле password обязательно'})}
 
     cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.loan_requests")
     count = cur.fetchone()[0]

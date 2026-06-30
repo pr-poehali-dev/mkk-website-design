@@ -84,7 +84,7 @@ const CabinetStatusCard = ({
       await apiRegister({
         full_name: user.full_name,
         phone: user.phone,
-        password: user.password_plain || '',
+        ...(user.password_plain ? { password: user.password_plain } : {}),
         amount: calcAmount,
         days: calcDays,
         passport: user.passport,
