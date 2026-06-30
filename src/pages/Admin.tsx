@@ -20,6 +20,7 @@ const Admin = () => {
   const [checkedRefs, setCheckedRefs] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusKey | null>(null);
   const [maintenanceBanner, setMaintenanceBanner] = useState(false);
   const [bannerSaving, setBannerSaving] = useState(false);
   const [siteClosed, setSiteClosed] = useState(false);
@@ -69,11 +70,9 @@ const Admin = () => {
     return <AdminLoginScreen onAuth={() => setAuthed(true)} />;
   }
 
-  const stats = (Object.keys(STATUS_META) as StatusKey[])
-    .filter((k) => k !== 'repaid' && k !== 'rejected')
-    .map((k) => ({
-      key: k, ...STATUS_META[k], count: requests.filter((r) => r.status === k).length,
-    }));
+  const stats = (Object.keys(STATUS_META) as StatusKey[]).map((k) => ({
+    key: k, ...STATUS_META[k], count: requests.filter((r) => r.status === k).length,
+  }));
 
   return (
     <div className="min-h-screen bg-secondary/40">
@@ -180,16 +179,31 @@ const Admin = () => {
 
         {/* Статистика */}
         <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {stats.map((s) => (
-            <div key={s.key} className="rounded-2xl border border-border bg-card p-4">
-              <div className={`mb-2 flex h-10 w-10 items-center justify-center rounded-xl ${s.bg} ${s.color}`}>
-                <Icon name={s.icon} size={20} />
-              </div>
-              <p className="text-2xl font-bold text-primary">{s.count}</p>
-              <p className="text-sm text-muted-foreground">{s.label}</p>
-            </div>
-          ))}
+          {stats.map((s) => {
+            const active = statusFilter === s.key;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setStatusFilter(active ? null : s.key as StatusKey)}
+                className={`rounded-2xl border p-4 text-left transition-all hover:shadow-md ${active ? 'border-accent bg-accent/10 ring-2 ring-accent/40' : 'border-border bg-card'}`}
+              >
+                <div className={`mb-2 flex h-10 w-10 items-center justify-center rounded-xl ${s.bg} ${s.color}`}>
+                  <Icon name={s.icon} size={20} />
+                </div>
+                <p className="text-2xl font-bold text-primary">{s.count}</p>
+                <p className="text-sm text-muted-foreground">{s.label}</p>
+              </button>
+            );
+          })}
         </div>
+        {statusFilter && (
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Фильтр: <span className="font-medium text-primary">{STATUS_META[statusFilter]?.label}</span></span>
+            <button onClick={() => setStatusFilter(null)} className="flex items-center gap-1 text-xs text-accent hover:underline">
+              <Icon name="X" size={12} /> Сбросить
+            </button>
+          </div>
+        )}
 
         {/* Панель удаления */}
         {checkedRefs.size > 0 && (
@@ -251,6 +265,7 @@ const Admin = () => {
           )}
           {requests
             .filter((r) => {
+              if (statusFilter && r.status !== statusFilter) return false;
               if (!search.trim()) return true;
               const q = search.trim().toLowerCase();
               return (
