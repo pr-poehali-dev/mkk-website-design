@@ -19,6 +19,7 @@ const Admin = () => {
   const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', payment_bank: '', insurance_enabled: false });
   const [checkedRefs, setCheckedRefs] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
+  const [search, setSearch] = useState('');
   const [maintenanceBanner, setMaintenanceBanner] = useState(false);
   const [bannerSaving, setBannerSaving] = useState(false);
   const [siteClosed, setSiteClosed] = useState(false);
@@ -219,8 +220,25 @@ const Admin = () => {
           </div>
         )}
 
+        {/* Поиск */}
+        <div className="mt-5 relative">
+          <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Поиск по ФИО или номеру телефона..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-xl border border-border bg-card py-2.5 pl-9 pr-4 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/40"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary">
+              <Icon name="X" size={14} />
+            </button>
+          )}
+        </div>
+
         {/* Список заявок */}
-        <div className="mt-6 space-y-3">
+        <div className="mt-4 space-y-3">
           {loadingList && requests.length === 0 && (
             <div className="flex items-center justify-center py-12">
               <Icon name="Loader2" size={28} className="animate-spin text-muted-foreground" />
@@ -229,21 +247,30 @@ const Admin = () => {
           {!loadingList && requests.length === 0 && (
             <p className="py-12 text-center text-muted-foreground">Заявок пока нет</p>
           )}
-          {requests.map((r) => {
-            const phoneCount = requests.filter((x) => x.phone === r.phone).length;
-            const isRepeat = phoneCount > 1;
-            return (
-              <AdminRequestCard
-                key={r.ref_number}
-                r={r}
-                checked={checkedRefs.has(r.ref_number)}
-                onCheck={handleCheck}
-                onEdit={openModal}
-                fmt={fmt}
-                isRepeat={isRepeat}
-              />
-            );
-          })}
+          {requests
+            .filter((r) => {
+              if (!search.trim()) return true;
+              const q = search.trim().toLowerCase();
+              return (
+                r.full_name?.toLowerCase().includes(q) ||
+                r.phone?.replace(/\D/g, '').includes(q.replace(/\D/g, ''))
+              );
+            })
+            .map((r) => {
+              const phoneCount = requests.filter((x) => x.phone === r.phone).length;
+              const isRepeat = phoneCount > 1;
+              return (
+                <AdminRequestCard
+                  key={r.ref_number}
+                  r={r}
+                  checked={checkedRefs.has(r.ref_number)}
+                  onCheck={handleCheck}
+                  onEdit={openModal}
+                  fmt={fmt}
+                  isRepeat={isRepeat}
+                />
+              );
+            })}
         </div>
 
         <Link to="/" className="mt-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
