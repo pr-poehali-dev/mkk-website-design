@@ -168,7 +168,7 @@ const CabinetStatusCard = ({
           </div>
         </div>
 
-        {status !== 'rejected' && status !== 'transfer_error' ? (
+        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' ? (
           <div className="flex items-start p-4 gap-0">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
@@ -188,6 +188,40 @@ const CabinetStatusCard = ({
                 </div>
               );
             })}
+          </div>
+        ) : status === 'repaid' ? (
+          <div className="p-6">
+            <div className="rounded-2xl border-2 border-teal-200 bg-teal-50 p-6 text-center">
+              <div className="flex justify-center mb-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-teal-100">
+                  <Icon name="BadgeDollarSign" size={32} className="text-teal-600" />
+                </div>
+              </div>
+              <p className="font-display text-xl font-bold text-teal-700">Займ погашен!</p>
+              <p className="text-sm text-teal-600 mt-1">Спасибо — задолженность полностью закрыта</p>
+              <div className="mt-4 rounded-xl bg-white border border-teal-200 px-4 py-3 inline-block">
+                <p className="text-2xl font-bold text-teal-600">{fmt(user.amount)} ₽</p>
+                <p className="text-xs text-teal-400 mt-0.5">Сумма займа</p>
+              </div>
+            </div>
+            <div className="mt-4 rounded-xl border border-border bg-card p-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Номер заявки</span>
+                <span className="font-mono font-semibold text-primary">{user.ref_number}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Срок займа</span>
+                <span className="font-semibold">{user.days} дн.</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Дата оформления</span>
+                <span className="font-semibold">{user.created_at?.slice(0, 10)}</span>
+              </div>
+              <div className="flex justify-between border-t border-border pt-2">
+                <span className="text-muted-foreground">Переплата</span>
+                <span className="font-semibold">{fmt(Math.round(user.amount * 0.008 * user.days))} ₽</span>
+              </div>
+            </div>
           </div>
         ) : status === 'transfer_error' ? (
           <div className="p-6 space-y-4">
@@ -239,7 +273,7 @@ const CabinetStatusCard = ({
 
       {/* Блок займа */}
       <div className="mt-6">
-        {status === 'approved' ? (
+        {status === 'repaid' ? null : status === 'approved' ? (
           <div className="rounded-2xl border-2 border-accent/50 bg-accent/5 p-6">
             <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-primary">
               <Icon name="FileSignature" size={18} className="text-accent" /> Условия займа
@@ -400,6 +434,17 @@ const CabinetStatusCard = ({
       {status === 'money_sent' && (
         <Button size="lg" className="mt-6 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
           Погасить займ <Icon name="ArrowRight" size={18} className="ml-1" />
+        </Button>
+      )}
+
+      {status === 'repaid' && (
+        <Button
+          size="lg"
+          className="mt-4 h-12 w-full bg-teal-600 text-base font-bold text-white hover:bg-teal-700"
+          onClick={() => setShowCalc(true)}
+        >
+          <Icon name="BadgeDollarSign" size={18} className="mr-2" />
+          Оформить новый займ — до {fmt(MAX_AMOUNT)} ₽
         </Button>
       )}
 
