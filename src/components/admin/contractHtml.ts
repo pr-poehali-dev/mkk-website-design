@@ -11,7 +11,8 @@ export function buildContractHtml(
   signatureCode?: string,
 ): string {
   const overpay = Math.round(amt * 0.008 * dys);
-  const total = amt + overpay;
+  const insurance = selected.insurance_enabled ? Math.round(356 + amt * 0.005) : 0;
+  const total = amt + overpay + insurance;
 
   const style = [
     'body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#111;font-size:13px;line-height:1.6}',
@@ -45,6 +46,7 @@ export function buildContractHtml(
 <div class="row"><span class="label">Срок</span><span class="val">${dys} дней</span></div>
 <div class="row"><span class="label">Процентная ставка</span><span class="val">0.8% в день</span></div>
 <div class="row"><span class="label">Начисленные проценты</span><span class="val">${fmt(overpay)} ₽</span></div>
+${selected.insurance_enabled ? `<div class="row"><span class="label">Страховка займа</span><span class="val">${fmt(insurance)} ₽</span></div>` : ''}
 <div class="row"><span class="label">Дата возврата</span><span class="val">${returnDate}</span></div>
 <div class="row"><span class="label total">Итого к возврату</span><span class="val total">${fmt(total)} ₽</span></div>
 <h2>Реквизиты заявки</h2>
@@ -66,6 +68,7 @@ export function buildContractHtml(
 <p>8. Моментом исполнения обязательств Заемщика перед Кредитором считается дата зачисления денежных средств на расчетный счет Кредитора.</p>
 <p>9. В случае выявления Кредитором излишне уплаченных денежных средств по Договору займа, на Зарегистрированный адрес электронной почты Заемщика направляется уведомление о наличии переплаты. С момента получения указанного уведомления Заемщику необходимо направить на официальную почту Кредитора банковские реквизиты для возврата излишне уплаченных денежных средств. Излишне уплаченные денежные средства перечисляются по реквизитам, указанным Заемщиком, в течение 10 (десяти) рабочих дней с момента предоставления сведений о банковских реквизитах Заемщика на официальную почту Кредитора. Начисление процентов за пользование излишне перечисленными денежными средствами не осуществляется.</p>
 <p>10. Заемщик выражает свое безусловное согласие (акцепт) на списание Кредитором либо по поручению Кредитора партнером суммы всей или части Задолженности с Карты Заемщика.</p>
+${selected.insurance_enabled ? `<p><b>СТРАХОВАНИЕ ЗАЙМА</b></p><p>11. Заемщик подключил услугу добровольного страхования займа. Стоимость страховки составляет <b>${fmt(insurance)} ₽</b> и включена в общую сумму к возврату. Страховка обеспечивает защиту Заемщика в случае наступления страхового события, предусмотренного условиями страхования.</p>` : ''}
 ${signatureCode ? `<div style="margin-top:32px;border:1px solid #ccc;border-radius:8px;padding:12px;background:#f9fafb;text-align:center"><p style="color:#666;font-size:11px;margin:0 0 4px">Код электронной подписи</p><p style="font-family:monospace;font-size:18px;font-weight:bold;letter-spacing:4px;color:#1a56db;margin:0">${signatureCode}</p><p style="color:#666;font-size:10px;margin:4px 0 0">Подтверждает согласие заёмщика с условиями договора</p></div>` : ''}
 <div class="sign">
   <div class="sign-box"><div class="sign-line">Займодавец / ООО МКК «Займы Плюс»</div></div>
