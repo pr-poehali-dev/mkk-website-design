@@ -85,11 +85,18 @@ const CabinetStatusCard = ({
     }, 2500);
   };
 
-  const [showMoneySent, setShowMoneySent] = useState(true);
+  const moneySentKey = `money_sent_seen_${user.ref_number}`;
+  const [showMoneySent, setShowMoneySent] = useState(() =>
+    status === 'money_sent' ? !localStorage.getItem(moneySentKey) : false
+  );
   useEffect(() => {
     if (status !== 'money_sent') return;
+    if (localStorage.getItem(moneySentKey)) return;
     setShowMoneySent(true);
-    const t = setTimeout(() => setShowMoneySent(false), 2 * 60 * 1000);
+    const t = setTimeout(() => {
+      setShowMoneySent(false);
+      localStorage.setItem(moneySentKey, '1');
+    }, 2 * 60 * 1000);
     return () => clearTimeout(t);
   }, [status]);
 
