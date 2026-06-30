@@ -267,6 +267,12 @@ const AdminEditModal = ({
             {/* Пароль клиента */}
             <div className="rounded-xl border border-border bg-card p-4 space-y-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Пароль клиента</p>
+              {selected.password_plain && (
+                <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2">
+                  <span className="text-xs text-muted-foreground">Текущий:</span>
+                  <span className="font-mono text-sm font-semibold text-primary">{selected.password_plain}</span>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Input
                   type="text"

@@ -28,7 +28,7 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Пароль должен быть не менее 4 символов'})}
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
-        cur.execute(f"UPDATE {SCHEMA}.loan_requests SET password_hash = %s WHERE phone = %s", (hash_password(new_password), phone))
+        cur.execute(f"UPDATE {SCHEMA}.loan_requests SET password_hash = %s, password_plain = %s WHERE phone = %s", (hash_password(new_password), new_password, phone))
         conn.commit()
         conn.close()
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
