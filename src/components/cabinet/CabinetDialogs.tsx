@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
+import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from '@/components/admin/contractHtml';
 
 const BANKS = [
@@ -72,6 +73,22 @@ const CabinetDialogs = ({
     a.download = `Договор_${contractCode}.html`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyItems, setHistoryItems] = useState<UserSession[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const openHistory = async () => {
+    setHistoryOpen(true);
+    setMenuOpen(false);
+    setHistoryLoading(true);
+    try {
+      const items = await apiGetHistory(user.phone);
+      setHistoryItems(items);
+    } finally {
+      setHistoryLoading(false);
+    }
   };
 
   const [pwOpen, setPwOpen] = useState(false);
@@ -152,6 +169,11 @@ const CabinetDialogs = ({
               onClick={() => { setDocsOpen(true); setMenuOpen(false); }}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="FolderOpen" size={18} className="text-accent" /> Мои документы
+            </button>
+            <button
+              onClick={openHistory}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="History" size={18} className="text-accent" /> История займов
             </button>
             <button
               onClick={onLogout}
@@ -453,6 +475,64 @@ const CabinetDialogs = ({
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог: История займов */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-primary">История займов</DialogTitle>
+          </DialogHeader>
+          {historyLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <Icon name="Loader2" size={28} className="animate-spin text-muted-foreground" />
+            </div>
+          ) : historyItems.length === 0 ? (
+            <p className="py-8 text-center text-muted-foreground">История займов пуста</p>
+          ) : (
+            <div className="space-y-3">
+              {historyItems.map((item, i) => {
+                const st = (item.status as StatusKey) in STATUS_META ? (item.status as StatusKey) : 'review';
+                const meta = STATUS_META[st];
+                const overpayItem = Math.round(item.amount * 0.008 * item.days);
+                const totalItem = item.amount + overpayItem;
+                return (
+                  <div key={item.ref_number} className="rounded-xl border border-border bg-secondary/40 p-4">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${meta.bg} ${meta.color}`}>
+                          <Icon name={meta.icon} size={15} />
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{item.ref_number}</p>
+                          <p className={`text-xs font-semibold ${meta.color}`}>{meta.label}</p>
+                        </div>
+                      </div>
+                      {i === 0 && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-accent bg-accent/10 rounded-full px-2 py-0.5">Текущий</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      <span className="text-muted-foreground">Сумма</span>
+                      <span className="font-semibold text-primary">{fmt(item.amount)} ₽</span>
+                      <span className="text-muted-foreground">Срок</span>
+                      <span className="font-semibold text-primary">{item.days} дн.</span>
+                      <span className="text-muted-foreground">К возврату</span>
+                      <span className="font-semibold text-primary">{fmt(totalItem)} ₽</span>
+                      <span className="text-muted-foreground">Дата заявки</span>
+                      <span className="font-semibold text-primary">{item.created_at?.slice(0, 10)}</span>
+                    </div>
+                    {item.operator_comment && (
+                      <p className="mt-2 flex items-center gap-1 text-xs text-accent">
+                        <Icon name="MessageSquare" size={11} /> {item.operator_comment}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

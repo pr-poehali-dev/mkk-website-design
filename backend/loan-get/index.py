@@ -36,6 +36,26 @@ def handler(event: dict, context) -> dict:
     req_headers = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
     is_admin = req_headers.get('x-admin-token') == ADMIN_TOKEN
 
+    if params.get('action') == 'history':
+        phone = params.get('phone')
+        if not phone:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'phone обязателен'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT id, ref_number, full_name, phone, passport, passport_by,
+                       birth_date, amount, days, status, operator_comment, created_at,
+                       address_residence, address_registration, work_place, work_phone, income_doc_url,
+                       payment_bank, is_blocked, email, doc_urls, passport_photo_url, registration_photo_url,
+                       passport_photo_status, registration_photo_status, income_doc_status, password_plain,
+                       insurance_enabled
+                FROM {SCHEMA}.loan_requests WHERE phone = %s ORDER BY created_at DESC""",
+            (phone,)
+        )
+        rows = cur.fetchall()
+        conn.close()
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps([row_to_dict(r) for r in rows])}
+
     if params.get('action') == 'settings':
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()

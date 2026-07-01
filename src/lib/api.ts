@@ -108,6 +108,13 @@ export async function apiGetRequest(ref: string): Promise<UserSession> {
   return json as UserSession;
 }
 
+export async function apiGetHistory(phone: string): Promise<UserSession[]> {
+  const res = await fetch(`${URLS.get}?action=history&phone=${encodeURIComponent(phone)}`);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as UserSession[];
+}
+
 export async function apiGetAll(): Promise<UserSession[]> {
   const res = await fetch(URLS.get, {
     headers: { 'x-admin-token': ADMIN_TOKEN },
