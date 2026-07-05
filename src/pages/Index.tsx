@@ -71,7 +71,7 @@ const Index = () => {
             </div>
             <div className="leading-none">
               <p className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Займы онлайн</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Займы онлайн 24/7</p>
             </div>
           </div>
           <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
