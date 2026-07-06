@@ -1,6 +1,6 @@
 const SiteClosed = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#1a1050] to-[#24243e] px-4 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#1a1050] to-[#24243e] px-4 text-center my-0">
       <div className="w-full max-w-md">
         <img
           src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/b6d4276c-23be-4d44-ad86-71dc814ef421.jpg"
@@ -19,7 +19,7 @@ const SiteClosed = () => {
 
         <p className="mt-4 text-base text-white/60 leading-relaxed">
           Просим вас не беспокоиться — мы работаем над улучшением сервиса.<br />
-          <span className="text-white/40 text-sm">Сроки завершения работ нам неизвестны.</span>
+          <span className="text-white/40 text-sm">Сроки завершения работ 10.07.2026.</span>
         </p>
 
         <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm text-sm text-white/50">
