@@ -138,7 +138,7 @@ const CabinetDialogs = ({
     <>
       {/* Поп-ап меню */}
       <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
             <DialogTitle className="font-display text-xl text-primary">Меню</DialogTitle>
           </DialogHeader>
