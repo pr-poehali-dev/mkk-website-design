@@ -502,11 +502,11 @@ const CabinetStatusCard = ({
                 </div>
               </div>
 
-              <div className="space-y-5 p-6">
+              <div className="space-y-3.5 p-4 sm:space-y-5 sm:p-6">
                 <div>
-                  <div className="mb-2 flex items-baseline justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">Сумма займа</span>
-                    <span className="rounded-lg bg-emerald-50 px-3 py-1 font-display text-lg font-bold text-emerald-700">{fmt(calcAmount)} ₽</span>
+                  <div className="mb-1.5 flex items-baseline justify-between sm:mb-2">
+                    <span className="text-xs font-medium text-muted-foreground sm:text-sm">Сумма займа</span>
+                    <span className="rounded-lg bg-emerald-50 px-2 py-0.5 font-display text-sm font-bold text-emerald-700 sm:px-3 sm:py-1 sm:text-lg">{fmt(calcAmount)} ₽</span>
                   </div>
                   <input
                     type="range" min={1000} max={MAX_AMOUNT} step={500}
@@ -514,15 +514,15 @@ const CabinetStatusCard = ({
                     onChange={(e) => setCalcAmount(Number(e.target.value))}
                     className="w-full accent-emerald-600"
                   />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                  <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5 sm:text-xs">
                     <span>1 000 ₽</span><span>{fmt(MAX_AMOUNT)} ₽</span>
                   </div>
                 </div>
 
                 <div>
-                  <div className="mb-2 flex items-baseline justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">Срок займа</span>
-                    <span className="rounded-lg bg-emerald-50 px-3 py-1 font-display text-lg font-bold text-emerald-700">{calcDays} дней</span>
+                  <div className="mb-1.5 flex items-baseline justify-between sm:mb-2">
+                    <span className="text-xs font-medium text-muted-foreground sm:text-sm">Срок займа</span>
+                    <span className="rounded-lg bg-emerald-50 px-2 py-0.5 font-display text-sm font-bold text-emerald-700 sm:px-3 sm:py-1 sm:text-lg">{calcDays} дней</span>
                   </div>
                   <input
                     type="range" min={7} max={30} step={1}
@@ -530,18 +530,18 @@ const CabinetStatusCard = ({
                     onChange={(e) => setCalcDays(Number(e.target.value))}
                     className="w-full accent-emerald-600"
                   />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                  <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5 sm:text-xs">
                     <span>7 дней</span><span>30 дней</span>
                   </div>
                 </div>
 
                 <div className="flex justify-center">
-                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-medium text-emerald-700 sm:px-3 sm:py-1 sm:text-xs">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Краткосрочный займ
                   </span>
                 </div>
 
-                <div className="rounded-xl bg-secondary p-4 space-y-2 text-sm">
+                <div className="rounded-xl bg-secondary p-3 space-y-1.5 text-xs sm:p-4 sm:space-y-2 sm:text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Вы получите</span>
                     <span className="font-semibold text-primary">{fmt(calcAmount)} ₽</span>
@@ -554,37 +554,37 @@ const CabinetStatusCard = ({
                     <span className="text-muted-foreground">Проценты за {calcDays} дней</span>
                     <span className="font-semibold text-primary">{fmt(calcOverpay)} ₽</span>
                   </div>
-                  <div className="flex justify-between border-t border-border pt-2">
+                  <div className="flex justify-between border-t border-border pt-1.5 sm:pt-2">
                     <span className="font-semibold text-primary">К возврату</span>
-                    <span className="font-display text-xl font-bold text-emerald-600">{fmt(calcTotal)} ₽</span>
+                    <span className="font-display text-base font-bold text-emerald-600 sm:text-xl">{fmt(calcTotal)} ₽</span>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-border p-2.5 hover:bg-secondary/50 transition-colors sm:gap-3 sm:p-3">
                     <input
                       type="checkbox" checked={reapplyConsent1}
                       onChange={(e) => setReapplyConsent1(e.target.checked)}
                       className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
                     />
-                    <span className="text-sm text-primary">Я даю согласие на обработку персональных данных (152-ФЗ)</span>
+                    <span className="text-xs text-primary sm:text-sm">Я даю согласие на обработку персональных данных (152-ФЗ)</span>
                   </label>
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
+                  <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-border p-2.5 hover:bg-secondary/50 transition-colors sm:gap-3 sm:p-3">
                     <input
                       type="checkbox" checked={reapplyConsent2}
                       onChange={(e) => setReapplyConsent2(e.target.checked)}
                       className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
                     />
-                    <span className="text-sm text-primary">Я подтверждаю достоверность указанных данных и согласен с условиями займа</span>
+                    <span className="text-xs text-primary sm:text-sm">Я подтверждаю достоверность указанных данных и согласен с условиями займа</span>
                   </label>
                 </div>
 
                 {reapplyError && (
-                  <p className="text-sm text-red-600 text-center">{reapplyError}</p>
+                  <p className="text-xs text-red-600 text-center sm:text-sm">{reapplyError}</p>
                 )}
 
                 <Button
-                  className="w-full h-12 font-bold text-base bg-gradient-to-br from-emerald-500 to-teal-600 text-white hover:opacity-90"
+                  className="w-full h-10 font-bold text-sm bg-gradient-to-br from-emerald-500 to-teal-600 text-white hover:opacity-90 sm:h-12 sm:text-base"
                   disabled={!reapplyConsent1 || !reapplyConsent2 || reapplyLoading}
                   onClick={handleReapply}
                 >
