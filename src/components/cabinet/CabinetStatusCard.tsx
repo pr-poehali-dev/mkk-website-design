@@ -479,7 +479,7 @@ const CabinetStatusCard = ({
 
       {/* Калькулятор повторной заявки */}
       <Dialog open={showCalc} onOpenChange={setShowCalc}>
-        <DialogContent className="max-w-sm overflow-hidden p-0 gap-0 [&>button]:text-white [&>button]:opacity-90 [&>button]:hover:opacity-100">
+        <DialogContent className="max-w-sm max-h-[85vh] overflow-hidden p-0 gap-0 flex flex-col [&>button]:text-white [&>button]:opacity-90 [&>button]:hover:opacity-100">
           {reapplyDone ? (
             <div className="flex flex-col items-center gap-4 p-6 py-8 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
@@ -492,24 +492,24 @@ const CabinetStatusCard = ({
               </Button>
             </div>
           ) : (
-            <div>
+            <div className="flex min-h-0 flex-1 flex-col">
               {/* Зелёная шапка */}
-              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 px-6 pb-6 pt-5 text-white">
+              <div className="shrink-0 bg-gradient-to-br from-emerald-500 to-teal-600 px-4 pb-4 pt-4 text-white sm:px-6 sm:pb-6 sm:pt-5">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2 font-display text-xl text-white">
-                    <Icon name="CircleDollarSign" size={22} className="text-white" />
+                  <DialogTitle className="flex items-center gap-2 font-display text-base text-white sm:text-xl">
+                    <Icon name="CircleDollarSign" size={20} className="shrink-0 text-white sm:size-[22px]" />
                     Получить займ
                   </DialogTitle>
                 </DialogHeader>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
+                <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
+                  <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-medium sm:px-3 sm:py-1 sm:text-xs">
                     Акционный PDL · {(CALC_RATE * 100).toFixed(2).replace(/\.?0+$/, '')}% в день
                   </span>
-                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium">Повторный займ</span>
+                  <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-medium sm:px-3 sm:py-1 sm:text-xs">Повторный займ</span>
                 </div>
               </div>
 
-              <div className="space-y-3.5 p-4 sm:space-y-5 sm:p-6">
+              <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto p-4 sm:space-y-5 sm:p-6">
                 <div>
                   <div className="mb-1.5 flex items-baseline justify-between sm:mb-2">
                     <span className="text-xs font-medium text-muted-foreground sm:text-sm">Сумма займа</span>
