@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import CameraCapture from '@/components/anketa/CameraCapture';
 import { apiRegister, apiUploadFile } from '@/lib/api';
 import { formatPhone } from '@/lib/phone';
 
@@ -108,12 +109,9 @@ const Anketa = () => {
   const MAX_FILE_MB = 5;
   const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
 
-  const handlePassportPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handlePassportPhoto = (file: File) => {
     if (file.size > MAX_FILE_BYTES) {
       setApiError(`Фото паспорта слишком большое. Максимум ${MAX_FILE_MB} МБ.`);
-      e.target.value = '';
       return;
     }
     setApiError('');
@@ -122,12 +120,9 @@ const Anketa = () => {
     runFileCheck(setPassportChecking, setPassportChecked, setPassportSecondsLeft);
   };
 
-  const handleIncomeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleIncomeFile = (file: File) => {
     if (file.size > MAX_FILE_BYTES) {
       setApiError(`Файл справки слишком большой. Максимум ${MAX_FILE_MB} МБ.`);
-      e.target.value = '';
       return;
     }
     setApiError('');
@@ -315,29 +310,12 @@ const Anketa = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label>Фото паспорта (разворот с фото)</Label>
-                <label htmlFor="passport-photo"
-                  className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-secondary/50 p-8 text-center transition-colors hover:border-accent hover:bg-accent/5">
-                  {passportPhoto ? (
-                    <>
-                      <img src={passportPhoto} alt="Паспорт" className="max-h-44 rounded-lg object-contain shadow-md" />
-                      <span className="flex items-center gap-1.5 text-sm font-medium text-accent">
-                        <Icon name="RefreshCw" size={15} /> Заменить фото
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:scale-110">
-                        <Icon name="Camera" size={26} />
-                      </div>
-                      <div>
-                        <p className="font-medium text-primary">Нажмите, чтобы загрузить фото</p>
-                        <p className="text-sm text-muted-foreground">JPG или PNG, до 5 МБ</p>
-                      </div>
-                    </>
-                  )}
-                </label>
-                <input id="passport-photo" type="file" accept="image/*" className="hidden" onChange={handlePassportPhoto} />
+                <CameraCapture
+                  label="Фото паспорта (разворот с фото)"
+                  hint="Наведите камеру на разворот с фотографией"
+                  preview={passportPhoto}
+                  onCapture={handlePassportPhoto}
+                />
 
                 {passportChecking && (
                   <div className="flex items-center gap-2.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5">
@@ -441,28 +419,12 @@ const Anketa = () => {
                 <legend className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   <Icon name="FileText" size={15} className="text-accent" /> Справка о доходах
                 </legend>
-                <label htmlFor="income-file"
-                  className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-secondary/50 p-6 text-center transition-colors hover:border-accent hover:bg-accent/5">
-                  {incomePreview ? (
-                    <>
-                      <img src={incomePreview} alt="Справка" className="max-h-36 rounded-lg object-contain shadow-md" />
-                      <span className="flex items-center gap-1.5 text-sm font-medium text-accent">
-                        <Icon name="RefreshCw" size={15} /> Заменить файл
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:scale-110">
-                        <Icon name="Upload" size={22} />
-                      </div>
-                      <div>
-                        <p className="font-medium text-primary">Загрузить фото справки</p>
-                        <p className="text-sm text-muted-foreground">JPG, PNG или PDF · до 5 МБ · необязательно</p>
-                      </div>
-                    </>
-                  )}
-                </label>
-                <input id="income-file" type="file" accept="image/*,application/pdf" className="hidden" onChange={handleIncomeFile} />
+                <CameraCapture
+                  label="Фото справки о доходах"
+                  hint="Необязательно · сфотографируйте документ"
+                  preview={incomePreview}
+                  onCapture={handleIncomeFile}
+                />
 
                 {incomeChecking && (
                   <div className="flex items-center gap-2.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5">
