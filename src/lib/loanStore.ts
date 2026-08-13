@@ -14,14 +14,14 @@ export interface LoanRequest {
   createdAt: string;
 }
 
-export const STATUS_META: Record<StatusKey, { label: string; icon: string; color: string; bg: string; step: number }> = {
-  review: { label: 'На рассмотрении', icon: 'Clock', color: 'text-amber-600', bg: 'bg-amber-100', step: 1 },
-  approved: { label: 'Одобрено', icon: 'CheckCircle2', color: 'text-blue-600', bg: 'bg-blue-100', step: 2 },
-  issued: { label: 'Договор подписан', icon: 'PenLine', color: 'text-indigo-600', bg: 'bg-indigo-100', step: 3 },
-  money_sent: { label: 'Деньги выданы', icon: 'BadgeCheck', color: 'text-emerald-600', bg: 'bg-emerald-100', step: 4 },
-  rejected: { label: 'Отказано', icon: 'XCircle', color: 'text-red-600', bg: 'bg-red-100', step: 0 },
-  transfer_error: { label: 'Ошибка перевода', icon: 'AlertTriangle', color: 'text-orange-600', bg: 'bg-orange-100', step: 0 },
-  repaid: { label: 'Займ погашен', icon: 'BadgeDollarSign', color: 'text-teal-600', bg: 'bg-teal-100', step: 5 },
+export const STATUS_META: Record<StatusKey, { label: string; icon: string; color: string; bg: string; step: number; border: string; dot: string; cardBg: string }> = {
+  review: { label: 'На скоринге', icon: 'Clock', color: 'text-amber-600', bg: 'bg-amber-100', step: 1, border: 'border-amber-400', dot: 'bg-amber-500', cardBg: 'bg-amber-50/60' },
+  approved: { label: 'Одобрено', icon: 'CheckCircle2', color: 'text-blue-600', bg: 'bg-blue-100', step: 2, border: 'border-blue-400', dot: 'bg-blue-500', cardBg: 'bg-blue-50/60' },
+  issued: { label: 'Договор подписан', icon: 'PenLine', color: 'text-indigo-600', bg: 'bg-indigo-100', step: 3, border: 'border-indigo-400', dot: 'bg-indigo-500', cardBg: 'bg-indigo-50/60' },
+  money_sent: { label: 'Деньги выданы', icon: 'BadgeCheck', color: 'text-emerald-600', bg: 'bg-emerald-100', step: 4, border: 'border-emerald-400', dot: 'bg-emerald-500', cardBg: 'bg-emerald-50/60' },
+  rejected: { label: 'Отказано', icon: 'XCircle', color: 'text-red-600', bg: 'bg-red-100', step: 0, border: 'border-red-400', dot: 'bg-red-500', cardBg: 'bg-red-50/60' },
+  transfer_error: { label: 'Ошибка перевода', icon: 'AlertTriangle', color: 'text-orange-600', bg: 'bg-orange-100', step: 0, border: 'border-orange-400', dot: 'bg-orange-500', cardBg: 'bg-orange-50/60' },
+  repaid: { label: 'Займ погашен', icon: 'BadgeDollarSign', color: 'text-teal-600', bg: 'bg-teal-100', step: 5, border: 'border-teal-400', dot: 'bg-teal-500', cardBg: 'bg-teal-50/60' },
 };
 
 const KEY = 'zaimy_requests';

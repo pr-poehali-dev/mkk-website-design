@@ -21,6 +21,7 @@ const Admin = () => {
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusKey | null>(null);
+  const [tab, setTab] = useState<'active' | 'rejected' | 'closed' | 'all'>('active');
   const [maintenanceBanner, setMaintenanceBanner] = useState(false);
   const [bannerSaving, setBannerSaving] = useState(false);
   const [siteClosed, setSiteClosed] = useState(false);
@@ -236,6 +237,24 @@ const Admin = () => {
           </div>
         )}
 
+        {/* Вкладки по статусам */}
+        <div className="mt-5 flex gap-6 overflow-x-auto border-b border-border">
+          {([
+            { key: 'active', label: 'Активные' },
+            { key: 'rejected', label: 'Отклонённые' },
+            { key: 'closed', label: 'Закрытые' },
+            { key: 'all', label: 'Все' },
+          ] as const).map((t) => (
+            <button
+              key={t.key}
+              onClick={() => { setTab(t.key); setStatusFilter(null); }}
+              className={`shrink-0 whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${tab === t.key ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-primary'}`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         {/* Поиск */}
         <div className="mt-5 relative">
           <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -266,6 +285,9 @@ const Admin = () => {
           {(() => {
             const filtered = requests.filter((r) => {
               if (statusFilter && r.status !== statusFilter) return false;
+              if (tab === 'active' && !['review', 'approved', 'issued', 'money_sent'].includes(r.status)) return false;
+              if (tab === 'rejected' && !['rejected', 'transfer_error'].includes(r.status)) return false;
+              if (tab === 'closed' && r.status !== 'repaid') return false;
               if (!search.trim()) return true;
               const q = search.trim().toLowerCase();
               return (

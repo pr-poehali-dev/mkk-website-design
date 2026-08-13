@@ -53,29 +53,44 @@ const AdminClientGroup = ({ requests, checkedRefs, onCheck, onEdit, fmt }: Props
     const r = latest;
     const st = (r.status as StatusKey) in STATUS_META ? (r.status as StatusKey) : 'review';
     const m = STATUS_META[st];
+    const isChecked = checkedRefs.has(r.ref_number);
     return (
-      <div className={`animate-fade-up flex flex-col gap-4 rounded-2xl border bg-card p-5 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between ${checkedRefs.has(r.ref_number) ? 'border-red-300 bg-red-50' : 'border-border'}`}>
-        <div className="flex items-center gap-4">
-          <input type="checkbox" checked={checkedRefs.has(r.ref_number)} onChange={(e) => onCheck(r.ref_number, e.target.checked)} className="h-4 w-4 shrink-0 cursor-pointer accent-red-600" />
-          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${m.bg} ${m.color}`}>
-            <Icon name={m.icon} size={22} />
-          </div>
-          <div>
-            <p className="flex flex-wrap items-center gap-2 font-semibold text-primary">
-              {r.full_name} <span className="text-xs font-normal text-muted-foreground">· {r.ref_number}</span>
-              {badge(r.status, false, 0)}
-            </p>
-            <p className="text-sm text-muted-foreground">{r.phone} · {fmt(r.amount)} ₽ / {r.days} дн. · {r.created_at?.slice(0, 10)}</p>
+      <div
+        onClick={() => onEdit(r)}
+        className={`animate-fade-up group relative flex cursor-pointer flex-col gap-3 overflow-hidden rounded-2xl border-2 bg-card pl-5 pr-4 py-4 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between ${isChecked ? 'border-red-300 bg-red-50' : `${m.border} ${m.cardBg}`}`}
+      >
+        <span className={`absolute left-0 top-0 h-full w-1.5 ${m.dot}`} />
+        <div className="flex min-w-0 items-center gap-3">
+          <input
+            type="checkbox"
+            checked={isChecked}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => onCheck(r.ref_number, e.target.checked)}
+            className="h-4 w-4 shrink-0 cursor-pointer accent-red-600"
+          />
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-display text-base font-bold text-primary">{r.ref_number}</span>
+              <span className={`inline-flex items-center gap-1.5 rounded-full ${m.bg} px-2.5 py-0.5 text-xs font-semibold ${m.color}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} /> {m.label}
+              </span>
+            </div>
+            <p className="mt-1 text-sm font-medium text-primary truncate">{r.full_name}</p>
+            {badge(r.status, false, 0)}
+            <p className="mt-1 text-xs text-muted-foreground">{r.phone} · Создан {r.created_at?.slice(0, 10)}</p>
             {r.operator_comment && (
               <p className="mt-1 flex items-center gap-1 text-xs text-accent"><Icon name="MessageSquare" size={12} /> {r.operator_comment}</p>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className={`hidden text-sm font-medium sm:block ${m.color}`}>{m.label}</span>
-          <Button size="sm" variant="outline" onClick={() => onEdit(r)} className="flex items-center gap-1.5">
-            <Icon name="Pencil" size={14} /> Изменить
-          </Button>
+        <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-center">
+          <span className="font-display text-xl font-bold text-primary">{fmt(r.amount)} ₽</span>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onEdit(r); }} className="hidden items-center gap-1.5 sm:flex">
+              <Icon name="Pencil" size={14} /> Изменить
+            </Button>
+            <Icon name="ChevronRight" size={18} className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </div>
         </div>
       </div>
     );
@@ -121,7 +136,8 @@ const AdminClientGroup = ({ requests, checkedRefs, onCheck, onEdit, fmt }: Props
             const st = (r.status as StatusKey) in STATUS_META ? (r.status as StatusKey) : 'review';
             const m = STATUS_META[st];
             return (
-              <div key={r.ref_number} className={`flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between ${checkedRefs.has(r.ref_number) ? 'bg-red-50' : i === 0 ? 'bg-secondary/30' : ''}`}>
+              <div key={r.ref_number} className={`relative flex flex-col gap-3 px-5 py-4 pl-6 sm:flex-row sm:items-center sm:justify-between ${checkedRefs.has(r.ref_number) ? 'bg-red-50' : i === 0 ? 'bg-secondary/30' : ''}`}>
+                <span className={`absolute left-0 top-0 h-full w-1 ${m.dot}`} />
                 <div className="flex items-center gap-3">
                   <input type="checkbox" checked={checkedRefs.has(r.ref_number)} onChange={(e) => onCheck(r.ref_number, e.target.checked)} className="h-4 w-4 shrink-0 cursor-pointer accent-red-600" />
                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${m.bg} ${m.color}`}>
