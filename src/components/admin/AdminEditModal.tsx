@@ -178,7 +178,7 @@ const AdminEditModal = ({
 
   return (
     <Dialog open={!!selected} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col rounded-2xl">
         <DialogHeader className="shrink-0">
           <DialogTitle className="font-display text-xl text-primary">
             Заявка {selected?.ref_number}
