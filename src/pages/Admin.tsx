@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { apiGetAll, apiDeleteRequests, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
@@ -22,6 +23,7 @@ const Admin = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusKey | null>(null);
   const [tab, setTab] = useState<'active' | 'rejected' | 'closed' | 'all'>('active');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const fetchAll = useCallback(async () => {
     setLoadingList(true);
@@ -79,16 +81,32 @@ const Admin = () => {
             <button onClick={fetchAll} className="flex items-center gap-1.5 text-sm text-primary-foreground/70 hover:text-primary-foreground">
               <Icon name="RefreshCw" size={16} className={loadingList ? 'animate-spin' : ''} /> Обновить
             </button>
-            <Link to="/admin/settings" className="flex items-center gap-1.5 text-sm text-primary-foreground/70 hover:text-primary-foreground">
-              <Icon name="Settings" size={16} /> Настройки
-            </Link>
-            <button onClick={() => { sessionStorage.removeItem('zaimy_admin'); setAuthed(false); }}
-              className="flex items-center gap-1.5 text-sm text-primary-foreground/70 hover:text-primary-foreground">
-              <Icon name="LogOut" size={16} /> Выйти
+            <button onClick={() => setMenuOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-primary-foreground/20 px-3 py-1.5 text-sm text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground transition-colors">
+              <Icon name="Menu" size={16} /> Меню
             </button>
           </div>
         </div>
       </header>
+
+      {/* Поп-ап меню */}
+      <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-primary">Меню</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1">
+            <Link to="/admin/settings" onClick={() => setMenuOpen(false)}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="Settings" size={18} className="text-accent" /> Настройки
+            </Link>
+            <button onClick={() => { sessionStorage.removeItem('zaimy_admin'); setAuthed(false); setMenuOpen(false); }}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
+              <Icon name="LogOut" size={18} /> Выйти
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <main className="container px-4 py-8">
         <h1 className="font-display text-2xl font-bold text-primary">Управление заявками</h1>
