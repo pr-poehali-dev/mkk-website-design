@@ -142,14 +142,6 @@ const Index = () => {
               Деньги на карту
               <span className="block text-accent">за 5 минут</span>
             </h1>
-            <div className="mt-7 flex flex-wrap gap-6">
-              {[['от 1 000 ₽', 'минимум'], ['до 100 000 ₽', 'максимум'], ['0,8% в день', 'ставка']].map(([v, l]) => (
-                <div key={l}>
-                  <p className="font-display text-2xl font-bold text-accent">{v}</p>
-                  <p className="text-xs uppercase tracking-wider text-primary-foreground/60">{l}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Right — Calculator card */}
