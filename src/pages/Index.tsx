@@ -139,8 +139,9 @@ const Index = () => {
           <div className="animate-fade-up">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/5 px-4 py-1.5 text-xs font-medium">Одобрение 96% заявок · работаем 24/7</div>
             <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
-              Деньги на карту
-              <span className="block text-accent">за 5 минут</span>
+              Оформите заявку онлайн и получите{' '}
+              <span className="inline-block rounded-full bg-accent px-4 py-1 text-primary">до 30 000 ₽</span>{' '}
+              на любые цели
             </h1>
           </div>
 
