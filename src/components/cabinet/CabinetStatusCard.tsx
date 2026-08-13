@@ -462,7 +462,7 @@ const CabinetStatusCard = ({
 
       {/* Поп-ап загрузки заявки */}
       <Dialog open={showReapplyLoading}>
-        <DialogContent className="max-w-xs text-center [&>button]:hidden">
+        <DialogContent className="max-w-xs text-center [&>button]:hidden rounded-2xl">
           <div className="flex flex-col items-center gap-5 py-6">
             <div className="relative flex h-20 w-20 items-center justify-center">
               <div className="absolute inset-0 rounded-full border-4 border-accent/20" />
@@ -479,7 +479,7 @@ const CabinetStatusCard = ({
 
       {/* Калькулятор повторной заявки */}
       <Dialog open={showCalc} onOpenChange={setShowCalc}>
-        <DialogContent className="max-w-sm max-h-[85vh] overflow-hidden p-0 gap-0 flex flex-col [&>button]:text-white [&>button]:opacity-90 [&>button]:hover:opacity-100">
+        <DialogContent className="max-w-sm max-h-[85vh] overflow-hidden p-0 gap-0 flex flex-col [&>button]:text-white [&>button]:opacity-90 [&>button]:hover:opacity-100 rounded-2xl">
           {reapplyDone ? (
             <div className="flex flex-col items-center gap-4 p-6 py-8 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
@@ -635,7 +635,7 @@ const CabinetStatusCard = ({
 
       {/* Поп-ап согласия */}
       <Dialog open={showConsentModal} onOpenChange={setShowConsentModal}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-display text-lg">
               <Icon name="ShieldCheck" size={20} className="text-accent" />
@@ -680,7 +680,7 @@ const CabinetStatusCard = ({
 
       {/* Экран проверки */}
       <Dialog open={showVerifying}>
-        <DialogContent className="max-w-xs text-center">
+        <DialogContent className="max-w-xs text-center rounded-2xl">
           <div className="flex flex-col items-center gap-4 py-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
               <Icon name="Loader2" size={32} className="animate-spin text-accent" />

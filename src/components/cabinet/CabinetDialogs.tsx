@@ -186,7 +186,7 @@ const CabinetDialogs = ({
 
       {/* Поп-ап Мои карты */}
       <Dialog open={cardsOpen} onOpenChange={(o) => { setCardsOpen(o); if (!o) setBankSaved(false); }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
             <DialogTitle className="font-display text-xl text-primary">Мои карты</DialogTitle>
           </DialogHeader>
@@ -231,7 +231,7 @@ const CabinetDialogs = ({
 
       {/* Поп-ап Мои данные */}
       <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
             <DialogTitle className="font-display text-xl text-primary">Мои данные</DialogTitle>
           </DialogHeader>
@@ -286,7 +286,7 @@ const CabinetDialogs = ({
 
       {/* Поп-ап Смена пароля */}
       <Dialog open={pwOpen} onOpenChange={(v) => { setPwOpen(v); if (!v) { setPwSuccess(false); setPwError(''); } }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
             <DialogTitle className="font-display text-xl text-primary">Смена пароля</DialogTitle>
           </DialogHeader>
@@ -341,7 +341,7 @@ const CabinetDialogs = ({
 
       {/* Поп-ап Мои документы */}
       <Dialog open={docsOpen} onOpenChange={setDocsOpen}>
-        <DialogContent className="max-w-sm max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-sm max-h-[90vh] flex flex-col rounded-2xl">
           <DialogHeader className="shrink-0">
             <DialogTitle className="font-display text-xl text-primary">Мои документы</DialogTitle>
           </DialogHeader>
@@ -480,7 +480,7 @@ const CabinetDialogs = ({
 
       {/* Диалог: История займов */}
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle className="font-display text-xl text-primary">История займов</DialogTitle>
           </DialogHeader>
