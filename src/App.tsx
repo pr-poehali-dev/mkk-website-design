@@ -9,6 +9,7 @@ import Anketa from "./pages/Anketa";
 import Login from "./pages/Login";
 import Cabinet from "./pages/Cabinet";
 import Admin from "./pages/Admin";
+import AdminSettings from "./pages/AdminSettings";
 import SiteClosed from "./pages/SiteClosed";
 import NotFound from "./pages/NotFound";
 import MaintenanceBanner from "./components/MaintenanceBanner";
@@ -20,7 +21,7 @@ const queryClient = new QueryClient();
 const SiteGuard = ({ children }: { children: React.ReactNode }) => {
   const { siteClosed } = useMaintenance();
   const location = useLocation();
-  if (siteClosed && location.pathname !== '/admin') {
+  if (siteClosed && location.pathname !== '/admin' && location.pathname !== '/admin/settings') {
     return <SiteClosed />;
   }
   return <>{children}</>;
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/cabinet" element={<Cabinet />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
