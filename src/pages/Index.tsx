@@ -142,9 +142,6 @@ const Index = () => {
               Деньги на карту
               <span className="block text-accent">за 5 минут</span>
             </h1>
-            <p className="mt-5 max-w-md text-base text-primary-foreground/75 sm:text-lg">
-              Микрокредитная компания «Займы Плюс». Прозрачные условия, мгновенное решение и перевод на карту любого банка.
-            </p>
             <div className="mt-7 flex flex-wrap gap-6">
               {[['от 1 000 ₽', 'минимум'], ['до 100 000 ₽', 'максимум'], ['0,8% в день', 'ставка']].map(([v, l]) => (
                 <div key={l}>
