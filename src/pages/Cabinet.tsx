@@ -116,6 +116,7 @@ const Cabinet = () => {
           selectedBank={selectedBank}
           contractCode={contractCode}
           onOpenCards={() => { setCardsOpen(true); setBankSaved(false); }}
+          onOpenDocs={() => setDocsOpen(true)}
           setContractSigned={setContractSigned}
           setSigning={setSigning}
           setUser={setUser}
