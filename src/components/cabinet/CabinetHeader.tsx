@@ -14,7 +14,7 @@ const CabinetHeader = ({ initials, firstName, onMenuOpen }: Props) => (
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Icon name="Landmark" size={20} />
         </div>
-        <span className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</span>
+        <span className="font-display text-lg font-bold tracking-wide text-primary">ЧАСТНЫЕ ЗАЙМЫ ПЛЮС</span>
       </Link>
 
       <div className="flex items-center gap-2">

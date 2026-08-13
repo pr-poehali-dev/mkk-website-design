@@ -147,7 +147,7 @@ const Cabinet = () => {
         <div className="container max-w-3xl px-4 py-8">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div>
-              <p className="mb-2 font-display font-bold text-primary">ООО МКК «Займы Плюс»</p>
+              <p className="mb-2 font-display font-bold text-primary">КПК «Частные займы плюс»</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 ИНН: 7710000000<br />
                 ОГРН: 1117746000000
@@ -181,7 +181,7 @@ const Cabinet = () => {
             </div>
           </div>
           <div className="mt-6 border-t border-border pt-4 text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} ООО МКК «Займы Плюс». Все права защищены.
+            © {new Date().getFullYear()} КПК «Частные займы плюс». Все права защищены.
           </div>
         </div>
       </footer>

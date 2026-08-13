@@ -91,7 +91,7 @@ const Index = () => {
               <Icon name="Landmark" size={19} />
             </div>
             <div className="leading-none">
-              <p className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</p>
+              <p className="font-display text-lg font-bold tracking-wide text-primary">ЧАСТНЫЕ ЗАЙМЫ ПЛЮС</p>
               <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Займы онлайн 24/7</p>
             </div>
           </div>
@@ -317,7 +317,7 @@ const Index = () => {
       <footer className="bg-primary text-primary-foreground/70">
         <div className="container border-t border-primary-foreground/10 px-4 py-10 text-sm">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <p className="font-display text-lg font-bold tracking-wide text-primary-foreground text-center">ЗАЙМЫ ПЛЮС</p>
+            <p className="font-display text-lg font-bold tracking-wide text-primary-foreground text-center">ЧАСТНЫЕ ЗАЙМЫ ПЛЮС</p>
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/40">Служба поддержки</p>
               <a href="tel:84999610736" className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
@@ -327,7 +327,7 @@ const Index = () => {
                 <Icon name="Mail" size={16} className="text-accent" /> zaymy.plyus@bk.ru
               </a>
             </div>
-            <p className="text-primary-foreground/60 text-center">© 2014–2026 ООО МКК «Займы Плюс».<br className="hidden md:block" /> Все права защищены.</p>
+            <p className="text-primary-foreground/60 text-center">© 2014–2026 КПК «Частные займы плюс».<br className="hidden md:block" /> Все права защищены.</p>
           </div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button onClick={() => setModal('privacy')}
@@ -340,8 +340,8 @@ const Index = () => {
               О компании
             </button>
           </div>
-          <p className="mt-4 text-xs text-primary-foreground/40 text-center">Деятельность регулируется ФЗ №151. Расчёты на калькуляторе носят ознакомительный характер. ИНН: 220038299987 · ОГРН: 0092800992828288
-Сайт не является МКК или мфо наш сервис даёт вам лучшее условия по займу.</p>
+          <p className="mt-4 text-xs text-primary-foreground/40 text-center">Деятельность регулируется ФЗ №190-ФЗ «О кредитной кооперации». Расчёты на калькуляторе носят ознакомительный характер. ИНН: 220038299987 · ОГРН: 0092800992828288
+Сайт не является МКК или МФО, наш сервис даёт вам лучшие условия по займу.</p>
         </div>
       </footer>
 
@@ -356,7 +356,7 @@ const Index = () => {
               </button>
             </div>
             <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-              <p className="font-semibold text-primary">ООО МКК «Займы Плюс»</p>
+              <p className="font-semibold text-primary">КПК «Частные займы плюс»</p>
               <p>Настоящая политика описывает порядок обработки персональных данных пользователей в соответствии с Федеральным законом №152-ФЗ «О персональных данных».</p>
               <p><span className="font-medium text-primary">Какие данные собираем:</span> ФИО, дата рождения, паспортные данные, адрес регистрации и проживания, номер телефона, место работы, фотографии документов.</p>
               <p><span className="font-medium text-primary">Цели обработки:</span> рассмотрение заявки на займ, заключение и исполнение договора, проверка кредитоспособности, передача данных в бюро кредитных историй.</p>
@@ -381,8 +381,8 @@ const Index = () => {
               </button>
             </div>
             <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-              <p className="font-semibold text-primary text-base">ООО МКК «Займы Плюс»</p>
-              <p>Микрокредитная компания «Займы Плюс» работает на рынке потребительского кредитования с 2014 года. Мы помогаем людям решать финансовые вопросы быстро и прозрачно.</p>
+              <p className="font-semibold text-primary text-base">КПК «Частные займы плюс»</p>
+              <p>Кредитный потребительский кооператив «Частные займы плюс» работает на рынке потребительского кредитования с 2014 года. Мы помогаем людям решать финансовые вопросы быстро и прозрачно.</p>
               <div className="rounded-xl bg-secondary p-4 space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">ИНН</span>

@@ -244,7 +244,7 @@ const Anketa = () => {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Icon name="Landmark" size={20} />
             </div>
-            <span className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</span>
+            <span className="font-display text-lg font-bold tracking-wide text-primary">ЧАСТНЫЕ ЗАЙМЫ ПЛЮС</span>
           </Link>
           {step > 1 ? (
             <button onClick={prev} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">

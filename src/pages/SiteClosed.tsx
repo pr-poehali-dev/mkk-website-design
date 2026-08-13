@@ -37,7 +37,7 @@ const SiteClosed = () => {
           </a>
         </div>
 
-        <p className="mt-6 text-xs text-white/25">© {new Date().getFullYear()} ООО МКК «Займы Плюс»</p>
+        <p className="mt-6 text-xs text-white/25">© {new Date().getFullYear()} КПК «Частные займы плюс»</p>
       </div>
     </div>
   );
