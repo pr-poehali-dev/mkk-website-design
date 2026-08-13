@@ -74,7 +74,8 @@ const CabinetStatusCard = ({
   const [showCalc, setShowCalc] = useState(false);
   const [showReapplyLoading, setShowReapplyLoading] = useState(false);
 
-  const calcOverpay = Math.round(calcAmount * 0.008 * calcDays);
+  const CALC_RATE = 0.003;
+  const calcOverpay = Math.round(calcAmount * CALC_RATE * calcDays);
   const calcTotal = calcAmount + calcOverpay;
 
   const handleReapply = async () => {
@@ -471,16 +472,9 @@ const CabinetStatusCard = ({
 
       {/* Калькулятор повторной заявки */}
       <Dialog open={showCalc} onOpenChange={setShowCalc}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-display text-lg">
-              <Icon name="Calculator" size={20} className="text-accent" />
-              Новая заявка на займ
-            </DialogTitle>
-          </DialogHeader>
-
+        <DialogContent className="max-w-sm overflow-hidden p-0 gap-0 [&>button]:text-white [&>button]:opacity-90 [&>button]:hover:opacity-100">
           {reapplyDone ? (
-            <div className="flex flex-col items-center gap-4 py-6 text-center">
+            <div className="flex flex-col items-center gap-4 p-6 py-8 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
                 <Icon name="CheckCircle2" size={32} className="text-emerald-600" />
               </div>
@@ -491,84 +485,116 @@ const CabinetStatusCard = ({
               </Button>
             </div>
           ) : (
-            <div className="space-y-5 py-2">
-              <div>
-                <div className="mb-1 flex justify-between text-sm">
-                  <span className="text-muted-foreground">Сумма займа</span>
-                  <span className="font-bold text-primary">{fmt(calcAmount)} ₽</span>
-                </div>
-                <input
-                  type="range" min={1000} max={MAX_AMOUNT} step={500}
-                  value={calcAmount}
-                  onChange={(e) => setCalcAmount(Number(e.target.value))}
-                  className="w-full accent-accent"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
-                  <span>1 000 ₽</span><span>{fmt(MAX_AMOUNT)} ₽</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="mb-1 flex justify-between text-sm">
-                  <span className="text-muted-foreground">Срок</span>
-                  <span className="font-bold text-primary">{calcDays} дней</span>
-                </div>
-                <input
-                  type="range" min={7} max={30} step={1}
-                  value={calcDays}
-                  onChange={(e) => setCalcDays(Number(e.target.value))}
-                  className="w-full accent-accent"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
-                  <span>7 дней</span><span>30 дней</span>
+            <div>
+              {/* Зелёная шапка */}
+              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 px-6 pb-6 pt-5 text-white">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 font-display text-xl text-white">
+                    <Icon name="CircleDollarSign" size={22} className="text-white" />
+                    Получить займ
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
+                    Акционный PDL · {(CALC_RATE * 100).toFixed(2).replace(/\.?0+$/, '')}% в день
+                  </span>
+                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium">Повторный займ</span>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Переплата (0.8%/день)</span>
-                  <span className="font-semibold">{fmt(calcOverpay)} ₽</span>
-                </div>
-                <div className="flex justify-between border-t border-accent/20 pt-2">
-                  <span className="font-semibold text-primary">Итого к возврату</span>
-                  <span className="font-bold text-accent text-base">{fmt(calcTotal)} ₽</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
+              <div className="space-y-5 p-6">
+                <div>
+                  <div className="mb-2 flex items-baseline justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">Сумма займа</span>
+                    <span className="rounded-lg bg-emerald-50 px-3 py-1 font-display text-lg font-bold text-emerald-700">{fmt(calcAmount)} ₽</span>
+                  </div>
                   <input
-                    type="checkbox" checked={reapplyConsent1}
-                    onChange={(e) => setReapplyConsent1(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
+                    type="range" min={1000} max={MAX_AMOUNT} step={500}
+                    value={calcAmount}
+                    onChange={(e) => setCalcAmount(Number(e.target.value))}
+                    className="w-full accent-emerald-600"
                   />
-                  <span className="text-sm text-primary">Я даю согласие на обработку персональных данных (152-ФЗ)</span>
-                </label>
-                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
+                  <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                    <span>1 000 ₽</span><span>{fmt(MAX_AMOUNT)} ₽</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-2 flex items-baseline justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">Срок займа</span>
+                    <span className="rounded-lg bg-emerald-50 px-3 py-1 font-display text-lg font-bold text-emerald-700">{calcDays} дней</span>
+                  </div>
                   <input
-                    type="checkbox" checked={reapplyConsent2}
-                    onChange={(e) => setReapplyConsent2(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
+                    type="range" min={7} max={30} step={1}
+                    value={calcDays}
+                    onChange={(e) => setCalcDays(Number(e.target.value))}
+                    className="w-full accent-emerald-600"
                   />
-                  <span className="text-sm text-primary">Я подтверждаю достоверность указанных данных и согласен с условиями займа</span>
-                </label>
-              </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                    <span>7 дней</span><span>30 дней</span>
+                  </div>
+                </div>
 
-              {reapplyError && (
-                <p className="text-sm text-red-600 text-center">{reapplyError}</p>
-              )}
+                <div className="flex justify-center">
+                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Краткосрочный займ
+                  </span>
+                </div>
 
-              <Button
-                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 h-11 font-semibold"
-                disabled={!reapplyConsent1 || !reapplyConsent2 || reapplyLoading}
-                onClick={handleReapply}
-              >
-                {reapplyLoading ? (
-                  <><Icon name="Loader2" size={16} className="mr-2 animate-spin" />Отправка...</>
-                ) : (
-                  <><Icon name="Send" size={16} className="mr-2" />Отправить заявку</>
+                <div className="rounded-xl bg-secondary p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Вы получите</span>
+                    <span className="font-semibold text-primary">{fmt(calcAmount)} ₽</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Ставка</span>
+                    <span className="font-semibold text-primary">{(CALC_RATE * 100).toFixed(2).replace(/\.?0+$/, '')}% в день</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Проценты за {calcDays} дней</span>
+                    <span className="font-semibold text-primary">{fmt(calcOverpay)} ₽</span>
+                  </div>
+                  <div className="flex justify-between border-t border-border pt-2">
+                    <span className="font-semibold text-primary">К возврату</span>
+                    <span className="font-display text-xl font-bold text-emerald-600">{fmt(calcTotal)} ₽</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
+                    <input
+                      type="checkbox" checked={reapplyConsent1}
+                      onChange={(e) => setReapplyConsent1(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
+                    />
+                    <span className="text-sm text-primary">Я даю согласие на обработку персональных данных (152-ФЗ)</span>
+                  </label>
+                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
+                    <input
+                      type="checkbox" checked={reapplyConsent2}
+                      onChange={(e) => setReapplyConsent2(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
+                    />
+                    <span className="text-sm text-primary">Я подтверждаю достоверность указанных данных и согласен с условиями займа</span>
+                  </label>
+                </div>
+
+                {reapplyError && (
+                  <p className="text-sm text-red-600 text-center">{reapplyError}</p>
                 )}
-              </Button>
+
+                <Button
+                  className="w-full h-12 font-bold text-base bg-gradient-to-br from-emerald-500 to-teal-600 text-white hover:opacity-90"
+                  disabled={!reapplyConsent1 || !reapplyConsent2 || reapplyLoading}
+                  onClick={handleReapply}
+                >
+                  {reapplyLoading ? (
+                    <><Icon name="Loader2" size={16} className="mr-2 animate-spin" />Отправка...</>
+                  ) : (
+                    <>Подать заявку</>
+                  )}
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
