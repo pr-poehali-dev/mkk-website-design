@@ -7,7 +7,7 @@ import CabinetStatusCard from '@/components/cabinet/CabinetStatusCard';
 import CabinetDialogs from '@/components/cabinet/CabinetDialogs';
 
 const PARTNERS_URL = 'https://poluchit-zaim-momentalno.zaimstore.com/';
-const PARTNERS_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/38902d8a-c1a6-420c-8a06-6cc3eb5ab02d.jpg';
+const PARTNERS_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/f991efb1-fabf-4d5a-befe-7584c3317fcf.jpg';
 
 const Cabinet = () => {
   const nav = useNavigate();
