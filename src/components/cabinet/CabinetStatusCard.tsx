@@ -271,7 +271,7 @@ const CabinetStatusCard = ({
             )}
 
             <a
-              href="https://poluchit-zaim-momentalno.zaimstore.com/"
+              href="https://slds.pro/87ubi"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full rounded-xl border border-accent/40 bg-accent/5 px-4 py-3 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors"
