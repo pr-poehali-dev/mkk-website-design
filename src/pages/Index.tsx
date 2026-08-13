@@ -72,6 +72,15 @@ const Index = () => {
     { n: '03', title: 'Получите деньги', text: 'Средства поступят на вашу карту за минуты.' },
   ];
 
+  const reviews = [
+    { name: 'Марина К.', city: 'Казань', rating: 5, text: 'Оформила займ за 10 минут, деньги пришли почти сразу. Никаких скрытых комиссий, всё как в калькуляторе.' },
+    { name: 'Дмитрий С.', city: 'Новосибирск', rating: 5, text: 'Пользуюсь уже третий раз. Одобряют быстро, служба поддержки всегда на связи и всё объясняет понятно.' },
+    { name: 'Елена В.', city: 'Краснодар', rating: 4, text: 'Понравилось, что можно погасить займ досрочно без переплат. Условия прозрачные, сюрпризов не было.' },
+    { name: 'Игорь П.', city: 'Екатеринбург', rating: 5, text: 'Нужны были деньги срочно на ремонт машины — заявку одобрили за 5 минут, перевод пришёл на карту Сбербанка.' },
+    { name: 'Анна Т.', city: 'Ростов-на-Дону', rating: 5, text: 'Первый раз брала микрозайм и переживала, но всё прошло гладко. Никто не звонил с угрозами, всё по договору.' },
+    { name: 'Сергей М.', city: 'Самара', rating: 4, text: 'Удобное приложение и личный кабинет — видно все платежи и остаток долга. Рекомендую тем, кто ценит прозрачность.' },
+  ];
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -245,6 +254,40 @@ const Index = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Reviews */}
+      <section id="reviews" className="container px-4 py-16 md:py-24">
+        <div className="mb-12 text-center">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-accent">Отзывы</p>
+          <h2 className="font-display text-3xl font-bold text-primary sm:text-4xl">Что говорят наши клиенты</h2>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {reviews.map((r) => (
+            <div key={r.name} className="flex flex-col rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                  {r.name.split(' ').map((w) => w[0]).join('')}
+                </div>
+                <div>
+                  <p className="font-display text-base font-semibold text-primary">{r.name}</p>
+                  <p className="text-xs text-muted-foreground">{r.city}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Icon
+                    key={i}
+                    name="Star"
+                    size={15}
+                    className={i < r.rating ? 'fill-accent text-accent' : 'text-border'}
+                  />
+                ))}
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{r.text}</p>
+            </div>
+          ))}
         </div>
       </section>
 
