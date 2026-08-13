@@ -97,6 +97,9 @@ const Anketa = () => {
   const [f2, setF2] = useState({ series: '', issued: '', issued_date: '' });
   const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
   const [passportFile, setPassportFile] = useState<File | null>(null);
+  const [passportChecking, setPassportChecking] = useState(false);
+  const [passportChecked, setPassportChecked] = useState(false);
+  const [passportSecondsLeft, setPassportSecondsLeft] = useState(0);
   // Step 3
   const [amount, setAmount] = useState(15000);
   const [days, setDays] = useState(14);
@@ -105,6 +108,32 @@ const Anketa = () => {
   const [incomeFile, setIncomeFile] = useState<File | null>(null);
   const [incomePreview, setIncomePreview] = useState<string | null>(null);
   const [incomeUploading, setIncomeUploading] = useState(false);
+  const [incomeChecking, setIncomeChecking] = useState(false);
+  const [incomeChecked, setIncomeChecked] = useState(false);
+  const [incomeSecondsLeft, setIncomeSecondsLeft] = useState(0);
+
+  const CHECK_SECONDS = 40;
+
+  const runFileCheck = (
+    setChecking: (v: boolean) => void,
+    setChecked: (v: boolean) => void,
+    setSecondsLeft: (v: number | ((s: number) => number)) => void,
+  ) => {
+    setChecked(false);
+    setChecking(true);
+    setSecondsLeft(CHECK_SECONDS);
+    const timer = setInterval(() => {
+      setSecondsLeft((s: number) => {
+        if (s <= 1) {
+          clearInterval(timer);
+          setChecking(false);
+          setChecked(true);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+  };
 
   const upd1 = (k: keyof typeof f1) => (e: React.ChangeEvent<HTMLInputElement>) => setF1({ ...f1, [k]: e.target.value });
 
@@ -132,6 +161,7 @@ const Anketa = () => {
     setApiError('');
     setPassportFile(file);
     setPassportPhoto(URL.createObjectURL(file));
+    runFileCheck(setPassportChecking, setPassportChecked, setPassportSecondsLeft);
   };
 
   const handleIncomeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,6 +175,7 @@ const Anketa = () => {
     setApiError('');
     setIncomeFile(file);
     setIncomePreview(URL.createObjectURL(file));
+    runFileCheck(setIncomeChecking, setIncomeChecked, setIncomeSecondsLeft);
   };
 
   const next = () => { setApiError(''); setStep((s) => s + 1); };
@@ -349,6 +380,19 @@ const Anketa = () => {
                   )}
                 </label>
                 <input id="passport-photo" type="file" accept="image/*" className="hidden" onChange={handlePassportPhoto} />
+
+                {passportChecking && (
+                  <div className="flex items-center gap-2.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5">
+                    <Icon name="Loader2" size={16} className="shrink-0 animate-spin text-blue-600" />
+                    <p className="text-sm text-blue-700">Идёт проверка фото... {passportSecondsLeft} сек.</p>
+                  </div>
+                )}
+                {passportChecked && !passportChecking && (
+                  <div className="flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 px-3.5 py-2.5">
+                    <Icon name="CheckCircle2" size={16} className="shrink-0 text-green-600" />
+                    <p className="text-sm font-medium text-green-700">Фото успешно загружено</p>
+                  </div>
+                )}
               </div>
 
               <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
@@ -461,6 +505,19 @@ const Anketa = () => {
                   )}
                 </label>
                 <input id="income-file" type="file" accept="image/*,application/pdf" className="hidden" onChange={handleIncomeFile} />
+
+                {incomeChecking && (
+                  <div className="flex items-center gap-2.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5">
+                    <Icon name="Loader2" size={16} className="shrink-0 animate-spin text-blue-600" />
+                    <p className="text-sm text-blue-700">Идёт проверка файла... {incomeSecondsLeft} сек.</p>
+                  </div>
+                )}
+                {incomeChecked && !incomeChecking && (
+                  <div className="flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 px-3.5 py-2.5">
+                    <Icon name="CheckCircle2" size={16} className="shrink-0 text-green-600" />
+                    <p className="text-sm font-medium text-green-700">Файл успешно загружен</p>
+                  </div>
+                )}
               </fieldset>
 
               <div className="rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
