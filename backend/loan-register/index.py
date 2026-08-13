@@ -24,32 +24,43 @@ def handler(event: dict, context) -> dict:
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
 
-    # Проверяем существующую заявку по телефону
-    cur.execute(
-        f"SELECT id, status, password_hash, ref_number, created_at FROM {SCHEMA}.loan_requests WHERE phone = %s ORDER BY created_at DESC LIMIT 1",
-        (body['phone'],)
-    )
+    phone = body['phone']
+    full_name = body['full_name']
+    passport = body.get('passport') or None
+
+    # Проверяем существующего клиента по телефону, либо по совпадению ФИО + паспорта
+    if passport:
+        cur.execute(
+            f"""SELECT id, status, password_hash, ref_number, created_at, phone
+                FROM {SCHEMA}.loan_requests
+                WHERE phone = %s
+                   OR (passport = %s AND LOWER(TRIM(full_name)) = LOWER(TRIM(%s)))
+                ORDER BY created_at DESC LIMIT 1""",
+            (phone, passport, full_name)
+        )
+    else:
+        cur.execute(
+            f"""SELECT id, status, password_hash, ref_number, created_at, phone
+                FROM {SCHEMA}.loan_requests WHERE phone = %s ORDER BY created_at DESC LIMIT 1""",
+            (phone,)
+        )
     existing = cur.fetchone()
     if existing:
         ex_status = existing[1]
-        ex_ref = existing[3]
-        ex_created = existing[4]
+        ex_phone = existing[5]
         if ex_status not in ('repaid', 'rejected'):
-            # Заявка уже активна — возвращаем её как успех
+            # Клиент с такими данными уже зарегистрирован и имеет активную заявку
             conn.close()
-            return {'statusCode': 201, 'headers': headers, 'body': json.dumps({
-                'id': existing[0],
-                'ref_number': ex_ref,
-                'status': ex_status,
-                'created_at': ex_created.isoformat(),
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({
+                'error': 'Клиент с такими данными (ФИО, паспорт или телефон) уже зарегистрирован. Войдите в личный кабинет, чтобы продолжить.'
             })}
 
-    # Пароль: plain → hash, или hash напрямую, или берём из существующей заявки
+    # Пароль: plain → hash, или hash напрямую, или берём из существующей заявки (только если совпал телефон)
     if body.get('password'):
         pwd_hash = hash_password(body['password'])
     elif body.get('password_hash'):
         pwd_hash = body['password_hash']
-    elif existing and existing[2]:
+    elif existing and existing[5] == phone and existing[2]:
         pwd_hash = existing[2]
     else:
         conn.close()

@@ -244,9 +244,16 @@ const Anketa = () => {
           <h1 className="font-display mb-6 text-2xl font-bold text-primary">{STEPS[step - 1].title}</h1>
 
           {apiError && (
-            <p className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-              <Icon name="AlertCircle" size={16} /> {apiError}
-            </p>
+            <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+              <p className="flex items-center gap-2">
+                <Icon name="AlertCircle" size={16} className="shrink-0" /> {apiError}
+              </p>
+              {apiError.includes('уже зарегистрирован') && (
+                <Link to="/login" className="mt-2 inline-flex items-center gap-1.5 font-medium text-red-700 hover:underline">
+                  Войти в личный кабинет <Icon name="ArrowRight" size={14} />
+                </Link>
+              )}
+            </div>
           )}
 
           {/* ШАГ 1: Личные данные */}
