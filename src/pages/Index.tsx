@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import Icon from '@/components/ui/icon';
 import { useMaintenance } from '@/lib/maintenanceContext';
 
@@ -37,6 +38,17 @@ const Index = () => {
   }, [amount, days]);
 
   const fmt = (n: number) => n.toLocaleString('ru-RU');
+
+  const [arrivalTime, setArrivalTime] = useState('');
+  useEffect(() => {
+    const update = () => {
+      const d = new Date(Date.now() + 15 * 60 * 1000);
+      setArrivalTime(d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }));
+    };
+    update();
+    const t = setInterval(update, 30000);
+    return () => clearInterval(t);
+  }, []);
 
   const advantages = [
     { icon: 'Clock', title: 'Решение за 5 минут', text: 'Автоматическая проверка анкеты без звонков и визитов.' },
@@ -81,10 +93,31 @@ const Index = () => {
             <a href="#faq" className="text-muted-foreground transition-colors hover:text-primary">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="text-primary hover:bg-secondary">
+            <Button asChild size="sm" className="hidden rounded-full bg-primary px-4 text-primary-foreground hover:bg-primary/90 sm:inline-flex">
+              <a href="#calc"><Icon name="Zap" size={15} className="mr-1" /> Оформить займ</a>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="rounded-full border-border text-primary hover:bg-secondary">
               <Link to="/login"><Icon name="User" size={16} className="mr-1" /> Войти</Link>
             </Button>
 
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="ml-1 flex h-9 w-9 items-center justify-center rounded-xl border border-border text-primary hover:bg-secondary md:hidden">
+                  <Icon name="Menu" size={20} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72 bg-background">
+                <div className="mt-8 flex flex-col gap-1">
+                  <a href="#calc" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Калькулятор</a>
+                  <a href="#how" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Как это работает</a>
+                  <a href="#why" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Преимущества</a>
+                  <a href="#faq" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">FAQ</a>
+                  <Link to="/login" className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+                    <Icon name="User" size={16} /> Войти в кабинет
+                  </Link>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
@@ -114,19 +147,15 @@ const Index = () => {
           </div>
 
           {/* Right — Calculator card */}
-          <div className="animate-fade-up rounded-2xl border border-primary-foreground/10 bg-background p-6 text-foreground shadow-2xl sm:p-8" style={{ animationDelay: '0.15s' }}>
-            <div className="mb-6 flex items-center justify-center gap-4">
-              <div className="relative" style={{ perspective: '600px' }}>
-                <div className="animate-spin-3d flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-accent to-amber-500 shadow-lg">
-                  <span className="font-display text-2xl font-bold text-primary">₽</span>
-                </div>
-              </div>
-              <div>
-                <h2 className="font-display text-xl font-bold text-primary">Калькулятор займа</h2>
-                <p className="text-sm text-muted-foreground">Двигайте ползунки</p>
-              </div>
+          <div className="animate-fade-up overflow-hidden rounded-2xl border border-primary-foreground/10 bg-background text-foreground shadow-2xl" style={{ animationDelay: '0.15s' }}>
+            <div className="flex items-center gap-2.5 border-b border-border bg-secondary/60 px-6 py-3.5 sm:px-8">
+              <Icon name="AlarmClock" size={18} className="shrink-0 text-accent" />
+              <p className="text-sm font-medium text-primary">
+                Деньги у вас уже в <span className="font-display font-bold text-accent">{arrivalTime}</span>
+              </p>
             </div>
 
+            <div className="p-6 sm:p-8">
             <div className="mb-6">
               <div className="mb-2 flex items-baseline justify-between">
                 <span className="text-sm font-medium text-muted-foreground">Сумма займа</span>
@@ -176,6 +205,7 @@ const Index = () => {
             <p className="mt-3 text-center text-xs text-muted-foreground">
               {maintenance ? 'Приём заявок временно приостановлен' : 'Решение приходит за 5 минут'}
             </p>
+            </div>
           </div>
         </div>
       </section>
