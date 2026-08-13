@@ -115,7 +115,7 @@ const Index = () => {
                   <Icon name="Menu" size={20} />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-72 bg-background">
+              <SheetContent side="right" className="w-72 rounded-l-2xl bg-background">
                 <div className="mt-8 flex flex-col gap-1">
                   <a href="#calc" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Калькулятор</a>
                   <a href="#how" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Как это работает</a>
