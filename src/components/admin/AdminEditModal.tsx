@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiAdminSetPassword, apiUploadFile, apiAdminSetDocStatus, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiAdminSetPassword, apiUploadFile, apiAdminSetDocStatus, apiSendEmail, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from './contractHtml';
 import { useState, useEffect } from 'react';
@@ -68,6 +68,10 @@ const AdminEditModal = ({
     registration_photo_status: selected?.registration_photo_status || 'pending',
     income_doc_status: selected?.income_doc_status || 'pending',
   });
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailMsg, setEmailMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
     if (selected) {
@@ -78,6 +82,28 @@ const AdminEditModal = ({
       });
     }
   }, [selected?.passport_photo_status, selected?.registration_photo_status, selected?.income_doc_status]);
+
+  useEffect(() => {
+    setEmailSubject('');
+    setEmailBody('');
+    setEmailMsg(null);
+  }, [selected?.ref_number]);
+
+  const handleSendEmail = async () => {
+    if (!selected || !emailSubject || !emailBody) return;
+    setEmailSending(true);
+    setEmailMsg(null);
+    try {
+      await apiSendEmail({ ref_number: selected.ref_number, subject: emailSubject, message: emailBody });
+      setEmailMsg({ ok: true, text: 'Письмо отправлено' });
+      setEmailSubject('');
+      setEmailBody('');
+    } catch (e: unknown) {
+      setEmailMsg({ ok: false, text: e instanceof Error ? e.message : 'Ошибка' });
+    } finally {
+      setEmailSending(false);
+    }
+  };
 
   const handleDocStatus = async (field: string, newStatus: string) => {
     if (!selected) return;
@@ -307,6 +333,36 @@ const AdminEditModal = ({
               </div>
               {pwdMsg && (
                 <p className={`text-xs ${pwdMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{pwdMsg.text}</p>
+              )}
+            </div>
+
+            {/* Письмо клиенту */}
+            <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Написать клиенту</p>
+              {!selected.email ? (
+                <p className="text-xs text-muted-foreground">У клиента не указан email — отправка недоступна.</p>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground">Письмо будет отправлено на {selected.email}</p>
+                  <Input
+                    placeholder="Тема письма"
+                    value={emailSubject}
+                    onChange={(e) => { setEmailSubject(e.target.value); setEmailMsg(null); }}
+                  />
+                  <Textarea
+                    placeholder="Текст письма"
+                    value={emailBody}
+                    onChange={(e) => { setEmailBody(e.target.value); setEmailMsg(null); }}
+                    className="min-h-[100px]"
+                  />
+                  <Button size="sm" disabled={emailSending || !emailSubject || !emailBody} onClick={handleSendEmail} className="flex items-center gap-1.5">
+                    {emailSending ? <Icon name="Loader2" size={14} className="animate-spin" /> : <Icon name="Send" size={14} />}
+                    Отправить письмо
+                  </Button>
+                  {emailMsg && (
+                    <p className={`text-xs ${emailMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{emailMsg.text}</p>
+                  )}
+                </>
               )}
             </div>
 

@@ -2,12 +2,43 @@
 import json
 import os
 import hashlib
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import psycopg2
 
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
+SMTP_HOST = 'smtp.yandex.ru'
+SMTP_PORT = 465
 
 def hash_password(pwd: str) -> str:
     return hashlib.sha256(pwd.encode()).hexdigest()
+
+def send_registration_email(to_email: str, ref_number: str) -> None:
+    login = os.environ.get('SMTP_LOGIN')
+    password = os.environ.get('SMTP_PASSWORD')
+    if not login or not password:
+        return
+    html_body = f"""
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+      <h2 style="color:#1a2b4c;">Частные займы плюс</h2>
+      <p style="color:#333;font-size:14px;line-height:1.6;">
+        Ваша заявка <b>{ref_number}</b> успешно зарегистрирована и передана на рассмотрение.
+        Мы уведомим вас о решении на этот email и в личном кабинете.
+      </p>
+    </div>
+    """
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = 'Заявка принята'
+    msg['From'] = login
+    msg['To'] = to_email
+    msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+    try:
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+            server.login(login, password)
+            server.sendmail(login, [to_email], msg.as_string())
+    except Exception:
+        pass
 
 def handler(event: dict, context) -> dict:
     headers = {'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type'}
@@ -98,6 +129,9 @@ def handler(event: dict, context) -> dict:
     row = cur.fetchone()
     conn.commit()
     conn.close()
+
+    if body.get('email'):
+        send_registration_email(body['email'], row[1])
 
     return {
         'statusCode': 201,

@@ -1,11 +1,54 @@
 """Обновление/удаление заявок администратором."""
 import json
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import psycopg2
 
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
 ADMIN_TOKEN = 'admin_zaimy_plus'
 VALID_STATUSES = ('review', 'approved', 'issued', 'money_sent', 'rejected', 'transfer_error', 'repaid')
+SMTP_HOST = 'smtp.yandex.ru'
+SMTP_PORT = 465
+
+STATUS_EMAIL_TEXT = {
+    'review': ('Заявка принята', 'Ваша заявка {ref} принята и находится на рассмотрении. Мы уведомим вас, как только решение будет готово.'),
+    'approved': ('Заявка одобрена', 'Отличные новости! Ваша заявка {ref} одобрена. Зайдите в личный кабинет, чтобы продолжить оформление.'),
+    'issued': ('Договор подписан', 'Договор по заявке {ref} подписан. Ожидайте поступления денежных средств.'),
+    'money_sent': ('Деньги отправлены', 'Денежные средства по заявке {ref} отправлены на ваш счёт.'),
+    'rejected': ('Заявка отклонена', 'К сожалению, по заявке {ref} принято решение об отказе.'),
+    'transfer_error': ('Ошибка перевода', 'При переводе средств по заявке {ref} произошла ошибка. Наш оператор свяжется с вами.'),
+    'repaid': ('Займ погашен', 'Займ по заявке {ref} успешно погашен. Спасибо, что выбираете нас!'),
+}
+
+
+def send_status_email(to_email: str, ref_number: str, status: str) -> None:
+    if status not in STATUS_EMAIL_TEXT:
+        return
+    login = os.environ.get('SMTP_LOGIN')
+    password = os.environ.get('SMTP_PASSWORD')
+    if not login or not password:
+        return
+    subject, template = STATUS_EMAIL_TEXT[status]
+    text = template.format(ref=ref_number)
+    html_body = f"""
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+      <h2 style="color:#1a2b4c;">Частные займы плюс</h2>
+      <p style="color:#333;font-size:14px;line-height:1.6;">{text}</p>
+    </div>
+    """
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = login
+    msg['To'] = to_email
+    msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+    try:
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+            server.login(login, password)
+            server.sendmail(login, [to_email], msg.as_string())
+    except Exception:
+        pass
 
 def handler(event: dict, context) -> dict:
     headers = {
@@ -152,7 +195,7 @@ def handler(event: dict, context) -> dict:
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
     cur.execute(
-        f"UPDATE {SCHEMA}.loan_requests SET {', '.join(fields)} WHERE ref_number = %s RETURNING id",
+        f"UPDATE {SCHEMA}.loan_requests SET {', '.join(fields)} WHERE ref_number = %s RETURNING id, email",
         values
     )
     updated = cur.fetchone()
@@ -161,5 +204,8 @@ def handler(event: dict, context) -> dict:
 
     if not updated:
         return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
+
+    if status is not None and updated[1]:
+        send_status_email(updated[1], ref, status)
 
     return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True, 'ref_number': ref})}

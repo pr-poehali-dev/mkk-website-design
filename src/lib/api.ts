@@ -4,6 +4,7 @@ const URLS = {
   get:      'https://functions.poehali.dev/972288ec-3c64-419d-8b5c-4d61bb09a5b1',
   status:   'https://functions.poehali.dev/fc3311ea-4731-4819-98d5-675332a348fe',
   upload:   'https://functions.poehali.dev/39467c33-638c-4a9d-8a7a-fc8d3be83521',
+  email:    'https://functions.poehali.dev/ff7e9777-9bbc-4579-b1d9-9d5083d953f9',
 };
 
 const ADMIN_TOKEN = 'admin_zaimy_plus';
@@ -208,6 +209,16 @@ export async function apiGetSiteSettings(): Promise<Record<string, string>> {
   const res = await fetch(`${URLS.get}?action=settings`);
   if (!res.ok) return {};
   return res.json();
+}
+
+export async function apiSendEmail(data: { ref_number?: string; to?: string; subject: string; message: string }): Promise<void> {
+  const res = await fetch(URLS.email, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка отправки письма');
 }
 
 export async function apiSaveSiteSettings(settings: Record<string, string>): Promise<void> {
