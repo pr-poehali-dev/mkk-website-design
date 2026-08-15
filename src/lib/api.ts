@@ -232,6 +232,70 @@ export async function apiGetSiteSettings(): Promise<Record<string, string>> {
   return res.json();
 }
 
+export interface SystemEmailDesign {
+  brand_name: string;
+  primary_color: string;
+  accent_color: string;
+}
+
+export interface SystemEmailTemplate {
+  subject: string;
+  body: string;
+}
+
+export interface SystemCodeEmailTemplate {
+  subject: string;
+  intro: string;
+}
+
+export interface SystemEmailTemplates {
+  design: SystemEmailDesign;
+  register_email: SystemEmailTemplate;
+  status_emails: Record<string, SystemEmailTemplate>;
+  code_emails: Record<'register' | 'sign', SystemCodeEmailTemplate>;
+}
+
+export const DEFAULT_SYSTEM_EMAIL_TEMPLATES: SystemEmailTemplates = {
+  design: { brand_name: 'Частные займы плюс', primary_color: '#1a2b4c', accent_color: '#f2f4f8' },
+  register_email: {
+    subject: 'Заявка принята',
+    body: 'Ваша заявка <b>{ref}</b> успешно зарегистрирована и передана на рассмотрение. Мы уведомим вас о решении на этот email и в личном кабинете.',
+  },
+  status_emails: {
+    review: { subject: 'Заявка принята', body: 'Ваша заявка {ref} принята и находится на рассмотрении. Мы уведомим вас, как только решение будет готово.' },
+    approved: { subject: 'Заявка одобрена', body: 'Отличные новости! Ваша заявка {ref} одобрена. Зайдите в личный кабинет, чтобы продолжить оформление.' },
+    issued: { subject: 'Договор подписан', body: 'Договор по заявке {ref} подписан. Ожидайте поступления денежных средств.' },
+    money_sent: { subject: 'Деньги отправлены', body: 'Денежные средства по заявке {ref} отправлены на ваш счёт.' },
+    rejected: { subject: 'Заявка отклонена', body: 'К сожалению, по заявке {ref} принято решение об отказе.' },
+    transfer_error: { subject: 'Ошибка перевода', body: 'При переводе средств по заявке {ref} произошла ошибка. Наш оператор свяжется с вами.' },
+    repaid: { subject: 'Займ погашен', body: 'Займ по заявке {ref} успешно погашен. Спасибо, что выбираете нас!' },
+  },
+  code_emails: {
+    register: { subject: 'Код подтверждения регистрации', intro: 'Ваш код подтверждения для оформления заявки на займ:' },
+    sign: { subject: 'Код подписи договора', intro: 'Ваш код для подписания договора займа:' },
+  },
+};
+
+export async function apiGetSystemEmailTemplates(): Promise<SystemEmailTemplates> {
+  const s = await apiGetSiteSettings();
+  if (!s.system_email_templates) return DEFAULT_SYSTEM_EMAIL_TEMPLATES;
+  try {
+    const parsed = JSON.parse(s.system_email_templates);
+    return {
+      design: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.design, ...parsed.design },
+      register_email: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.register_email, ...parsed.register_email },
+      status_emails: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.status_emails, ...parsed.status_emails },
+      code_emails: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.code_emails, ...parsed.code_emails },
+    };
+  } catch {
+    return DEFAULT_SYSTEM_EMAIL_TEMPLATES;
+  }
+}
+
+export async function apiSaveSystemEmailTemplates(templates: SystemEmailTemplates): Promise<void> {
+  await apiSaveSiteSettings({ system_email_templates: JSON.stringify(templates) });
+}
+
 export async function apiSendEmail(data: { ref_number?: string; to?: string; subject: string; message: string }): Promise<void> {
   const res = await fetch(URLS.email, {
     method: 'POST',

@@ -12,7 +12,9 @@ VALID_STATUSES = ('review', 'approved', 'issued', 'money_sent', 'rejected', 'tra
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
 
-STATUS_EMAIL_TEXT = {
+DEFAULT_DESIGN = {'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8'}
+
+DEFAULT_STATUS_EMAIL_TEXT = {
     'review': ('Заявка принята', 'Ваша заявка {ref} принята и находится на рассмотрении. Мы уведомим вас, как только решение будет готово.'),
     'approved': ('Заявка одобрена', 'Отличные новости! Ваша заявка {ref} одобрена. Зайдите в личный кабинет, чтобы продолжить оформление.'),
     'issued': ('Договор подписан', 'Договор по заявке {ref} подписан. Ожидайте поступления денежных средств.'),
@@ -23,18 +25,34 @@ STATUS_EMAIL_TEXT = {
 }
 
 
-def send_status_email(to_email: str, ref_number: str, status: str) -> None:
-    if status not in STATUS_EMAIL_TEXT:
+def get_system_email_settings(cur) -> dict:
+    cur.execute(f"SELECT value FROM {SCHEMA}.site_settings WHERE key = 'system_email_templates'")
+    row = cur.fetchone()
+    if not row:
+        return {}
+    try:
+        return json.loads(row[0])
+    except Exception:
+        return {}
+
+
+def send_status_email(to_email: str, ref_number: str, status: str, settings: dict) -> None:
+    if status not in DEFAULT_STATUS_EMAIL_TEXT:
         return
     login = os.environ.get('SMTP_LOGIN')
     password = os.environ.get('SMTP_PASSWORD')
     if not login or not password:
         return
-    subject, template = STATUS_EMAIL_TEXT[status]
-    text = template.format(ref=ref_number)
+    design = {**DEFAULT_DESIGN, **(settings.get('design') or {})}
+    default_subject, default_body = DEFAULT_STATUS_EMAIL_TEXT[status]
+    status_templates = settings.get('status_emails') or {}
+    tpl = status_templates.get(status) or {}
+    subject = tpl.get('subject') or default_subject
+    body_template = tpl.get('body') or default_body
+    text = body_template.format(ref=ref_number)
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-      <h2 style="color:#1a2b4c;">Частные займы плюс</h2>
+      <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
       <p style="color:#333;font-size:14px;line-height:1.6;">{text}</p>
     </div>
     """
@@ -199,6 +217,7 @@ def handler(event: dict, context) -> dict:
         values
     )
     updated = cur.fetchone()
+    email_settings = get_system_email_settings(cur) if status is not None and updated and updated[1] else {}
     conn.commit()
     conn.close()
 
@@ -206,6 +225,6 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
 
     if status is not None and updated[1]:
-        send_status_email(updated[1], ref, status)
+        send_status_email(updated[1], ref, status, email_settings)
 
     return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True, 'ref_number': ref})}

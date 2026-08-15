@@ -14,22 +14,40 @@ SMTP_PORT = 465
 CODE_TTL_MINUTES = 10
 MAX_ATTEMPTS = 5
 
-PURPOSE_TEXT = {
+DEFAULT_DESIGN = {'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8'}
+
+DEFAULT_PURPOSE_TEXT = {
     'register': ('Код подтверждения регистрации', 'Ваш код подтверждения для оформления заявки на займ:'),
     'sign': ('Код подписи договора', 'Ваш код для подписания договора займа:'),
 }
 
 
-def send_code_email(to_email: str, code: str, purpose: str) -> None:
+def get_system_email_settings(cur) -> dict:
+    cur.execute(f"SELECT value FROM {SCHEMA}.site_settings WHERE key = 'system_email_templates'")
+    row = cur.fetchone()
+    if not row:
+        return {}
+    try:
+        return json.loads(row[0])
+    except Exception:
+        return {}
+
+
+def send_code_email(to_email: str, code: str, purpose: str, settings: dict) -> None:
     login = os.environ['SMTP_LOGIN']
     password = os.environ['SMTP_PASSWORD']
-    subject, intro = PURPOSE_TEXT.get(purpose, PURPOSE_TEXT['register'])
+    design = {**DEFAULT_DESIGN, **(settings.get('design') or {})}
+    default_subject, default_intro = DEFAULT_PURPOSE_TEXT.get(purpose, DEFAULT_PURPOSE_TEXT['register'])
+    code_templates = settings.get('code_emails') or {}
+    tpl = code_templates.get(purpose) or {}
+    subject = tpl.get('subject') or default_subject
+    intro = tpl.get('intro') or default_intro
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-      <h2 style="color:#1a2b4c;">Частные займы плюс</h2>
+      <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
       <p style="color:#333;font-size:14px;line-height:1.6;">{intro}</p>
-      <p style="font-size:28px;font-weight:bold;letter-spacing:6px;color:#1a2b4c;text-align:center;
-                background:#f2f4f8;border-radius:10px;padding:16px;">{code}</p>
+      <p style="font-size:28px;font-weight:bold;letter-spacing:6px;color:{design['primary_color']};text-align:center;
+                background:{design['accent_color']};border-radius:10px;padding:16px;">{code}</p>
       <p style="color:#888;font-size:12px;">Код действителен {CODE_TTL_MINUTES} минут. Никому не сообщайте его.</p>
     </div>
     """
@@ -71,6 +89,7 @@ def handler(event: dict, context) -> dict:
         ref_number = body.get('ref_number')
         code = f"{random.randint(0, 999999):06d}"
         expires_at = datetime.now(timezone.utc) + timedelta(minutes=CODE_TTL_MINUTES)
+        settings = get_system_email_settings(cur)
         cur.execute(
             f"""INSERT INTO {SCHEMA}.verification_codes (email, code, purpose, ref_number, expires_at)
                 VALUES (%s, %s, %s, %s, %s)""",
@@ -79,7 +98,7 @@ def handler(event: dict, context) -> dict:
         conn.commit()
         conn.close()
         try:
-            send_code_email(email, code, purpose)
+            send_code_email(email, code, purpose, settings)
         except Exception as e:
             return {'statusCode': 500, 'headers': headers, 'body': json.dumps({'error': f'Не удалось отправить письмо: {str(e)}'})}
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}

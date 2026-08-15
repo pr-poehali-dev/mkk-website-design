@@ -11,25 +11,41 @@ SCHEMA = os.environ['MAIN_DB_SCHEMA']
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
 
+DEFAULT_DESIGN = {'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8'}
+DEFAULT_REGISTER_EMAIL = {
+    'subject': 'Заявка принята',
+    'body': 'Ваша заявка <b>{ref}</b> успешно зарегистрирована и передана на рассмотрение. Мы уведомим вас о решении на этот email и в личном кабинете.',
+}
+
 def hash_password(pwd: str) -> str:
     return hashlib.sha256(pwd.encode()).hexdigest()
 
-def send_registration_email(to_email: str, ref_number: str) -> None:
+def get_system_email_settings(cur) -> dict:
+    cur.execute(f"SELECT value FROM {SCHEMA}.site_settings WHERE key = 'system_email_templates'")
+    row = cur.fetchone()
+    if not row:
+        return {}
+    try:
+        return json.loads(row[0])
+    except Exception:
+        return {}
+
+def send_registration_email(to_email: str, ref_number: str, settings: dict) -> None:
     login = os.environ.get('SMTP_LOGIN')
     password = os.environ.get('SMTP_PASSWORD')
     if not login or not password:
         return
+    design = {**DEFAULT_DESIGN, **(settings.get('design') or {})}
+    tpl = {**DEFAULT_REGISTER_EMAIL, **(settings.get('register_email') or {})}
+    text = tpl['body'].format(ref=ref_number)
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-      <h2 style="color:#1a2b4c;">Частные займы плюс</h2>
-      <p style="color:#333;font-size:14px;line-height:1.6;">
-        Ваша заявка <b>{ref_number}</b> успешно зарегистрирована и передана на рассмотрение.
-        Мы уведомим вас о решении на этот email и в личном кабинете.
-      </p>
+      <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
+      <p style="color:#333;font-size:14px;line-height:1.6;">{text}</p>
     </div>
     """
     msg = MIMEMultipart('alternative')
-    msg['Subject'] = 'Заявка принята'
+    msg['Subject'] = tpl['subject']
     msg['From'] = login
     msg['To'] = to_email
     msg.attach(MIMEText(html_body, 'html', 'utf-8'))
@@ -141,10 +157,11 @@ def handler(event: dict, context) -> dict:
         )
     )
     row = cur.fetchone()
+    settings = get_system_email_settings(cur)
     conn.commit()
     conn.close()
 
-    send_registration_email(email, row[1])
+    send_registration_email(email, row[1], settings)
 
     return {
         'statusCode': 201,

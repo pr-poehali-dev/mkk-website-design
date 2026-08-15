@@ -131,6 +131,10 @@ const Admin = () => {
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="Settings" size={18} className="text-accent" /> Настройки
             </Link>
+            <Link to="/admin/emails" onClick={() => setMenuOpen(false)}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="Mail" size={18} className="text-accent" /> Тексты писем
+            </Link>
             <button onClick={openChatModal}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="MessageCircle" size={18} className="text-accent" /> Код чата
