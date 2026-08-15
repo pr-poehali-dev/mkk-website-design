@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import MaintenanceBanner from "./components/MaintenanceBanner";
 import { MaintenanceProvider, useMaintenance } from "./lib/maintenanceContext";
 import CookieBanner from "./components/CookieBanner";
+import ChatWidget from "./components/ChatWidget";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
           <SiteGuard>
             <MaintenanceBanner />
             <CookieBanner />
+            <ChatWidget />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/anketa" element={<Anketa />} />

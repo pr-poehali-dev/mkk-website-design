@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
-import { apiGetAll, apiDeleteRequests, type UserSession } from '@/lib/api';
+import { apiGetAll, apiDeleteRequests, apiGetSiteSettings, apiSaveSiteSettings, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 import AdminClientGroup from '@/components/admin/AdminClientGroup';
@@ -24,6 +25,10 @@ const Admin = () => {
   const [statusFilter, setStatusFilter] = useState<StatusKey | null>(null);
   const [tab, setTab] = useState<'active' | 'rejected' | 'closed' | 'all'>('active');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [chatCode, setChatCode] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatSaving, setChatSaving] = useState(false);
 
   const fetchAll = useCallback(async () => {
     setLoadingList(true);
@@ -59,6 +64,32 @@ const Admin = () => {
     const next = new Set(checkedRefs);
     if (checked) next.add(ref); else next.delete(ref);
     setCheckedRefs(next);
+  };
+
+  const openChatModal = async () => {
+    setMenuOpen(false);
+    setChatModalOpen(true);
+    setChatLoading(true);
+    try {
+      const s = await apiGetSiteSettings();
+      setChatCode(s.chat_widget_code || '');
+    } catch (_e) {
+      // ignore
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const saveChatCode = async () => {
+    setChatSaving(true);
+    try {
+      await apiSaveSiteSettings({ chat_widget_code: chatCode });
+      setChatModalOpen(false);
+    } catch (_e) {
+      // ignore
+    } finally {
+      setChatSaving(false);
+    }
   };
 
   if (!authed) {
@@ -100,11 +131,47 @@ const Admin = () => {
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="Settings" size={18} className="text-accent" /> Настройки
             </Link>
+            <button onClick={openChatModal}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="MessageCircle" size={18} className="text-accent" /> Код чата
+            </button>
             <button onClick={() => { sessionStorage.removeItem('zaimy_admin'); setAuthed(false); setMenuOpen(false); }}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
               <Icon name="LogOut" size={18} /> Выйти
             </button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Код чата */}
+      <Dialog open={chatModalOpen} onOpenChange={setChatModalOpen}>
+        <DialogContent className="max-w-lg rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-primary">Код чата на сайте</DialogTitle>
+          </DialogHeader>
+          {chatLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Icon name="Loader2" size={24} className="animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Вставьте код виджета чата (например, Talk-Me) целиком, включая тег &lt;script&gt;. Он будет подключаться на всех страницах сайта.
+              </p>
+              <Textarea
+                value={chatCode}
+                onChange={(e) => setChatCode(e.target.value)}
+                placeholder="<script>...</script>"
+                className="min-h-[220px] font-mono text-xs"
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setChatModalOpen(false)}>Отмена</Button>
+                <Button disabled={chatSaving} onClick={saveChatCode} className="flex items-center gap-1.5">
+                  {chatSaving && <Icon name="Loader2" size={14} className="animate-spin" />} Сохранить
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
