@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, apiRegister, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { useState, useEffect } from 'react';
 
@@ -97,7 +97,7 @@ const CabinetStatusCard = ({
         address_registration: user.address_registration,
         work_place: user.work_place,
         work_phone: user.work_phone,
-        email: user.email || undefined,
+        email: user.email || '',
       });
       setReapplyDone(true);
       setShowCalc(false);
@@ -114,18 +114,48 @@ const CabinetStatusCard = ({
   };
 
   const sigKey = `sig_code_${user.ref_number}`;
-  const [signatureCode, setSignatureCode] = useState<string>(() => localStorage.getItem(sigKey) || '');
+  const [codeSending, setCodeSending] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [codeError, setCodeError] = useState('');
+  const [enteredCode, setEnteredCode] = useState('');
+  const [codeVerifying, setCodeVerifying] = useState(false);
 
-  const handleSignClick = () => {
-    const code = Math.random().toString(36).slice(2, 6).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
-    setSignatureCode(code);
+  const handleSignClick = async () => {
     setConsentData(false);
     setConsentContract(false);
+    setEnteredCode('');
+    setCodeSent(false);
+    setCodeError('');
     setShowConsentModal(true);
   };
 
+  const handleSendSignCode = async () => {
+    if (!user.email) { setCodeError('У вас не указан email — обратитесь к оператору.'); return; }
+    setCodeSending(true);
+    setCodeError('');
+    try {
+      await apiSendVerificationCode(user.email, 'sign', user.ref_number);
+      setCodeSent(true);
+    } catch (e: unknown) {
+      setCodeError(e instanceof Error ? e.message : 'Не удалось отправить код');
+    } finally {
+      setCodeSending(false);
+    }
+  };
+
   const handleConfirmSign = async () => {
-    localStorage.setItem(sigKey, signatureCode);
+    if (!enteredCode) { setCodeError('Введите код из письма'); return; }
+    setCodeVerifying(true);
+    setCodeError('');
+    try {
+      await apiVerifyCode(user.email!, 'sign', enteredCode);
+    } catch (e: unknown) {
+      setCodeError(e instanceof Error ? e.message : 'Неверный код');
+      setCodeVerifying(false);
+      return;
+    }
+    localStorage.setItem(sigKey, enteredCode);
+    setCodeVerifying(false);
     setShowConsentModal(false);
     setShowVerifying(true);
     setSigning(true);
@@ -612,11 +642,6 @@ const CabinetStatusCard = ({
           </DialogHeader>
           <div className="space-y-4 py-2">
             <p className="text-sm text-muted-foreground">Для подписания договора займа необходимо ваше согласие:</p>
-            <div className="rounded-xl border border-accent/40 bg-accent/5 p-3 text-center">
-              <p className="text-xs text-muted-foreground mb-1">Код подписи</p>
-              <p className="font-mono text-xl font-bold tracking-widest text-accent">{signatureCode}</p>
-              <p className="text-xs text-muted-foreground mt-1">Этот код будет включён в ваш договор</p>
-            </div>
             <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 hover:bg-secondary/50 transition-colors">
               <input
                 type="checkbox"
@@ -635,13 +660,55 @@ const CabinetStatusCard = ({
               />
               <span className="text-sm text-primary">Я ознакомился с условиями договора займа № <span className="font-mono font-semibold">{contractCode}</span> и согласен с ними</span>
             </label>
-            <Button
-              className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
-              disabled={!consentData || !consentContract}
-              onClick={handleConfirmSign}>
-              <Icon name="PenLine" size={16} className="mr-2" />
-              Подписать договор
-            </Button>
+
+            {!codeSent ? (
+              <Button
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+                disabled={!consentData || !consentContract || codeSending}
+                onClick={handleSendSignCode}>
+                {codeSending
+                  ? <span className="flex items-center gap-2"><Icon name="Loader2" size={15} className="animate-spin" /> Отправляем код...</span>
+                  : <span className="flex items-center gap-2"><Icon name="Mail" size={15} /> Получить код на email</span>}
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-accent/40 bg-accent/5 p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Код отправлен на</p>
+                  <p className="text-sm font-semibold text-primary">{user.email}</p>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Код из письма</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={enteredCode}
+                    onChange={(e) => { setEnteredCode(e.target.value.replace(/\D/g, '')); setCodeError(''); }}
+                    placeholder="6-значный код"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-center font-mono text-lg tracking-widest outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+                <Button
+                  className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+                  disabled={!enteredCode || codeVerifying}
+                  onClick={handleConfirmSign}>
+                  {codeVerifying
+                    ? <span className="flex items-center gap-2"><Icon name="Loader2" size={15} className="animate-spin" /> Проверяем...</span>
+                    : <span className="flex items-center gap-2"><Icon name="PenLine" size={15} /> Подписать договор</span>}
+                </Button>
+                <button
+                  type="button"
+                  className="w-full text-center text-xs text-muted-foreground hover:text-primary"
+                  onClick={handleSendSignCode}
+                  disabled={codeSending}>
+                  Отправить код повторно
+                </button>
+              </div>
+            )}
+
+            {codeError && (
+              <p className="text-xs text-red-500 text-center">{codeError}</p>
+            )}
           </div>
         </DialogContent>
       </Dialog>

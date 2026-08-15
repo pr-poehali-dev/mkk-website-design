@@ -5,6 +5,7 @@ const URLS = {
   status:   'https://functions.poehali.dev/fc3311ea-4731-4819-98d5-675332a348fe',
   upload:   'https://functions.poehali.dev/39467c33-638c-4a9d-8a7a-fc8d3be83521',
   email:    'https://functions.poehali.dev/ff7e9777-9bbc-4579-b1d9-9d5083d953f9',
+  verify:   'https://functions.poehali.dev/c46fea2c-8dfa-4977-aa58-29668db3bab8',
 };
 
 const ADMIN_TOKEN = 'admin_zaimy_plus';
@@ -56,13 +57,33 @@ export function clearSession() {
   sessionStorage.removeItem(SESSION_KEY);
 }
 
+export async function apiSendVerificationCode(email: string, purpose: 'register' | 'sign', ref_number?: string): Promise<void> {
+  const res = await fetch(URLS.verify, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'send_code', email, purpose, ref_number }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось отправить код');
+}
+
+export async function apiVerifyCode(email: string, purpose: 'register' | 'sign', code: string): Promise<void> {
+  const res = await fetch(URLS.verify, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'verify_code', email, purpose, code }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Неверный код');
+}
+
 export async function apiRegister(data: {
   full_name: string; phone: string; password?: string; password_hash?: string;
   amount: number; days: number;
   passport?: string; passport_by?: string; birth_date?: string;
   address_residence?: string; address_registration?: string;
   work_place?: string; work_phone?: string; income_doc_url?: string;
-  email?: string; passport_photo_url?: string;
+  email: string; passport_photo_url?: string;
 }) {
   const res = await fetch(URLS.register, {
     method: 'POST',

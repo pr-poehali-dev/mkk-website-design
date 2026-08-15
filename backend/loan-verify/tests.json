@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing email",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "send_code", "purpose": "register"},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Invalid purpose",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "send_code", "purpose": "bad", "email": "test@example.com"},
+      "expectedStatus": 400
+    }
+  ]
+}

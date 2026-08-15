@@ -1,4 +1,5 @@
 {
+  "loan-verify": "https://functions.poehali.dev/c46fea2c-8dfa-4977-aa58-29668db3bab8",
   "loan-email": "https://functions.poehali.dev/ff7e9777-9bbc-4579-b1d9-9d5083d953f9",
   "loan-delete": "https://functions.poehali.dev/82bc9559-2125-4288-a27f-41b283093f11",
   "loan-upload": "https://functions.poehali.dev/39467c33-638c-4a9d-8a7a-fc8d3be83521",

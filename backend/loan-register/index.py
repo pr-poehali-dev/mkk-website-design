@@ -47,13 +47,27 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 200, 'headers': headers, 'body': ''}
 
     body = json.loads(event.get('body') or '{}')
-    required = ['full_name', 'phone', 'amount', 'days']
+    required = ['full_name', 'phone', 'amount', 'days', 'email']
     for field in required:
         if not body.get(field):
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': f'Поле {field} обязательно'})}
 
+    email = body['email'].strip().lower()
+
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
+
+    # Проверяем, что email был подтверждён кодом из письма незадолго до отправки заявки
+    cur.execute(
+        f"""SELECT id FROM {SCHEMA}.verification_codes
+            WHERE email = %s AND purpose = 'register' AND used = true
+              AND created_at > NOW() - INTERVAL '30 minutes'
+            ORDER BY created_at DESC LIMIT 1""",
+        (email,)
+    )
+    if not cur.fetchone():
+        conn.close()
+        return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Email не подтверждён кодом. Запросите и введите код из письма.'})}
 
     phone = body['phone']
     full_name = body['full_name']
@@ -122,7 +136,7 @@ def handler(event: dict, context) -> dict:
             body.get('work_place') or None,
             body.get('work_phone') or None,
             body.get('income_doc_url') or None,
-            body.get('email') or None,
+            email,
             body.get('passport_photo_url') or None,
         )
     )
@@ -130,8 +144,7 @@ def handler(event: dict, context) -> dict:
     conn.commit()
     conn.close()
 
-    if body.get('email'):
-        send_registration_email(body['email'], row[1])
+    send_registration_email(email, row[1])
 
     return {
         'statusCode': 201,

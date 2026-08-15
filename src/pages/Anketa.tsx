@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import CameraCapture from '@/components/anketa/CameraCapture';
-import { apiRegister, apiUploadFile } from '@/lib/api';
+import { apiRegister, apiUploadFile, apiSendVerificationCode, apiVerifyCode } from '@/lib/api';
 import { formatPhone } from '@/lib/phone';
 
 const SuccessScreen = ({ nav }: { nav: (path: string) => void }) => {
@@ -70,6 +70,10 @@ const Anketa = () => {
   const [incomeChecking, setIncomeChecking] = useState(false);
   const [incomeChecked, setIncomeChecked] = useState(false);
   const [incomeSecondsLeft, setIncomeSecondsLeft] = useState(0);
+  // Step 5: подтверждение email
+  const [emailCode, setEmailCode] = useState('');
+  const [codeSending, setCodeSending] = useState(false);
+  const [codeVerifying, setCodeVerifying] = useState(false);
 
   const CHECK_SECONDS = 40;
 
@@ -134,11 +138,30 @@ const Anketa = () => {
   const next = () => { setApiError(''); setStep((s) => s + 1); };
   const prev = () => { setApiError(''); setStep((s) => s - 1); };
 
+  const handleSendEmailCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setApiError('');
+    setCodeSending(true);
+    try {
+      await apiSendVerificationCode(f1.email, 'register');
+      setStep(5);
+    } catch (err: unknown) {
+      setApiError(err instanceof Error ? err.message : 'Не удалось отправить код на почту');
+    } finally {
+      setCodeSending(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setApiError('');
     try {
+      if (!emailCode) { setApiError('Введите код из письма'); setLoading(false); return; }
+      setCodeVerifying(true);
+      await apiVerifyCode(f1.email, 'register', emailCode);
+      setCodeVerifying(false);
+
       let income_doc_url: string | undefined;
       let passport_photo_url: string | undefined;
       if (passportFile) {
@@ -164,10 +187,10 @@ const Anketa = () => {
         work_place: f4.work_place || undefined,
         work_phone: f4.work_phone || undefined,
         income_doc_url,
-        email: f1.email || undefined,
+        email: f1.email,
         passport_photo_url,
       });
-      setStep(5);
+      setStep(6);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes('уже зарегистрирован')) {
@@ -182,11 +205,76 @@ const Anketa = () => {
     } finally {
       setLoading(false);
       setIncomeUploading(false);
+      setCodeVerifying(false);
     }
   };
 
-  if (step === 5) {
+  if (step === 6) {
     return <SuccessScreen nav={nav} />;
+  }
+
+  if (step === 5) {
+    return (
+      <div className="min-h-screen bg-secondary/40">
+        <header className="border-b border-border bg-background">
+          <div className="container flex h-16 items-center justify-between px-4">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Icon name="Landmark" size={20} />
+              </div>
+              <span className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</span>
+            </Link>
+            <button onClick={() => setStep(4)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
+              <Icon name="ArrowLeft" size={16} /> Назад
+            </button>
+          </div>
+        </header>
+        <main className="container max-w-md px-4 py-14">
+          <div className="animate-fade-up rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+              <Icon name="Mail" size={28} className="text-blue-600" />
+            </div>
+            <h1 className="font-display mb-2 text-center text-2xl font-bold text-primary">Подтвердите email</h1>
+            <p className="mb-6 text-center text-sm text-muted-foreground">
+              Мы отправили код подтверждения на <span className="font-semibold text-primary">{f1.email}</span>
+            </p>
+
+            {apiError && (
+              <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                <p className="flex items-center gap-2"><Icon name="AlertCircle" size={16} className="shrink-0" /> {apiError}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="emailCode">Код из письма</Label>
+                <Input id="emailCode" inputMode="numeric" maxLength={6} placeholder="6-значный код"
+                  value={emailCode} onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ''))}
+                  className="text-center font-mono text-lg tracking-widest" required />
+              </div>
+              <Button type="submit" size="lg" disabled={loading || codeVerifying || !emailCode}
+                className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-60">
+                {loading || codeVerifying ? (
+                  <span className="flex items-center gap-2">
+                    <Icon name="Loader2" size={18} className="animate-spin" />
+                    {codeVerifying ? 'Проверяем код...' : incomeUploading ? 'Загружаем справку...' : 'Отправляем заявку...'}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">Подтвердить и отправить заявку <Icon name="Send" size={18} /></span>
+                )}
+              </Button>
+              <button
+                type="button"
+                onClick={handleSendEmailCode}
+                disabled={codeSending}
+                className="block w-full text-center text-sm text-muted-foreground hover:text-primary">
+                {codeSending ? 'Отправляем...' : 'Отправить код повторно'}
+              </button>
+            </form>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -284,15 +372,16 @@ const Anketa = () => {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="email">Электронная почта</Label>
-                <Input id="email" type="email" placeholder="example@mail.ru" value={f1.email} onChange={upd1('email')} />
+                <Label htmlFor="email">Электронная почта *</Label>
+                <Input id="email" type="email" placeholder="example@mail.ru" value={f1.email} onChange={upd1('email')} required />
+                <p className="text-xs text-muted-foreground">На этот адрес придёт код подтверждения заявки и подписи договора</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="password">Придумайте пароль *</Label>
                 <Input id="password" type="password" placeholder="для входа в личный кабинет" value={f1.password} onChange={upd1('password')} required />
               </div>
               <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
-                onClick={() => { if (f1.lastname && f1.firstname && f1.birth_date && f1.phone && f1.password) next(); else setApiError('Заполните все обязательные поля'); }}>
+                onClick={() => { if (f1.lastname && f1.firstname && f1.birth_date && f1.phone && f1.email && f1.password) next(); else setApiError('Заполните все обязательные поля'); }}>
                 Далее <Icon name="ArrowRight" size={18} className="ml-1" />
               </Button>
             </div>
@@ -388,7 +477,7 @@ const Anketa = () => {
 
           {/* ШАГ 4: Адрес и работа */}
           {step === 4 && (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSendEmailCode} className="space-y-5">
               <fieldset className="space-y-4">
                 <legend className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   <Icon name="MapPin" size={15} className="text-accent" /> Адрес
@@ -452,15 +541,15 @@ const Anketa = () => {
                 Ваши данные передаются по защищённому соединению и не передаются третьим лицам.
               </div>
 
-              <Button type="submit" size="lg" disabled={loading}
+              <Button type="submit" size="lg" disabled={codeSending}
                 className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-60">
-                {loading || incomeUploading ? (
+                {codeSending ? (
                   <span className="flex items-center gap-2">
                     <Icon name="Loader2" size={18} className="animate-spin" />
-                    {incomeUploading ? 'Загружаем справку...' : 'Отправляем заявку...'}
+                    Отправляем код на почту...
                   </span>
                 ) : (
-                  <span className="flex items-center gap-2">Отправить заявку <Icon name="Send" size={18} /></span>
+                  <span className="flex items-center gap-2">Подтвердить email и продолжить <Icon name="ArrowRight" size={18} /></span>
                 )}
               </Button>
             </form>
