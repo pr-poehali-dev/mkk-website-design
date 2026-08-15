@@ -47,7 +47,6 @@ const CabinetStatusCard = ({
   selectedBank,
   contractCode,
   onOpenCards,
-  onOpenDocs,
   setContractSigned,
   setSigning,
   setUser,
@@ -80,13 +79,8 @@ const CabinetStatusCard = ({
   const calcOverpay = Math.round(calcAmount * CALC_RATE * calcDays);
   const calcTotal = calcAmount + calcOverpay;
 
-  const docsApproved = user.passport_photo_status === 'approved'
-    && user.registration_photo_status === 'approved'
-    && user.income_doc_status === 'approved';
-  const docsUploaded = !!user.passport_photo_url && !!user.registration_photo_url && !!user.income_doc_url;
-
   const handleReapply = async () => {
-    if (!docsApproved || !reapplyConsent1 || !reapplyConsent2) return;
+    if (!reapplyConsent1 || !reapplyConsent2) return;
     setReapplyLoading(true);
     setReapplyError('');
     try {
@@ -567,44 +561,18 @@ const CabinetStatusCard = ({
                   </div>
                 </div>
 
-                {!docsApproved && (
-                  <div className="rounded-xl border border-orange-300 bg-orange-50 p-3 sm:p-4">
-                    <div className="flex items-start gap-2.5">
-                      <Icon name="AlertTriangle" size={18} className="mt-0.5 shrink-0 text-orange-500" />
-                      <div>
-                        <p className="text-xs font-semibold text-orange-700 sm:text-sm">
-                          {docsUploaded ? 'Документы на проверке' : 'Нужно загрузить документы'}
-                        </p>
-                        <p className="mt-0.5 text-xs text-orange-600">
-                          {docsUploaded
-                            ? 'Подать новую заявку можно после того, как оператор примет фото документов.'
-                            : 'Загрузите фото паспорта, регистрации и справку о доходах — без этого заявку подать нельзя.'}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => { setShowCalc(false); onOpenDocs(); }}
-                      className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-orange-300 bg-white px-3 py-2 text-xs font-semibold text-orange-700 hover:bg-orange-100 transition-colors sm:text-sm"
-                    >
-                      <Icon name="Upload" size={14} /> {docsUploaded ? 'Проверить документы' : 'Загрузить документы'}
-                    </button>
-                  </div>
-                )}
-
                 <div className="space-y-1.5 sm:space-y-2">
-                  <label className={`flex items-start gap-2.5 rounded-xl border border-border p-2.5 transition-colors sm:gap-3 sm:p-3 ${docsApproved ? 'cursor-pointer hover:bg-secondary/50' : 'cursor-not-allowed opacity-50'}`}>
+                  <label className="flex items-start gap-2.5 rounded-xl border border-border p-2.5 transition-colors sm:gap-3 sm:p-3 cursor-pointer hover:bg-secondary/50">
                     <input
                       type="checkbox" checked={reapplyConsent1}
-                      disabled={!docsApproved}
                       onChange={(e) => setReapplyConsent1(e.target.checked)}
                       className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
                     />
                     <span className="text-xs text-primary sm:text-sm">Я даю согласие на обработку персональных данных (152-ФЗ)</span>
                   </label>
-                  <label className={`flex items-start gap-2.5 rounded-xl border border-border p-2.5 transition-colors sm:gap-3 sm:p-3 ${docsApproved ? 'cursor-pointer hover:bg-secondary/50' : 'cursor-not-allowed opacity-50'}`}>
+                  <label className="flex items-start gap-2.5 rounded-xl border border-border p-2.5 transition-colors sm:gap-3 sm:p-3 cursor-pointer hover:bg-secondary/50">
                     <input
                       type="checkbox" checked={reapplyConsent2}
-                      disabled={!docsApproved}
                       onChange={(e) => setReapplyConsent2(e.target.checked)}
                       className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
                     />
@@ -618,7 +586,7 @@ const CabinetStatusCard = ({
 
                 <Button
                   className="w-full h-10 font-bold text-sm bg-gradient-to-br from-emerald-500 to-teal-600 text-white hover:opacity-90 sm:h-12 sm:text-base disabled:opacity-50"
-                  disabled={!docsApproved || !reapplyConsent1 || !reapplyConsent2 || reapplyLoading}
+                  disabled={!reapplyConsent1 || !reapplyConsent2 || reapplyLoading}
                   onClick={handleReapply}
                 >
                   {reapplyLoading ? (
