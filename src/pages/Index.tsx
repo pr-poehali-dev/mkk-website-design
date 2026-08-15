@@ -85,7 +85,7 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
-        <div className="container flex h-16 items-center justify-between px-4 rounded-sm">
+        <div className="container flex h-16 items-center justify-between px-4 rounded-2xl">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/30 ring-1 ring-white/10">
               <Icon name="Landmark" size={19} />
