@@ -12,14 +12,7 @@ interface Props {
   fmt: (n: number) => string;
 }
 
-const badge = (status: string, isRepeat: boolean, index: number) => {
-  if (isRepeat && index > 0) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">
-        <Icon name="RefreshCw" size={10} /> Повторная заявка
-      </span>
-    );
-  }
+const badge = (status: string) => {
   if (status === 'repaid') {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
@@ -76,7 +69,7 @@ const AdminClientGroup = ({ requests, checkedRefs, onCheck, onEdit, fmt }: Props
               </span>
             </div>
             <p className="mt-1 text-sm font-medium text-primary truncate">{r.full_name}</p>
-            {badge(r.status, false, 0)}
+            {badge(r.status)}
             <p className="mt-1 text-xs text-muted-foreground">{r.phone} · Создан {r.created_at?.slice(0, 10)}</p>
             {r.operator_comment && (
               <p className="mt-1 flex items-center gap-1 text-xs text-accent"><Icon name="MessageSquare" size={12} /> {r.operator_comment}</p>
@@ -146,7 +139,7 @@ const AdminClientGroup = ({ requests, checkedRefs, onCheck, onEdit, fmt }: Props
                   <div>
                     <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-primary">
                       <span className="text-xs text-muted-foreground">{r.ref_number}</span>
-                      {badge(r.status, true, i)}
+                      {badge(r.status)}
                     </p>
                     <p className="text-xs text-muted-foreground">{fmt(r.amount)} ₽ / {r.days} дн. · {r.created_at?.slice(0, 10)} · <span className={m.color}>{m.label}</span></p>
                     {r.operator_comment && (
