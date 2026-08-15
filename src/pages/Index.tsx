@@ -327,7 +327,7 @@ const Index = () => {
                 <Icon name="Mail" size={16} className="text-accent" /> zaymy.plyus@bk.ru
               </a>
             </div>
-            <p className="text-primary-foreground/60 text-center">© 2014–2026 КПК «Частные займы плюс».<br className="hidden md:block" /> Все права защищены.</p>
+            <p className="text-primary-foreground/60 text-center">© 2026 КПК «Частные займы плюс». Все права защищены.</p>
           </div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button onClick={() => setModal('privacy')}
