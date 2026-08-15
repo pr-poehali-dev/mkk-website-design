@@ -221,6 +221,26 @@ export async function apiSendEmail(data: { ref_number?: string; to?: string; sub
   if (!res.ok) throw new Error(json.error || 'Ошибка отправки письма');
 }
 
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+}
+
+export async function apiGetEmailTemplates(): Promise<EmailTemplate[]> {
+  const s = await apiGetSiteSettings();
+  try {
+    return s.email_templates ? JSON.parse(s.email_templates) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function apiSaveEmailTemplates(templates: EmailTemplate[]): Promise<void> {
+  await apiSaveSiteSettings({ email_templates: JSON.stringify(templates) });
+}
+
 export async function apiSaveSiteSettings(settings: Record<string, string>): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',

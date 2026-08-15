@@ -5,7 +5,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiAdminSetPassword, apiUploadFile, apiAdminSetDocStatus, apiSendEmail, type UserSession } from '@/lib/api';
+import {
+  apiUpdateRequest, apiAdminSetPassword, apiUploadFile, apiAdminSetDocStatus, apiSendEmail,
+  apiGetEmailTemplates, apiSaveEmailTemplates, type UserSession, type EmailTemplate,
+} from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from './contractHtml';
 import { useState, useEffect } from 'react';
@@ -72,6 +75,12 @@ const AdminEditModal = ({
   const [emailBody, setEmailBody] = useState('');
   const [emailSending, setEmailSending] = useState(false);
   const [emailMsg, setEmailMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [saveTemplateMode, setSaveTemplateMode] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [templateSaving, setTemplateSaving] = useState(false);
 
   useEffect(() => {
     if (selected) {
@@ -87,7 +96,55 @@ const AdminEditModal = ({
     setEmailSubject('');
     setEmailBody('');
     setEmailMsg(null);
+    setSelectedTemplateId('');
+    setSaveTemplateMode(false);
+    setNewTemplateName('');
   }, [selected?.ref_number]);
+
+  useEffect(() => {
+    if (selected?.email) {
+      setTemplatesLoading(true);
+      apiGetEmailTemplates().then(setTemplates).finally(() => setTemplatesLoading(false));
+    }
+  }, [selected?.ref_number]);
+
+  const applyTemplate = (id: string) => {
+    setSelectedTemplateId(id);
+    const t = templates.find((tpl) => tpl.id === id);
+    if (t) {
+      setEmailSubject(t.subject);
+      setEmailBody(t.body);
+      setEmailMsg(null);
+    }
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!newTemplateName || !emailSubject || !emailBody) return;
+    setTemplateSaving(true);
+    try {
+      const newTemplate: EmailTemplate = {
+        id: Date.now().toString(),
+        name: newTemplateName,
+        subject: emailSubject,
+        body: emailBody,
+      };
+      const next = [...templates, newTemplate];
+      await apiSaveEmailTemplates(next);
+      setTemplates(next);
+      setSelectedTemplateId(newTemplate.id);
+      setNewTemplateName('');
+      setSaveTemplateMode(false);
+    } finally {
+      setTemplateSaving(false);
+    }
+  };
+
+  const handleDeleteTemplate = async (id: string) => {
+    const next = templates.filter((t) => t.id !== id);
+    await apiSaveEmailTemplates(next);
+    setTemplates(next);
+    if (selectedTemplateId === id) setSelectedTemplateId('');
+  };
 
   const handleSendEmail = async () => {
     if (!selected || !emailSubject || !emailBody) return;
@@ -344,6 +401,28 @@ const AdminEditModal = ({
               ) : (
                 <>
                   <p className="text-xs text-muted-foreground">Письмо будет отправлено на {selected.email}</p>
+
+                  {!templatesLoading && templates.length > 0 && (
+                    <div className="flex gap-2">
+                      <Select value={selectedTemplateId} onValueChange={applyTemplate}>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Выбрать шаблон..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {templates.map((t) => (
+                            <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedTemplateId && (
+                        <Button size="sm" variant="outline" className="shrink-0 text-red-500 hover:bg-red-50"
+                          onClick={() => handleDeleteTemplate(selectedTemplateId)}>
+                          <Icon name="Trash2" size={14} />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
                   <Input
                     placeholder="Тема письма"
                     value={emailSubject}
@@ -355,6 +434,29 @@ const AdminEditModal = ({
                     onChange={(e) => { setEmailBody(e.target.value); setEmailMsg(null); }}
                     className="min-h-[100px]"
                   />
+
+                  {saveTemplateMode ? (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Название шаблона"
+                        value={newTemplateName}
+                        onChange={(e) => setNewTemplateName(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button size="sm" variant="outline" disabled={templateSaving || !newTemplateName} onClick={handleSaveTemplate}>
+                        {templateSaving ? <Icon name="Loader2" size={14} className="animate-spin" /> : <Icon name="Check" size={14} />}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => { setSaveTemplateMode(false); setNewTemplateName(''); }}>
+                        <Icon name="X" size={14} />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button size="sm" variant="outline" disabled={!emailSubject || !emailBody}
+                      onClick={() => setSaveTemplateMode(true)} className="flex items-center gap-1.5">
+                      <Icon name="BookmarkPlus" size={14} /> Сохранить как шаблон
+                    </Button>
+                  )}
+
                   <Button size="sm" disabled={emailSending || !emailSubject || !emailBody} onClick={handleSendEmail} className="flex items-center gap-1.5">
                     {emailSending ? <Icon name="Loader2" size={14} className="animate-spin" /> : <Icon name="Send" size={14} />}
                     Отправить письмо
