@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import {
-  apiGetSystemEmailTemplates, apiSaveSystemEmailTemplates,
+  apiGetSystemEmailTemplates, apiSaveSystemEmailTemplates, apiUploadFile,
   DEFAULT_SYSTEM_EMAIL_TEMPLATES, type SystemEmailTemplates,
 } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
@@ -23,6 +23,7 @@ const AdminEmails = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [tpl, setTpl] = useState<SystemEmailTemplates>(DEFAULT_SYSTEM_EMAIL_TEMPLATES);
+  const [logoUploading, setLogoUploading] = useState(false);
 
   useEffect(() => {
     if (authed) {
@@ -49,11 +50,23 @@ const AdminEmails = () => {
     }
   };
 
+  const handleLogoUpload = async (file: File) => {
+    setLogoUploading(true);
+    try {
+      const url = await apiUploadFile(file);
+      setTpl({ ...tpl, design: { ...tpl.design, logo_url: url } });
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
   const previewHtml = (body: string, isCode?: boolean) => `
     <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;border:1px solid #eee;border-radius:12px;">
+      ${tpl.design.logo_url ? `<img src="${tpl.design.logo_url}" alt="${tpl.design.brand_name}" style="max-height:48px;margin:0 0 12px;display:block;" />` : ''}
       <h3 style="color:${tpl.design.primary_color};margin:0 0 12px;">${tpl.design.brand_name}</h3>
       <p style="color:#333;font-size:13px;line-height:1.6;margin:0 0 10px;">${body.replace('{ref}', 'ZP-1234')}</p>
-      ${isCode ? `<p style="font-size:22px;font-weight:bold;letter-spacing:5px;color:${tpl.design.primary_color};text-align:center;background:${tpl.design.accent_color};border-radius:8px;padding:12px;margin:0;">123456</p>` : ''}
+      ${isCode ? `<p style="font-size:22px;font-weight:bold;letter-spacing:5px;color:${tpl.design.primary_color};text-align:center;background:${tpl.design.accent_color};border-radius:8px;padding:12px;margin:0 0 10px;">123456</p>` : ''}
+      ${tpl.design.signature ? `<p style="color:#888;font-size:12px;white-space:pre-line;margin:16px 0 0;border-top:1px solid #eee;padding-top:12px;">${tpl.design.signature}</p>` : ''}
     </div>
   `;
 
@@ -120,6 +133,34 @@ const AdminEmails = () => {
                     <Input value={tpl.design.accent_color}
                       onChange={(e) => setTpl({ ...tpl, design: { ...tpl.design, accent_color: e.target.value } })} />
                   </div>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Логотип в шапке письма</Label>
+                  <div className="flex items-center gap-3">
+                    {tpl.design.logo_url && (
+                      <img src={tpl.design.logo_url} alt="Логотип" className="h-10 max-w-[120px] rounded border border-border object-contain p-1" />
+                    )}
+                    <label className={`flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm hover:bg-secondary ${logoUploading ? 'pointer-events-none opacity-60' : ''}`}>
+                      {logoUploading ? <Icon name="Loader2" size={14} className="animate-spin" /> : <Icon name="Upload" size={14} />}
+                      {tpl.design.logo_url ? 'Заменить' : 'Загрузить логотип'}
+                      <input type="file" accept="image/*" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ''; }} />
+                    </label>
+                    {tpl.design.logo_url && (
+                      <button type="button" onClick={() => setTpl({ ...tpl, design: { ...tpl.design, logo_url: '' } })}
+                        className="text-xs text-muted-foreground hover:text-red-500">
+                        Убрать
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Подпись внизу письма</Label>
+                  <Textarea className="min-h-[70px]" value={tpl.design.signature || ''}
+                    onChange={(e) => setTpl({ ...tpl, design: { ...tpl.design, signature: e.target.value } })} />
                 </div>
               </div>
             </section>

@@ -12,7 +12,26 @@ VALID_STATUSES = ('review', 'approved', 'issued', 'money_sent', 'rejected', 'tra
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
 
-DEFAULT_DESIGN = {'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8'}
+DEFAULT_DESIGN = {
+    'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
+    'logo_url': '', 'signature': 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
+}
+
+
+def render_email_html(design: dict, body_html: str) -> str:
+    logo_html = f'<img src="{design["logo_url"]}" alt="{design["brand_name"]}" style="max-height:48px;margin:0 0 12px;display:block;" />' if design.get('logo_url') else ''
+    signature_html = ''
+    if design.get('signature'):
+        sig = design['signature'].replace(chr(10), '<br>')
+        signature_html = f'<p style="color:#888;font-size:12px;margin:20px 0 0;border-top:1px solid #eee;padding-top:12px;">{sig}</p>'
+    return f"""
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+      {logo_html}
+      <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
+      <p style="color:#333;font-size:14px;line-height:1.6;">{body_html}</p>
+      {signature_html}
+    </div>
+    """
 
 DEFAULT_STATUS_EMAIL_TEXT = {
     'review': ('Заявка принята', 'Ваша заявка {ref} принята и находится на рассмотрении. Мы уведомим вас, как только решение будет готово.'),
@@ -50,12 +69,7 @@ def send_status_email(to_email: str, ref_number: str, status: str, settings: dic
     subject = tpl.get('subject') or default_subject
     body_template = tpl.get('body') or default_body
     text = body_template.format(ref=ref_number)
-    html_body = f"""
-    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-      <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
-      <p style="color:#333;font-size:14px;line-height:1.6;">{text}</p>
-    </div>
-    """
+    html_body = render_email_html(design, text)
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
     msg['From'] = login

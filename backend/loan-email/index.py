@@ -10,7 +10,10 @@ SCHEMA = os.environ['MAIN_DB_SCHEMA']
 ADMIN_TOKEN = 'admin_zaimy_plus'
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
-DEFAULT_DESIGN = {'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8'}
+DEFAULT_DESIGN = {
+    'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
+    'logo_url': '', 'signature': 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
+}
 
 
 def get_system_email_settings(cur) -> dict:
@@ -75,10 +78,17 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Заполните тему и текст письма'})}
 
     design = {**DEFAULT_DESIGN, **(settings.get('design') or {})}
+    logo_html = f'<img src="{design["logo_url"]}" alt="{design["brand_name"]}" style="max-height:48px;margin:0 0 12px;display:block;" />' if design.get('logo_url') else ''
+    signature_html = ''
+    if design.get('signature'):
+        sig = design['signature'].replace(chr(10), '<br>')
+        signature_html = f'<p style="color:#888;font-size:12px;margin:20px 0 0;border-top:1px solid #eee;padding-top:12px;">{sig}</p>'
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+      {logo_html}
       <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
       <div style="white-space:pre-wrap;color:#333;font-size:14px;line-height:1.6;">{message}</div>
+      {signature_html}
     </div>
     """
 

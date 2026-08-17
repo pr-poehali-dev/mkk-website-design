@@ -14,7 +14,10 @@ SMTP_PORT = 465
 CODE_TTL_MINUTES = 10
 MAX_ATTEMPTS = 5
 
-DEFAULT_DESIGN = {'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8'}
+DEFAULT_DESIGN = {
+    'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
+    'logo_url': '', 'signature': 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
+}
 
 DEFAULT_PURPOSE_TEXT = {
     'register': ('Код подтверждения регистрации', 'Ваш код подтверждения для оформления заявки на займ:'),
@@ -42,13 +45,20 @@ def send_code_email(to_email: str, code: str, purpose: str, settings: dict) -> N
     tpl = code_templates.get(purpose) or {}
     subject = tpl.get('subject') or default_subject
     intro = tpl.get('intro') or default_intro
+    logo_html = f'<img src="{design["logo_url"]}" alt="{design["brand_name"]}" style="max-height:48px;margin:0 0 12px;display:block;" />' if design.get('logo_url') else ''
+    signature_html = ''
+    if design.get('signature'):
+        sig = design['signature'].replace(chr(10), '<br>')
+        signature_html = f'<p style="color:#888;font-size:12px;margin:20px 0 0;border-top:1px solid #eee;padding-top:12px;">{sig}</p>'
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+      {logo_html}
       <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
       <p style="color:#333;font-size:14px;line-height:1.6;">{intro}</p>
       <p style="font-size:28px;font-weight:bold;letter-spacing:6px;color:{design['primary_color']};text-align:center;
                 background:{design['accent_color']};border-radius:10px;padding:16px;">{code}</p>
       <p style="color:#888;font-size:12px;">Код действителен {CODE_TTL_MINUTES} минут. Никому не сообщайте его.</p>
+      {signature_html}
     </div>
     """
     msg = MIMEMultipart('alternative')

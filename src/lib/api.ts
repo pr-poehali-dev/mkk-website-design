@@ -237,6 +237,8 @@ export interface SystemEmailDesign {
   brand_name: string;
   primary_color: string;
   accent_color: string;
+  logo_url?: string;
+  signature?: string;
 }
 
 export interface SystemEmailTemplate {
@@ -257,7 +259,13 @@ export interface SystemEmailTemplates {
 }
 
 export const DEFAULT_SYSTEM_EMAIL_TEMPLATES: SystemEmailTemplates = {
-  design: { brand_name: 'Частные займы плюс', primary_color: '#1a2b4c', accent_color: '#f2f4f8' },
+  design: {
+    brand_name: 'Частные займы плюс',
+    primary_color: '#1a2b4c',
+    accent_color: '#f2f4f8',
+    logo_url: '',
+    signature: 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
+  },
   register_email: {
     subject: 'Заявка принята',
     body: 'Ваша заявка <b>{ref}</b> успешно зарегистрирована и передана на рассмотрение. Мы уведомим вас о решении на этот email и в личном кабинете.',

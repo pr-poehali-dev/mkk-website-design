@@ -12,7 +12,10 @@ SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
 SUPPORT_INBOX_ENV = 'SMTP_LOGIN'
 
-DEFAULT_DESIGN = {'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8'}
+DEFAULT_DESIGN = {
+    'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
+    'logo_url': '', 'signature': 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
+}
 
 COLS = ['id', 'name', 'phone', 'email', 'message', 'status', 'admin_reply', 'created_at', 'replied_at']
 
@@ -42,10 +45,17 @@ def send_html_email(to_email: str, subject: str, body_html: str, design: dict) -
     password = os.environ.get('SMTP_PASSWORD')
     if not login or not password:
         return
+    logo_html = f'<img src="{design["logo_url"]}" alt="{design["brand_name"]}" style="max-height:48px;margin:0 0 12px;display:block;" />' if design.get('logo_url') else ''
+    signature_html = ''
+    if design.get('signature'):
+        sig = design['signature'].replace(chr(10), '<br>')
+        signature_html = f'<p style="color:#888;font-size:12px;margin:20px 0 0;border-top:1px solid #eee;padding-top:12px;">{sig}</p>'
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+      {logo_html}
       <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
       <div style="color:#333;font-size:14px;line-height:1.6;">{body_html}</div>
+      {signature_html}
     </div>
     """
     msg = MIMEMultipart('alternative')
