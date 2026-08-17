@@ -44,11 +44,26 @@ const STEPS = [
   { n: 4, title: 'Адрес и работа', icon: 'Briefcase' },
 ];
 
+const CheckingScreen = ({ seconds }: { seconds: number }) => (
+  <div className="flex min-h-screen items-center justify-center bg-secondary/40 px-4">
+    <div className="animate-fade-up w-full max-w-md rounded-3xl bg-background p-8 text-center shadow-xl sm:p-10">
+      <div className="relative mx-auto mb-7 flex h-24 w-24 items-center justify-center rounded-full bg-blue-100">
+        <Icon name="Loader2" size={36} className="animate-spin text-blue-600" />
+      </div>
+      <h1 className="font-display text-2xl font-bold leading-snug text-primary">Идёт проверка данных</h1>
+      <p className="mt-3 text-base text-muted-foreground">Пожалуйста, подождите, мы проверяем введённую информацию.</p>
+      <p className="mt-4 font-display text-3xl font-bold text-accent">{seconds} сек.</p>
+    </div>
+  </div>
+);
+
 const Anketa = () => {
   const nav = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [transitioning, setTransitioning] = useState(false);
+  const [transitionSeconds, setTransitionSeconds] = useState(0);
 
   // Step 1
   const [f1, setF1] = useState({ lastname: '', firstname: '', middlename: '', phone: '', password: '', birth_date: '', email: '' });
@@ -135,7 +150,24 @@ const Anketa = () => {
     runFileCheck(setIncomeChecking, setIncomeChecked, setIncomeSecondsLeft);
   };
 
-  const next = () => { setApiError(''); setStep((s) => s + 1); };
+  const CHECK_TRANSITION_SECONDS = 10;
+
+  const next = () => {
+    setApiError('');
+    setTransitioning(true);
+    setTransitionSeconds(CHECK_TRANSITION_SECONDS);
+    const timer = setInterval(() => {
+      setTransitionSeconds((s) => {
+        if (s <= 1) {
+          clearInterval(timer);
+          setTransitioning(false);
+          setStep((st) => st + 1);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+  };
   const prev = () => { setApiError(''); setStep((s) => s - 1); };
 
   const handleSendEmailCode = async (e: React.FormEvent) => {
@@ -208,6 +240,10 @@ const Anketa = () => {
       setCodeVerifying(false);
     }
   };
+
+  if (transitioning) {
+    return <CheckingScreen seconds={transitionSeconds} />;
+  }
 
   if (step === 6) {
     return <SuccessScreen nav={nav} />;
