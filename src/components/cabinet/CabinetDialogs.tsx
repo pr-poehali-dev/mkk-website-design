@@ -5,6 +5,7 @@ import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from '@/components/admin/contractHtml';
+import { useSupportModal } from '@/lib/supportModalContext';
 
 const BANKS = [
   { name: 'Сбербанк', icon: '🟢' },
@@ -54,6 +55,7 @@ const CabinetDialogs = ({
   setUser,
   onLogout,
 }: Props) => {
+  const { openModal: openSupportModal } = useSupportModal();
   const returnDate = (() => {
     const d = new Date(user.created_at || Date.now());
     d.setDate(d.getDate() + user.days);
@@ -174,6 +176,11 @@ const CabinetDialogs = ({
               onClick={openHistory}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="History" size={18} className="text-accent" /> История займов
+            </button>
+            <button
+              onClick={() => { openSupportModal({ name: user.full_name, phone: user.phone, email: user.email || '' }); setMenuOpen(false); }}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="MessageCircleQuestion" size={18} className="text-accent" /> Поддержка
             </button>
             <button
               onClick={onLogout}

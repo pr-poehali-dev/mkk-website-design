@@ -6,6 +6,7 @@ const URLS = {
   upload:   'https://functions.poehali.dev/39467c33-638c-4a9d-8a7a-fc8d3be83521',
   email:    'https://functions.poehali.dev/ff7e9777-9bbc-4579-b1d9-9d5083d953f9',
   verify:   'https://functions.poehali.dev/c46fea2c-8dfa-4977-aa58-29668db3bab8',
+  support:  'https://functions.poehali.dev/35cc758e-3087-464a-9931-bac36bd2358b',
 };
 
 const ADMIN_TOKEN = 'admin_zaimy_plus';
@@ -334,4 +335,45 @@ export async function apiSaveSiteSettings(settings: Record<string, string>): Pro
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка сохранения');
+}
+
+export interface SupportMessage {
+  id: number;
+  name: string;
+  phone: string;
+  email: string | null;
+  message: string;
+  status: 'new' | 'answered';
+  admin_reply: string | null;
+  created_at: string;
+  replied_at: string | null;
+}
+
+export async function apiSubmitSupportRequest(data: { name: string; phone: string; email?: string; message: string }): Promise<void> {
+  const res = await fetch(URLS.support, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось отправить сообщение');
+}
+
+export async function apiGetSupportMessages(): Promise<SupportMessage[]> {
+  const res = await fetch(URLS.support, {
+    headers: { 'x-admin-token': ADMIN_TOKEN },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as SupportMessage[];
+}
+
+export async function apiReplySupportMessage(id: number, reply: string): Promise<void> {
+  const res = await fetch(URLS.support, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'reply', id, reply }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка отправки ответа');
 }

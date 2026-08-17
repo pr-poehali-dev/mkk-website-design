@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
-import { apiGetAll, apiDeleteRequests, apiGetSiteSettings, apiSaveSiteSettings, type UserSession } from '@/lib/api';
+import { apiGetAll, apiDeleteRequests, apiGetSiteSettings, apiSaveSiteSettings, apiGetSupportMessages, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 import AdminClientGroup from '@/components/admin/AdminClientGroup';
@@ -29,6 +29,7 @@ const Admin = () => {
   const [chatCode, setChatCode] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [chatSaving, setChatSaving] = useState(false);
+  const [newSupportCount, setNewSupportCount] = useState(0);
 
   const fetchAll = useCallback(async () => {
     setLoadingList(true);
@@ -45,6 +46,9 @@ const Admin = () => {
   useEffect(() => {
     if (authed) {
       fetchAll();
+      apiGetSupportMessages().then((items) => {
+        setNewSupportCount(items.filter((m) => m.status === 'new').length);
+      }).catch(() => {});
     }
   }, [authed, fetchAll]);
 
@@ -134,6 +138,13 @@ const Admin = () => {
             <Link to="/admin/emails" onClick={() => setMenuOpen(false)}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="Mail" size={18} className="text-accent" /> Тексты писем
+            </Link>
+            <Link to="/admin/support" onClick={() => setMenuOpen(false)}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="MessageCircleQuestion" size={18} className="text-accent" /> Обращения
+              {newSupportCount > 0 && (
+                <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">{newSupportCount}</span>
+              )}
             </Link>
             <button onClick={openChatModal}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
