@@ -141,36 +141,52 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Поле password обязательно'})}
 
-    cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.loan_requests")
-    count = cur.fetchone()[0]
-    ref_number = f"ZP-{1042 + count + 1}"
-
+    # Номер заявки: берём максимальный существующий номер (не просто COUNT,
+    # т.к. удаление старых заявок могло привести к повторному номеру и конфликту уникальности)
     cur.execute(
-        f"""INSERT INTO {SCHEMA}.loan_requests
-            (ref_number, full_name, phone, password_hash, birth_date, passport, passport_by, amount, days,
-             address_residence, address_registration, work_place, work_phone, income_doc_url, email, passport_photo_url)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id, ref_number, status, created_at""",
-        (
-            ref_number,
-            body['full_name'],
-            body['phone'],
-            pwd_hash,
-            body.get('birth_date') or None,
-            body.get('passport') or None,
-            body.get('passport_by') or None,
-            int(body['amount']),
-            int(body['days']),
-            body.get('address_residence') or None,
-            body.get('address_registration') or None,
-            body.get('work_place') or None,
-            body.get('work_phone') or None,
-            body.get('income_doc_url') or None,
-            email,
-            body.get('passport_photo_url') or None,
-        )
+        f"SELECT COALESCE(MAX(CAST(REGEXP_REPLACE(ref_number, '[^0-9]', '', 'g') AS INTEGER)), 1042) FROM {SCHEMA}.loan_requests"
     )
-    row = cur.fetchone()
+    max_num = cur.fetchone()[0]
+
+    row = None
+    for attempt in range(5):
+        ref_number = f"ZP-{max_num + 1 + attempt}"
+        try:
+            cur.execute(
+                f"""INSERT INTO {SCHEMA}.loan_requests
+                    (ref_number, full_name, phone, password_hash, birth_date, passport, passport_by, amount, days,
+                     address_residence, address_registration, work_place, work_phone, income_doc_url, email, passport_photo_url)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id, ref_number, status, created_at""",
+                (
+                    ref_number,
+                    body['full_name'],
+                    body['phone'],
+                    pwd_hash,
+                    body.get('birth_date') or None,
+                    body.get('passport') or None,
+                    body.get('passport_by') or None,
+                    int(body['amount']),
+                    int(body['days']),
+                    body.get('address_residence') or None,
+                    body.get('address_registration') or None,
+                    body.get('work_place') or None,
+                    body.get('work_phone') or None,
+                    body.get('income_doc_url') or None,
+                    email,
+                    body.get('passport_photo_url') or None,
+                )
+            )
+            row = cur.fetchone()
+            break
+        except psycopg2.IntegrityError:
+            conn.rollback()
+            continue
+
+    if row is None:
+        conn.close()
+        return {'statusCode': 500, 'headers': headers, 'body': json.dumps({'error': 'Не удалось сгенерировать номер заявки. Попробуйте ещё раз.'})}
+
     settings = get_system_email_settings(cur)
     conn.commit()
     conn.close()
