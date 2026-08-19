@@ -93,8 +93,8 @@ const AdminEmails = () => {
       <main className="container max-w-3xl px-4 py-6 pb-24">
         <h1 className="font-display text-xl font-bold text-primary">Тексты и дизайн писем</h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          Письма отправляются автоматически при регистрации заявки, смене статуса и подписи договора.
-          В тексте можно использовать <code className="rounded bg-secondary px-1 py-0.5 text-[11px]">{'{ref}'}</code> — номер заявки будет подставлен автоматически.
+          Письма отправляются автоматически при обращении «Задать вопрос», смене статуса заявки и подписи договора.
+          В тексте можно использовать <code className="rounded bg-secondary px-1 py-0.5 text-[11px]">{'{ref}'}</code> — номер заявки будет подставлен автоматически (для писем по статусам заявки).
         </p>
 
         {!loaded ? (
@@ -165,10 +165,13 @@ const AdminEmails = () => {
               </div>
             </section>
 
-            {/* Письмо при регистрации */}
+            {/* Письмо при обращении через форму "Задать вопрос" */}
             <section className="rounded-xl border border-border bg-card p-4">
-              <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                <Icon name="FileCheck" size={14} className="text-accent" /> Письмо при регистрации заявки
+              <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <Icon name="FileCheck" size={14} className="text-accent" /> Письмо при обращении «Задать вопрос»
+              </p>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Отправляется автоматически клиенту, когда он оставляет вопрос через форму на сайте. Не связано с регистрацией займа.
               </p>
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-2">

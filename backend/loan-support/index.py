@@ -16,6 +16,10 @@ DEFAULT_DESIGN = {
     'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
     'logo_url': '', 'signature': 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
 }
+DEFAULT_REGISTER_EMAIL = {
+    'subject': 'Ваш запрос принят',
+    'body': 'Ваш запрос успешно зарегистрирован и передан в службу поддержки. Мы ответим вам на этот email в ближайшее время.',
+}
 
 COLS = ['id', 'name', 'phone', 'email', 'message', 'status', 'admin_reply', 'created_at', 'replied_at']
 
@@ -164,15 +168,12 @@ def handler(event: dict, context) -> dict:
         except Exception:
             pass
 
-    # Автоответ клиенту
+    # Автоответ клиенту (используется настраиваемый в админке шаблон "Письмо при обращении Задать вопрос")
     if email:
         try:
-            send_html_email(
-                email,
-                'Ваш запрос принят',
-                f'Здравствуйте, {name}!<br><br>Ваш запрос принят, ожидайте ответа службы поддержки. Обычно мы отвечаем в течение рабочего дня.',
-                design,
-            )
+            tpl = {**DEFAULT_REGISTER_EMAIL, **(settings.get('register_email') or {})}
+            body_html = f'Здравствуйте, {name}!<br><br>{tpl["body"]}'
+            send_html_email(email, tpl['subject'], body_html, design)
         except Exception:
             pass
 
