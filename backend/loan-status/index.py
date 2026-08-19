@@ -55,13 +55,13 @@ def get_system_email_settings(cur) -> dict:
         return {}
 
 
-def send_status_email(to_email: str, ref_number: str, status: str, settings: dict) -> None:
+def send_status_email(to_email: str, ref_number: str, status: str, settings: dict) -> str:
     if status not in DEFAULT_STATUS_EMAIL_TEXT:
-        return
+        return 'skipped: unknown status'
     login = os.environ.get('SMTP_LOGIN')
     password = os.environ.get('SMTP_PASSWORD')
     if not login or not password:
-        return
+        return 'skipped: SMTP credentials not configured'
     design = {**DEFAULT_DESIGN, **(settings.get('design') or {})}
     default_subject, default_body = DEFAULT_STATUS_EMAIL_TEXT[status]
     status_templates = settings.get('status_emails') or {}
@@ -79,8 +79,10 @@ def send_status_email(to_email: str, ref_number: str, status: str, settings: dic
         with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
             server.login(login, password)
             server.sendmail(login, [to_email], msg.as_string())
-    except Exception:
-        pass
+        return 'ok'
+    except Exception as e:
+        print(f'[loan-status] Failed to send status email to {to_email} for {ref_number} status={status}: {e}')
+        return f'error: {e}'
 
 def handler(event: dict, context) -> dict:
     headers = {
