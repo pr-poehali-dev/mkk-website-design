@@ -17,6 +17,17 @@ const CODE_PURPOSES: { key: 'register' | 'sign'; label: string; icon: string }[]
   { key: 'sign', label: 'Код подписи договора', icon: 'PenLine' },
 ];
 
+const EMAIL_THEMES: { name: string; primary_color: string; accent_color: string }[] = [
+  { name: 'Классика', primary_color: '#1a2b4c', accent_color: '#f2f4f8' },
+  { name: 'Тёмно-синий', primary_color: '#00215e', accent_color: '#e3e3e3' },
+  { name: 'Изумруд', primary_color: '#0f5132', accent_color: '#e6f4ea' },
+  { name: 'Бордовый', primary_color: '#6b1e2c', accent_color: '#f6e8ea' },
+  { name: 'Графит', primary_color: '#1f2937', accent_color: '#f3f4f6' },
+  { name: 'Индиго', primary_color: '#3730a3', accent_color: '#eef2ff' },
+  { name: 'Терракот', primary_color: '#9a3412', accent_color: '#fff1e8' },
+  { name: 'Фиолетовый', primary_color: '#5b21b6', accent_color: '#f3ecfd' },
+];
+
 const AdminEmails = () => {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('zaimy_admin') === '1');
   const [loaded, setLoaded] = useState(false);
@@ -108,6 +119,31 @@ const AdminEmails = () => {
               <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 <Icon name="Palette" size={14} className="text-accent" /> Дизайн письма
               </p>
+
+              <div className="mb-4 space-y-1.5">
+                <Label className="text-xs">Готовая тема оформления</Label>
+                <div className="flex flex-wrap gap-2">
+                  {EMAIL_THEMES.map((theme) => {
+                    const isActive = tpl.design.primary_color === theme.primary_color && tpl.design.accent_color === theme.accent_color;
+                    return (
+                      <button
+                        key={theme.name}
+                        type="button"
+                        onClick={() => setTpl({ ...tpl, design: { ...tpl.design, primary_color: theme.primary_color, accent_color: theme.accent_color } })}
+                        className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-xs transition ${isActive ? 'border-primary ring-1 ring-primary' : 'border-border hover:bg-secondary'}`}
+                      >
+                        <span className="flex h-4 w-4 overflow-hidden rounded-full border border-border/50">
+                          <span className="h-full w-1/2" style={{ backgroundColor: theme.primary_color }} />
+                          <span className="h-full w-1/2" style={{ backgroundColor: theme.accent_color }} />
+                        </span>
+                        {theme.name}
+                        {isActive && <Icon name="Check" size={12} className="text-primary" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="space-y-1">
                   <Label className="text-xs">Название компании</Label>
