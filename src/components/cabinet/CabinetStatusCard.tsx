@@ -184,10 +184,10 @@ const CabinetStatusCard = ({
     if (status !== 'money_sent') return;
     if (localStorage.getItem(moneySentKey)) return;
     setShowMoneySent(true);
+    localStorage.setItem(moneySentKey, '1');
     const t = setTimeout(() => {
       setShowMoneySent(false);
-      localStorage.setItem(moneySentKey, '1');
-    }, 2 * 60 * 1000);
+    }, 10 * 1000);
     return () => clearTimeout(t);
   }, [status]);
 
