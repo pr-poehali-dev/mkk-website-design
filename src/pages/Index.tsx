@@ -301,11 +301,16 @@ const Index = () => {
       </section>
 
       {/* CTA */}
-      <section className="relative mx-4 mb-8 overflow-hidden rounded-2xl bg-primary text-primary-foreground md:mx-auto md:max-w-5xl">
-        <div className="absolute inset-0 hero-grid opacity-40" />
+      <section className="relative mx-4 mb-8 overflow-hidden rounded-2xl bg-gradient-to-b from-sky-400 via-sky-300 to-primary text-primary-foreground md:mx-auto md:max-w-5xl">
+        <div className="absolute inset-0 hero-grid opacity-20" />
+        <img
+          src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/46e34286-7da4-4441-b447-ad6ff3c882fc.jpg"
+          alt="Человек с картой"
+          className="pointer-events-none absolute bottom-0 right-0 h-full w-auto max-w-[45%] object-contain object-bottom opacity-90 md:max-w-[38%]"
+        />
         <div className="container relative px-4 py-16 text-center md:py-20">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Готовы оформить займ?</h2>
-          <p className="mx-auto mt-3 max-w-md text-primary-foreground/75">Заполните анкету за 2 минуты — решение придёт мгновенно.</p>
+          <p className="mx-auto mt-3 max-w-md text-primary-foreground/90">Заполните анкету за 2 минуты — решение придёт мгновенно.</p>
           {maintenance ? (
             <Button size="lg" disabled className="mt-7 h-12 px-8 text-base font-bold cursor-not-allowed opacity-60">
               <Icon name="Construction" size={18} className="mr-2" />
