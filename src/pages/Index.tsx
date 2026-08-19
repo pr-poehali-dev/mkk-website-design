@@ -330,7 +330,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-primary text-primary-foreground/70">
+      <footer className="rounded-t-2xl bg-primary text-primary-foreground/70">
         <div className="container border-t border-primary-foreground/10 px-4 py-10 text-sm">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <p className="font-display text-lg font-bold tracking-wide text-primary-foreground text-center">ЧАСТНЫЕ ЗАЙМЫ ПЛЮС</p>
