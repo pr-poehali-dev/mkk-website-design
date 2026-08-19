@@ -301,7 +301,7 @@ const Index = () => {
       </section>
 
       {/* CTA */}
-      <section className="relative overflow-hidden bg-primary text-primary-foreground">
+      <section className="relative mx-4 mb-8 overflow-hidden rounded-2xl bg-primary text-primary-foreground md:mx-auto md:max-w-5xl">
         <div className="absolute inset-0 hero-grid opacity-40" />
         <div className="container relative px-4 py-16 text-center md:py-20">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Готовы оформить займ?</h2>
