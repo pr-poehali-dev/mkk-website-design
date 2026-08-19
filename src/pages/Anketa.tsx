@@ -152,7 +152,9 @@ const Anketa = () => {
 
   const CHECK_TRANSITION_SECONDS = 10;
 
-  const next = () => {
+  const next = () => { setApiError(''); setStep((s) => s + 1); };
+
+  const nextWithCheck = () => {
     setApiError('');
     setTransitioning(true);
     setTransitionSeconds(CHECK_TRANSITION_SECONDS);
@@ -417,7 +419,7 @@ const Anketa = () => {
                 <Input id="password" type="password" placeholder="для входа в личный кабинет" value={f1.password} onChange={upd1('password')} required />
               </div>
               <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
-                onClick={() => { if (f1.lastname && f1.firstname && f1.birth_date && f1.phone && f1.email && f1.password) next(); else setApiError('Заполните все обязательные поля'); }}>
+                onClick={() => { if (f1.lastname && f1.firstname && f1.birth_date && f1.phone && f1.email && f1.password) nextWithCheck(); else setApiError('Заполните все обязательные поля'); }}>
                 Далее <Icon name="ArrowRight" size={18} className="ml-1" />
               </Button>
             </div>
