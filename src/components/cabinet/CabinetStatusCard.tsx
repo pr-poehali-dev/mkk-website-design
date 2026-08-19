@@ -205,7 +205,7 @@ const CabinetStatusCard = ({
           </div>
         </div>
 
-        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' ? (
+        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' ? (
           <div className="flex items-start p-4 gap-0">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
@@ -226,7 +226,7 @@ const CabinetStatusCard = ({
               );
             })}
           </div>
-        ) : status === 'repaid' ? (
+        ) : status === 'money_sent' ? null : status === 'repaid' ? (
           <div className="p-6">
             <div className="rounded-2xl border-2 border-teal-200 bg-teal-50 p-6 text-center">
               <div className="flex justify-center mb-4">
