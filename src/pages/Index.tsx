@@ -152,7 +152,7 @@ const Index = () => {
             <img
               src="/assets/hero-person-phone.png"
               alt="Человек с телефоном"
-              className="pointer-events-none mx-auto mt-6 h-40 w-auto object-contain sm:h-52 md:absolute md:right-0 md:top-1/2 md:mx-0 md:mt-0 md:h-56 md:-translate-y-1/2 lg:h-64"
+              className="pointer-events-none hidden md:absolute md:right-0 md:top-1/2 md:block md:h-56 md:w-auto md:-translate-y-1/2 md:object-contain lg:h-64"
             />
           </div>
 
