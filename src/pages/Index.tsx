@@ -103,6 +103,7 @@ const Index = () => {
             <a href="#why" className="text-muted-foreground transition-colors hover:text-primary">Преимущества</a>
             <a href="#faq" className="text-muted-foreground transition-colors hover:text-primary">FAQ</a>
             <Link to="/news" className="text-muted-foreground transition-colors hover:text-primary">Новости</Link>
+            <Link to="/payment" className="text-muted-foreground transition-colors hover:text-primary">Способы оплаты</Link>
             <button onClick={() => openModal()} className="text-muted-foreground transition-colors hover:text-primary">Задать вопрос</button>
           </nav>
           <div className="flex items-center gap-2">
@@ -126,6 +127,7 @@ const Index = () => {
                   <a href="#why" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Преимущества</a>
                   <a href="#faq" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">FAQ</a>
                   <Link to="/news" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Новости</Link>
+                  <Link to="/payment" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Способы оплаты</Link>
                   <button onClick={() => openModal()} className="flex items-center gap-2 rounded-xl px-4 py-3 text-left text-base font-medium text-primary hover:bg-secondary">
                     <Icon name="MessageCircleQuestion" size={18} className="text-accent" /> Задать вопрос
                   </button>
@@ -361,6 +363,11 @@ const Index = () => {
             <Link to="/news"
               className="text-xs text-primary-foreground/50 hover:text-accent underline underline-offset-2 transition-colors">
               Новости и акции
+            </Link>
+            <span className="text-primary-foreground/20 text-xs">·</span>
+            <Link to="/payment"
+              className="text-xs text-primary-foreground/50 hover:text-accent underline underline-offset-2 transition-colors">
+              Способы оплаты
             </Link>
           </div>
           <p className="mt-4 text-xs text-primary-foreground/40 text-center">Деятельность регулируется ФЗ №190-ФЗ «О кредитной кооперации». Расчёты на калькуляторе носят ознакомительный характер. ИНН: 220038299987 · ОГРН: 0092800992828288

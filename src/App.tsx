@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Cabinet from "./pages/Cabinet";
 import News from "./pages/News";
 import NewsArticle from "./pages/NewsArticle";
+import PaymentMethods from "./pages/PaymentMethods";
 import Admin from "./pages/Admin";
 import AdminSettings from "./pages/AdminSettings";
 import AdminEmails from "./pages/AdminEmails";
@@ -63,6 +64,7 @@ const App = () => {
                 <Route path="/cabinet" element={<Cabinet />} />
                 <Route path="/news" element={<News />} />
                 <Route path="/news/:id" element={<NewsArticle />} />
+                <Route path="/payment" element={<PaymentMethods />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
                 <Route path="/admin/emails" element={<AdminEmails />} />
