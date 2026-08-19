@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
+import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
 import { useState, useEffect } from 'react';
 
 const BANKS = [
@@ -461,6 +462,14 @@ const CabinetStatusCard = ({
                 )}
                 <div className="flex justify-between"><dt className="text-muted-foreground">Дата заявки</dt><dd className="font-semibold">{user.created_at?.slice(0, 10)}</dd></div>
               </dl>
+              {status === 'money_sent' && (
+                <LoanRepaymentProgress
+                  amount={user.amount}
+                  days={user.days}
+                  startDate={user.money_sent_at || user.created_at}
+                  overpay={Math.round(user.amount * 0.008 * user.days)}
+                />
+              )}
             </div>
           )}
           </>

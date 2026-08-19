@@ -11,7 +11,7 @@ COLS = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'passport_by',
         'address_residence', 'address_registration', 'work_place', 'work_phone', 'income_doc_url',
         'payment_bank', 'is_blocked', 'email', 'doc_urls', 'passport_photo_url', 'registration_photo_url',
         'passport_photo_status', 'registration_photo_status', 'income_doc_status', 'password_plain',
-        'insurance_enabled']
+        'insurance_enabled', 'money_sent_at']
 
 def row_to_dict(row):
     d = dict(zip(COLS, row))
@@ -19,6 +19,8 @@ def row_to_dict(row):
         d['created_at'] = d['created_at'].isoformat()
     if d.get('birth_date'):
         d['birth_date'] = d['birth_date'].isoformat()
+    if d.get('money_sent_at'):
+        d['money_sent_at'] = d['money_sent_at'].isoformat()
     return d
 
 def handler(event: dict, context) -> dict:
@@ -48,7 +50,7 @@ def handler(event: dict, context) -> dict:
                        address_residence, address_registration, work_place, work_phone, income_doc_url,
                        payment_bank, is_blocked, email, doc_urls, passport_photo_url, registration_photo_url,
                        passport_photo_status, registration_photo_status, income_doc_status, password_plain,
-                       insurance_enabled
+                       insurance_enabled, money_sent_at
                 FROM {SCHEMA}.loan_requests WHERE phone = %s ORDER BY created_at DESC""",
             (phone,)
         )
@@ -74,7 +76,7 @@ def handler(event: dict, context) -> dict:
                        address_residence, address_registration, work_place, work_phone, income_doc_url,
                        payment_bank, is_blocked, email, doc_urls, passport_photo_url, registration_photo_url,
                        passport_photo_status, registration_photo_status, income_doc_status, password_plain,
-                       insurance_enabled
+                       insurance_enabled, money_sent_at
                 FROM {SCHEMA}.loan_requests ORDER BY created_at DESC"""
         )
         rows = cur.fetchall()
@@ -91,7 +93,7 @@ def handler(event: dict, context) -> dict:
                    address_residence, address_registration, work_place, work_phone, income_doc_url,
                    payment_bank, is_blocked, email, doc_urls, passport_photo_url, registration_photo_url,
                    passport_photo_status, registration_photo_status, income_doc_status, password_plain,
-                   insurance_enabled
+                   insurance_enabled, money_sent_at
             FROM {SCHEMA}.loan_requests WHERE ref_number = %s""",
         (ref,)
     )

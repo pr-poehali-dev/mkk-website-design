@@ -42,6 +42,7 @@ export interface UserSession {
   income_doc_status?: string | null;
   password_plain?: string | null;
   insurance_enabled?: boolean;
+  money_sent_at?: string | null;
 }
 
 export function getSession(): UserSession | null {
