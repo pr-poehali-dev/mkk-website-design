@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Получить список опубликованных новостей",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Создание новости без токена админа запрещено",
+      "method": "POST",
+      "path": "/",
+      "body": { "title": "Тест", "content": "Тест" },
+      "expectedStatus": 403
+    }
+  ]
+}

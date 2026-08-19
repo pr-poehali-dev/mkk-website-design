@@ -24,7 +24,8 @@ def handler(event: dict, context) -> dict:
 
     data = base64.b64decode(file_b64)
     ext = mime.split('/')[-1].replace('jpeg', 'jpg')
-    key = f"income_docs/{uuid.uuid4()}.{ext}"
+    folder = body.get('folder') or 'income_docs'
+    key = f"{folder}/{uuid.uuid4()}.{ext}"
 
     s3 = boto3.client(
         's3',

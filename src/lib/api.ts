@@ -8,6 +8,7 @@ const URLS = {
   verify:   'https://functions.poehali.dev/c46fea2c-8dfa-4977-aa58-29668db3bab8',
   support:  'https://functions.poehali.dev/35cc758e-3087-464a-9931-bac36bd2358b',
   reminder: 'https://functions.poehali.dev/ab5dcdf0-79b1-4f59-b478-6620609cee50',
+  news:     'https://functions.poehali.dev/15f735f2-8919-476c-a802-0903e3c80c85',
 };
 
 const ADMIN_TOKEN = 'admin_zaimy_plus';
@@ -98,7 +99,7 @@ export async function apiRegister(data: {
   return json as { id: number; ref_number: string; status: string; created_at: string };
 }
 
-export async function apiUploadFile(file: File): Promise<string> {
+export async function apiUploadFile(file: File, folder?: string): Promise<string> {
   const b64 = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve((reader.result as string).split(',')[1]);
@@ -108,7 +109,7 @@ export async function apiUploadFile(file: File): Promise<string> {
   const res = await fetch(URLS.upload, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ file: b64, mime: file.type }),
+    body: JSON.stringify({ file: b64, mime: file.type, folder }),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка загрузки файла');
@@ -402,4 +403,75 @@ export async function apiReplySupportMessage(id: number, reply: string): Promise
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка отправки ответа');
+}
+
+export interface NewsItem {
+  id: number;
+  title: string;
+  excerpt: string | null;
+  content: string;
+  image_url: string | null;
+  published_at: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function apiGetNews(): Promise<NewsItem[]> {
+  const res = await fetch(URLS.news);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки новостей');
+  return json as NewsItem[];
+}
+
+export async function apiGetNewsItem(id: number | string): Promise<NewsItem> {
+  const res = await fetch(`${URLS.news}?id=${id}`);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Новость не найдена');
+  return json as NewsItem;
+}
+
+export async function apiGetAllNewsAdmin(): Promise<NewsItem[]> {
+  const res = await fetch(URLS.news, { headers: { 'x-admin-token': ADMIN_TOKEN } });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки новостей');
+  return json as NewsItem[];
+}
+
+export async function apiCreateNews(data: {
+  title: string; excerpt?: string; content: string; image_url?: string;
+  published_at?: string; is_published?: boolean;
+}): Promise<NewsItem> {
+  const res = await fetch(URLS.news, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка создания новости');
+  return json as NewsItem;
+}
+
+export async function apiUpdateNews(data: {
+  id: number; title?: string; excerpt?: string; content?: string; image_url?: string;
+  published_at?: string; is_published?: boolean;
+}): Promise<NewsItem> {
+  const res = await fetch(URLS.news, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка обновления новости');
+  return json as NewsItem;
+}
+
+export async function apiDeleteNews(id: number): Promise<void> {
+  const res = await fetch(URLS.news, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ id }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка удаления новости');
 }
