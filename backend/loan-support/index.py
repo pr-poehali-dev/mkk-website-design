@@ -21,7 +21,8 @@ DEFAULT_REGISTER_EMAIL = {
     'body': 'Ваш запрос успешно зарегистрирован и передан в службу поддержки. Мы ответим вам на этот email в ближайшее время.',
 }
 
-COLS = ['id', 'name', 'phone', 'email', 'message', 'status', 'admin_reply', 'created_at', 'replied_at', 'ref_number', 'file_urls']
+COLS = ['id', 'name', 'phone', 'email', 'message', 'status', 'admin_reply', 'created_at', 'replied_at', 'ref_number', 'file_urls', 'admin_file_urls']
+VALID_STATUSES = ('new', 'in_progress', 'closed')
 
 
 def row_to_dict(row):
@@ -103,6 +104,7 @@ def handler(event: dict, context) -> dict:
     if is_admin and body.get('action') == 'reply':
         msg_id = body.get('id')
         reply_text = (body.get('reply') or '').strip()
+        admin_file_urls = body.get('admin_file_urls')
         if not msg_id or not reply_text:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'id и reply обязательны'})}
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
@@ -115,10 +117,16 @@ def handler(event: dict, context) -> dict:
         client_email, client_name, client_phone = row
         settings = get_system_email_settings(cur)
         design = {**DEFAULT_DESIGN, **(settings.get('design') or {})}
-        cur.execute(
-            f"UPDATE {SCHEMA}.support_messages SET admin_reply = %s, status = 'answered', replied_at = NOW() WHERE id = %s",
-            (reply_text, msg_id)
-        )
+        if admin_file_urls is not None:
+            cur.execute(
+                f"UPDATE {SCHEMA}.support_messages SET admin_reply = %s, status = 'in_progress', replied_at = NOW(), admin_file_urls = %s WHERE id = %s",
+                (reply_text, admin_file_urls, msg_id)
+            )
+        else:
+            cur.execute(
+                f"UPDATE {SCHEMA}.support_messages SET admin_reply = %s, status = 'in_progress', replied_at = NOW() WHERE id = %s",
+                (reply_text, msg_id)
+            )
         if client_phone:
             cur.execute(
                 f"""INSERT INTO {SCHEMA}.notifications (phone, type, title, message)
@@ -137,6 +145,25 @@ def handler(event: dict, context) -> dict:
                 )
             except Exception:
                 pass
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
+
+    # Смена статуса обращения администратором
+    if is_admin and body.get('action') == 'set_status':
+        msg_id = body.get('id')
+        new_status = body.get('status')
+        if not msg_id or new_status not in VALID_STATUSES:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'id и корректный status обязательны'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {SCHEMA}.support_messages SET status = %s WHERE id = %s RETURNING id",
+            (new_status, msg_id)
+        )
+        updated = cur.fetchone()
+        conn.commit()
+        conn.close()
+        if not updated:
+            return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Обращение не найдено'})}
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
 
     # Новое обращение от клиента

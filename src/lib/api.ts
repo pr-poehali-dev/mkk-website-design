@@ -365,18 +365,21 @@ export async function apiSaveSiteSettings(settings: Record<string, string>): Pro
   if (!res.ok) throw new Error(json.error || 'Ошибка сохранения');
 }
 
+export type SupportStatus = 'new' | 'in_progress' | 'closed';
+
 export interface SupportMessage {
   id: number;
   name: string;
   phone: string;
   email: string | null;
   message: string;
-  status: 'new' | 'answered';
+  status: SupportStatus;
   admin_reply: string | null;
   created_at: string;
   replied_at: string | null;
   ref_number: string | null;
   file_urls: string[] | null;
+  admin_file_urls: string[] | null;
 }
 
 export async function apiSubmitSupportRequest(data: {
@@ -400,14 +403,24 @@ export async function apiGetSupportMessages(): Promise<SupportMessage[]> {
   return json as SupportMessage[];
 }
 
-export async function apiReplySupportMessage(id: number, reply: string): Promise<void> {
+export async function apiReplySupportMessage(id: number, reply: string, admin_file_urls?: string[]): Promise<void> {
   const res = await fetch(URLS.support, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
-    body: JSON.stringify({ action: 'reply', id, reply }),
+    body: JSON.stringify({ action: 'reply', id, reply, admin_file_urls }),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка отправки ответа');
+}
+
+export async function apiSetSupportStatus(id: number, status: SupportStatus): Promise<void> {
+  const res = await fetch(URLS.support, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'set_status', id, status }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка смены статуса');
 }
 
 export interface NewsItem {
