@@ -1,0 +1,1 @@
+UPDATE site_settings SET value = '2026-08-19' WHERE key = 'reminder_last_run_date';

@@ -93,7 +93,7 @@ const AdminEmails = () => {
       <main className="container max-w-3xl px-4 py-6 pb-24">
         <h1 className="font-display text-xl font-bold text-primary">Тексты и дизайн писем</h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          Письма отправляются автоматически при обращении «Задать вопрос», смене статуса заявки и подписи договора.
+          Письма отправляются автоматически при обращении «Задать вопрос», смене статуса заявки, подписи договора и за 1-2 дня до срока погашения займа.
           В тексте можно использовать <code className="rounded bg-secondary px-1 py-0.5 text-[11px]">{'{ref}'}</code> — номер заявки будет подставлен автоматически (для писем по статусам заявки).
         </p>
 
@@ -237,6 +237,37 @@ const AdminEmails = () => {
                     </div>
                   );
                 })}
+              </div>
+            </section>
+
+            {/* Письмо-напоминание о погашении */}
+            <section className="rounded-xl border border-border bg-card p-4">
+              <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <Icon name="BellRing" size={14} className="text-accent" /> Напоминание о погашении займа
+              </p>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Отправляется автоматически за 1-2 дня до срока погашения займа (статус «Деньги выданы»). Доступны переменные{' '}
+                <code className="rounded bg-secondary px-1 py-0.5 text-[11px]">{'{ref}'}</code>,{' '}
+                <code className="rounded bg-secondary px-1 py-0.5 text-[11px]">{'{return_date}'}</code>,{' '}
+                <code className="rounded bg-secondary px-1 py-0.5 text-[11px]">{'{total}'}</code>.
+              </p>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Тема письма</Label>
+                    <Input className="h-8 text-sm" value={tpl.reminder_email.subject}
+                      onChange={(e) => setTpl({ ...tpl, reminder_email: { ...tpl.reminder_email, subject: e.target.value } })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Текст письма</Label>
+                    <Textarea className="min-h-[90px] text-sm" value={tpl.reminder_email.body}
+                      onChange={(e) => setTpl({ ...tpl, reminder_email: { ...tpl.reminder_email, body: e.target.value } })} />
+                  </div>
+                </div>
+                <div>
+                  <Label className="mb-1 block text-xs text-muted-foreground">Предпросмотр</Label>
+                  <div dangerouslySetInnerHTML={{ __html: previewHtml(tpl.reminder_email.body.replace('{return_date}', '25.08.2026').replace('{total}', '16 800')) }} />
+                </div>
               </div>
             </section>
 

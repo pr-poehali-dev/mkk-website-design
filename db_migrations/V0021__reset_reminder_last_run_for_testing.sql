@@ -1,0 +1,1 @@
+UPDATE site_settings SET value = '2000-01-01' WHERE key = 'reminder_last_run_date';

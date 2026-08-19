@@ -170,12 +170,20 @@ def handler(event: dict, context) -> dict:
     fields = []
     values = []
 
+    reset_reminder = False
+
     status = body.get('status')
     if status is not None:
         if status not in VALID_STATUSES:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неверный статус'})}
         fields.append('status = %s')
         values.append(status)
+        if status == 'money_sent':
+            # Фиксируем дату выдачи денег — отсчёт срока начинается заново
+            fields.append('money_sent_at = NOW()')
+            reset_reminder = True
+        elif status == 'repaid':
+            reset_reminder = True
 
     if 'amount' in body:
         fields.append('amount = %s')
@@ -184,6 +192,11 @@ def handler(event: dict, context) -> dict:
     if 'days' in body:
         fields.append('days = %s')
         values.append(int(body['days']))
+        # Срок изменился — напоминание нужно отправить заново под новую дату
+        reset_reminder = True
+
+    if reset_reminder:
+        fields.append('reminder_sent = false')
 
     if 'operator_comment' in body:
         fields.append('operator_comment = %s')

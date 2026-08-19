@@ -7,6 +7,7 @@ const URLS = {
   email:    'https://functions.poehali.dev/ff7e9777-9bbc-4579-b1d9-9d5083d953f9',
   verify:   'https://functions.poehali.dev/c46fea2c-8dfa-4977-aa58-29668db3bab8',
   support:  'https://functions.poehali.dev/35cc758e-3087-464a-9931-bac36bd2358b',
+  reminder: 'https://functions.poehali.dev/ab5dcdf0-79b1-4f59-b478-6620609cee50',
 };
 
 const ADMIN_TOKEN = 'admin_zaimy_plus';
@@ -256,6 +257,7 @@ export interface SystemEmailTemplates {
   register_email: SystemEmailTemplate;
   status_emails: Record<string, SystemEmailTemplate>;
   code_emails: Record<'register' | 'sign', SystemCodeEmailTemplate>;
+  reminder_email: SystemEmailTemplate;
 }
 
 export const DEFAULT_SYSTEM_EMAIL_TEMPLATES: SystemEmailTemplates = {
@@ -283,6 +285,10 @@ export const DEFAULT_SYSTEM_EMAIL_TEMPLATES: SystemEmailTemplates = {
     register: { subject: 'Код подтверждения регистрации', intro: 'Ваш код подтверждения для оформления заявки на займ:' },
     sign: { subject: 'Код подписи договора', intro: 'Ваш код для подписания договора займа:' },
   },
+  reminder_email: {
+    subject: 'Напоминание о погашении займа',
+    body: 'Напоминаем, что по заявке {ref} срок погашения займа — {return_date}. Сумма к возврату: {total} ₽. Пожалуйста, подготовьте средства заранее, чтобы избежать просрочки.',
+  },
 };
 
 export async function apiGetSystemEmailTemplates(): Promise<SystemEmailTemplates> {
@@ -295,6 +301,7 @@ export async function apiGetSystemEmailTemplates(): Promise<SystemEmailTemplates
       register_email: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.register_email, ...parsed.register_email },
       status_emails: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.status_emails, ...parsed.status_emails },
       code_emails: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.code_emails, ...parsed.code_emails },
+      reminder_email: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.reminder_email, ...parsed.reminder_email },
     };
   } catch {
     return DEFAULT_SYSTEM_EMAIL_TEMPLATES;
@@ -303,6 +310,16 @@ export async function apiGetSystemEmailTemplates(): Promise<SystemEmailTemplates
 
 export async function apiSaveSystemEmailTemplates(templates: SystemEmailTemplates): Promise<void> {
   await apiSaveSiteSettings({ system_email_templates: JSON.stringify(templates) });
+}
+
+// Проверяет активные займы и рассылает клиентам напоминания за 1-2 дня до срока погашения.
+// Безопасно вызывать многократно — сервер сам ограничивает частоту выполнения до раза в сутки.
+export async function apiCheckReminders(): Promise<void> {
+  try {
+    await fetch(URLS.reminder);
+  } catch {
+    // не критично — просто пропускаем эту проверку
+  }
 }
 
 export async function apiSendEmail(data: { ref_number?: string; to?: string; subject: string; message: string }): Promise<void> {
