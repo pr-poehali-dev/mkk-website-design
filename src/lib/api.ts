@@ -9,6 +9,7 @@ const URLS = {
   support:  'https://functions.poehali.dev/35cc758e-3087-464a-9931-bac36bd2358b',
   reminder: 'https://functions.poehali.dev/ab5dcdf0-79b1-4f59-b478-6620609cee50',
   news:     'https://functions.poehali.dev/15f735f2-8919-476c-a802-0903e3c80c85',
+  notifications: 'https://functions.poehali.dev/12de820d-b0b0-429a-8e74-07540c902a56',
 };
 
 const ADMIN_TOKEN = 'admin_zaimy_plus';
@@ -474,4 +475,32 @@ export async function apiDeleteNews(id: number): Promise<void> {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка удаления новости');
+}
+
+export interface AppNotification {
+  id: number;
+  phone: string;
+  ref_number: string | null;
+  type: 'status' | 'comment' | 'support' | string;
+  title: string;
+  message: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+export async function apiGetNotifications(phone: string): Promise<AppNotification[]> {
+  const res = await fetch(`${URLS.notifications}?phone=${encodeURIComponent(phone)}`);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки уведомлений');
+  return json as AppNotification[];
+}
+
+export async function apiMarkNotificationsRead(phone: string, ids?: number[]): Promise<void> {
+  const res = await fetch(URLS.notifications, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'mark_read', phone, ids }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
 }

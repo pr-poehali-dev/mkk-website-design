@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
+import NotificationsBell from '@/components/cabinet/NotificationsBell';
 
 interface Props {
   initials: string;
   firstName: string;
+  phone: string;
   onMenuOpen: () => void;
 }
 
-const CabinetHeader = ({ initials, firstName, onMenuOpen }: Props) => (
+const CabinetHeader = ({ initials, firstName, phone, onMenuOpen }: Props) => (
   <header className="border-b border-border bg-background">
     <div className="container flex h-16 items-center justify-between px-4">
       <Link to="/" className="flex items-center gap-2">
@@ -18,6 +20,7 @@ const CabinetHeader = ({ initials, firstName, onMenuOpen }: Props) => (
       </Link>
 
       <div className="flex items-center gap-2">
+        <NotificationsBell phone={phone} />
         <button
           onClick={onMenuOpen}
           className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-sm font-medium text-primary hover:bg-secondary transition-colors">

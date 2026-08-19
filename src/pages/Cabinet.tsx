@@ -89,6 +89,7 @@ const Cabinet = () => {
       <CabinetHeader
         initials={initials}
         firstName={user.full_name.split(' ')[0]}
+        phone={user.phone}
         onMenuOpen={() => setMenuOpen(true)}
       />
 

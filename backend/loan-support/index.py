@@ -107,18 +107,24 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'id и reply обязательны'})}
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
-        cur.execute(f"SELECT email, name FROM {SCHEMA}.support_messages WHERE id = %s", (msg_id,))
+        cur.execute(f"SELECT email, name, phone FROM {SCHEMA}.support_messages WHERE id = %s", (msg_id,))
         row = cur.fetchone()
         if not row:
             conn.close()
             return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Обращение не найдено'})}
-        client_email, client_name = row
+        client_email, client_name, client_phone = row
         settings = get_system_email_settings(cur)
         design = {**DEFAULT_DESIGN, **(settings.get('design') or {})}
         cur.execute(
             f"UPDATE {SCHEMA}.support_messages SET admin_reply = %s, status = 'answered', replied_at = NOW() WHERE id = %s",
             (reply_text, msg_id)
         )
+        if client_phone:
+            cur.execute(
+                f"""INSERT INTO {SCHEMA}.notifications (phone, type, title, message)
+                    VALUES (%s, 'support', 'Ответ службы поддержки', %s)""",
+                (client_phone, reply_text)
+            )
         conn.commit()
         conn.close()
         if client_email:

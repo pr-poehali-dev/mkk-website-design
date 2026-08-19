@@ -1,4 +1,5 @@
 {
+  "loan-notifications": "https://functions.poehali.dev/12de820d-b0b0-429a-8e74-07540c902a56",
   "loan-news": "https://functions.poehali.dev/15f735f2-8919-476c-a802-0903e3c80c85",
   "loan-reminder": "https://functions.poehali.dev/ab5dcdf0-79b1-4f59-b478-6620609cee50",
   "loan-support": "https://functions.poehali.dev/35cc758e-3087-464a-9931-bac36bd2358b",

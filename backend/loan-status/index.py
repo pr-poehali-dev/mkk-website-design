@@ -9,6 +9,11 @@ import psycopg2
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
 ADMIN_TOKEN = 'admin_zaimy_plus'
 VALID_STATUSES = ('review', 'approved', 'issued', 'money_sent', 'rejected', 'transfer_error', 'repaid')
+STATUS_LABELS = {
+    'review': 'На скоринге', 'approved': 'Одобрено', 'issued': 'Договор подписан',
+    'money_sent': 'Деньги выданы', 'rejected': 'Отказано', 'transfer_error': 'Ошибка перевода',
+    'repaid': 'Займ погашен',
+}
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
 
@@ -42,6 +47,16 @@ DEFAULT_STATUS_EMAIL_TEXT = {
     'transfer_error': ('Ошибка перевода', 'При переводе средств по заявке {ref} произошла ошибка. Наш оператор свяжется с вами.'),
     'repaid': ('Займ погашен', 'Займ по заявке {ref} успешно погашен. Спасибо, что выбираете нас!'),
 }
+
+
+def create_notification(cur, phone: str, ref_number: str, n_type: str, title: str, message: str) -> None:
+    if not phone:
+        return
+    cur.execute(
+        f"""INSERT INTO {SCHEMA}.notifications (phone, ref_number, type, title, message)
+            VALUES (%s, %s, %s, %s, %s)""",
+        (phone, ref_number, n_type, title, message)
+    )
 
 
 def get_system_email_settings(cur) -> dict:
@@ -242,16 +257,29 @@ def handler(event: dict, context) -> dict:
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
     cur.execute(
-        f"UPDATE {SCHEMA}.loan_requests SET {', '.join(fields)} WHERE ref_number = %s RETURNING id, email",
+        f"UPDATE {SCHEMA}.loan_requests SET {', '.join(fields)} WHERE ref_number = %s RETURNING id, email, phone",
         values
     )
     updated = cur.fetchone()
-    email_settings = get_system_email_settings(cur) if status is not None and updated and updated[1] else {}
+    if not updated:
+        conn.close()
+        return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
+
+    updated_phone = updated[2]
+    email_settings = get_system_email_settings(cur) if status is not None and updated[1] else {}
+
+    if status is not None:
+        default_subject, default_body = DEFAULT_STATUS_EMAIL_TEXT.get(status, (STATUS_LABELS.get(status, status), ''))
+        status_templates = (email_settings.get('status_emails') or {})
+        tpl = status_templates.get(status) or {}
+        notif_text = (tpl.get('body') or default_body).format(ref=ref)
+        create_notification(cur, updated_phone, ref, 'status', f'Статус заявки {ref}: {STATUS_LABELS.get(status, status)}', notif_text)
+
+    if 'operator_comment' in body and body['operator_comment']:
+        create_notification(cur, updated_phone, ref, 'comment', 'Сообщение от оператора', body['operator_comment'])
+
     conn.commit()
     conn.close()
-
-    if not updated:
-        return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
 
     if status is not None and updated[1]:
         send_status_email(updated[1], ref, status, email_settings)
