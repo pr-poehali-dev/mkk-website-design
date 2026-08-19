@@ -1,11 +1,11 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from '@/components/admin/contractHtml';
-import { useSupportModal } from '@/lib/supportModalContext';
 
 const BANKS = [
   { name: 'Сбербанк', icon: '🟢' },
@@ -55,7 +55,6 @@ const CabinetDialogs = ({
   setUser,
   onLogout,
 }: Props) => {
-  const { openModal: openSupportModal } = useSupportModal();
   const returnDate = (() => {
     const d = new Date(user.created_at || Date.now());
     d.setDate(d.getDate() + user.days);
@@ -177,11 +176,12 @@ const CabinetDialogs = ({
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="History" size={18} className="text-accent" /> История займов
             </button>
-            <button
-              onClick={() => { openSupportModal({ name: user.full_name, phone: user.phone, email: user.email || '' }); setMenuOpen(false); }}
+            <Link
+              to="/appeal"
+              onClick={() => setMenuOpen(false)}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="MessageCircleQuestion" size={18} className="text-accent" /> Поддержка
-            </button>
+            </Link>
             <button
               onClick={onLogout}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50">

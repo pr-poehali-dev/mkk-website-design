@@ -375,9 +375,13 @@ export interface SupportMessage {
   admin_reply: string | null;
   created_at: string;
   replied_at: string | null;
+  ref_number: string | null;
+  file_urls: string[] | null;
 }
 
-export async function apiSubmitSupportRequest(data: { name: string; phone: string; email?: string; message: string }): Promise<void> {
+export async function apiSubmitSupportRequest(data: {
+  name: string; phone?: string; email: string; message: string; ref_number?: string; file_urls?: string[];
+}): Promise<void> {
   const res = await fetch(URLS.support, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

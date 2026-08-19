@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import { useSupportModal } from '@/lib/supportModalContext';
 
 const HERO_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/9f0e7a2b-03ec-4a7f-a33a-840b8a8482eb.jpg';
 const INSTANT_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/8a82cfa3-2030-49ad-8529-b59fa37dff22.jpg';
@@ -9,8 +8,6 @@ const CARD_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b
 const REQUISITES_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/ef4fb6e5-0536-424a-a437-88dd4a0d8e12.jpg';
 
 const PaymentMethods = () => {
-  const { openModal } = useSupportModal();
-
   return (
     <div className="min-h-screen bg-secondary/40">
       {/* Header */}
@@ -98,8 +95,8 @@ const PaymentMethods = () => {
                 </div>
                 <img src={REQUISITES_IMG} alt="Реквизиты для перевода" className="h-20 w-20 shrink-0 object-contain" />
               </div>
-              <Button onClick={() => openModal()} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto">
-                Открыть реквизиты
+              <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto">
+                <Link to="/appeal">Открыть реквизиты</Link>
               </Button>
             </div>
           </div>
@@ -130,10 +127,10 @@ const PaymentMethods = () => {
             <p className="text-primary-foreground/60 text-center">© 2026 КПК «Частные займы плюс». Все права защищены.</p>
           </div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <button onClick={() => openModal()}
+            <Link to="/appeal"
               className="text-xs text-primary-foreground/50 hover:text-accent underline underline-offset-2 transition-colors">
               Задать вопрос
-            </button>
+            </Link>
           </div>
         </div>
       </footer>

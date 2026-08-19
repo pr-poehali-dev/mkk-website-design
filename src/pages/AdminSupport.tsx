@@ -109,13 +109,20 @@ const AdminSupport = () => {
                   <div>
                     <p className="font-semibold text-primary">{m.name}</p>
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <a href={`tel:${m.phone}`} className="flex items-center gap-1 hover:text-primary">
-                        <Icon name="Phone" size={12} /> {m.phone}
-                      </a>
+                      {m.phone && (
+                        <a href={`tel:${m.phone}`} className="flex items-center gap-1 hover:text-primary">
+                          <Icon name="Phone" size={12} /> {m.phone}
+                        </a>
+                      )}
                       {m.email && (
                         <a href={`mailto:${m.email}`} className="flex items-center gap-1 hover:text-primary">
                           <Icon name="Mail" size={12} /> {m.email}
                         </a>
+                      )}
+                      {m.ref_number && (
+                        <span className="flex items-center gap-1">
+                          <Icon name="FileText" size={12} /> {m.ref_number}
+                        </span>
                       )}
                       <span className="flex items-center gap-1"><Icon name="Clock" size={12} /> {fmtDate(m.created_at)}</span>
                     </div>
@@ -126,6 +133,17 @@ const AdminSupport = () => {
                 </div>
 
                 <p className="mt-3 whitespace-pre-wrap rounded-xl bg-secondary p-3 text-sm text-primary">{m.message}</p>
+
+                {m.file_urls && m.file_urls.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {m.file_urls.map((url, idx) => (
+                      <a key={idx} href={url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs text-primary hover:bg-secondary transition-colors">
+                        <Icon name="Paperclip" size={12} /> Файл {idx + 1}
+                      </a>
+                    ))}
+                  </div>
+                )}
 
                 {m.admin_reply && (
                   <div className="mt-3 rounded-xl border border-green-200 bg-green-50 p-3">

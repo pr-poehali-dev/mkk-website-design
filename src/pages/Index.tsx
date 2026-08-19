@@ -5,7 +5,6 @@ import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import Icon from '@/components/ui/icon';
 import { useMaintenance } from '@/lib/maintenanceContext';
-import { useSupportModal } from '@/lib/supportModalContext';
 
 const FaqItem = ({ q, a }: { q: string; a: string }) => {
   const [open, setOpen] = useState(false);
@@ -29,7 +28,6 @@ const RATE = 0.008; // 0.8% в день
 
 const Index = () => {
   const { maintenance } = useMaintenance();
-  const { openModal } = useSupportModal();
   const [amount, setAmount] = useState(15000);
   const [days, setDays] = useState(14);
   const [modal, setModal] = useState<'privacy' | 'about' | null>(null);
@@ -104,7 +102,7 @@ const Index = () => {
             <a href="#faq" className="text-muted-foreground transition-colors hover:text-primary">FAQ</a>
             <Link to="/news" className="text-muted-foreground transition-colors hover:text-primary">Новости</Link>
             <Link to="/payment" className="text-muted-foreground transition-colors hover:text-primary">Способы оплаты</Link>
-            <button onClick={() => openModal()} className="text-muted-foreground transition-colors hover:text-primary">Задать вопрос</button>
+            <Link to="/appeal" className="text-muted-foreground transition-colors hover:text-primary">Задать вопрос</Link>
           </nav>
           <div className="flex items-center gap-2">
             <Button asChild size="sm" className="hidden rounded-full bg-primary px-4 text-primary-foreground hover:bg-primary/90 sm:inline-flex">
@@ -128,9 +126,9 @@ const Index = () => {
                   <a href="#faq" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">FAQ</a>
                   <Link to="/news" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Новости</Link>
                   <Link to="/payment" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Способы оплаты</Link>
-                  <button onClick={() => openModal()} className="flex items-center gap-2 rounded-xl px-4 py-3 text-left text-base font-medium text-primary hover:bg-secondary">
+                  <Link to="/appeal" className="flex items-center gap-2 rounded-xl px-4 py-3 text-left text-base font-medium text-primary hover:bg-secondary">
                     <Icon name="MessageCircleQuestion" size={18} className="text-accent" /> Задать вопрос
-                  </button>
+                  </Link>
                   <Link to="/login" className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
                     <Icon name="User" size={16} /> Войти в кабинет
                   </Link>

@@ -13,6 +13,7 @@ import Cabinet from "./pages/Cabinet";
 import News from "./pages/News";
 import NewsArticle from "./pages/NewsArticle";
 import PaymentMethods from "./pages/PaymentMethods";
+import Appeal from "./pages/Appeal";
 import Admin from "./pages/Admin";
 import AdminSettings from "./pages/AdminSettings";
 import AdminEmails from "./pages/AdminEmails";
@@ -24,8 +25,6 @@ import MaintenanceBanner from "./components/MaintenanceBanner";
 import { MaintenanceProvider, useMaintenance } from "./lib/maintenanceContext";
 import CookieBanner from "./components/CookieBanner";
 import ChatWidget from "./components/ChatWidget";
-import SupportModal from "./components/SupportModal";
-import { SupportModalProvider } from "./lib/supportModalContext";
 
 const queryClient = new QueryClient();
 
@@ -51,30 +50,28 @@ const App = () => {
       <Sonner />
       <BrowserRouter>
         <MaintenanceProvider>
-          <SupportModalProvider>
-            <SiteGuard>
-              <MaintenanceBanner />
-              <CookieBanner />
-              <ChatWidget />
-              <SupportModal />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/anketa" element={<Anketa />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/cabinet" element={<Cabinet />} />
-                <Route path="/news" element={<News />} />
-                <Route path="/news/:id" element={<NewsArticle />} />
-                <Route path="/payment" element={<PaymentMethods />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/admin/settings" element={<AdminSettings />} />
-                <Route path="/admin/emails" element={<AdminEmails />} />
-                <Route path="/admin/support" element={<AdminSupport />} />
-                <Route path="/admin/news" element={<AdminNews />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </SiteGuard>
-          </SupportModalProvider>
+          <SiteGuard>
+            <MaintenanceBanner />
+            <CookieBanner />
+            <ChatWidget />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/anketa" element={<Anketa />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/cabinet" element={<Cabinet />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/news/:id" element={<NewsArticle />} />
+              <Route path="/payment" element={<PaymentMethods />} />
+              <Route path="/appeal" element={<Appeal />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/emails" element={<AdminEmails />} />
+              <Route path="/admin/support" element={<AdminSupport />} />
+              <Route path="/admin/news" element={<AdminNews />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SiteGuard>
         </MaintenanceProvider>
       </BrowserRouter>
     </TooltipProvider>

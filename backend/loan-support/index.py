@@ -21,7 +21,7 @@ DEFAULT_REGISTER_EMAIL = {
     'body': 'Ваш запрос успешно зарегистрирован и передан в службу поддержки. Мы ответим вам на этот email в ближайшее время.',
 }
 
-COLS = ['id', 'name', 'phone', 'email', 'message', 'status', 'admin_reply', 'created_at', 'replied_at']
+COLS = ['id', 'name', 'phone', 'email', 'message', 'status', 'admin_reply', 'created_at', 'replied_at', 'ref_number', 'file_urls']
 
 
 def row_to_dict(row):
@@ -144,18 +144,20 @@ def handler(event: dict, context) -> dict:
     phone = (body.get('phone') or '').strip()
     email = (body.get('email') or '').strip().lower()
     message = (body.get('message') or '').strip()
+    ref_number = (body.get('ref_number') or '').strip() or None
+    file_urls = body.get('file_urls') or []
 
-    if not name or not phone or not message:
-        return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Заполните имя, телефон и сообщение'})}
+    if not name or not email or not message:
+        return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Заполните ФИО, email и сообщение'})}
 
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
     settings = get_system_email_settings(cur)
     design = {**DEFAULT_DESIGN, **(settings.get('design') or {})}
     cur.execute(
-        f"""INSERT INTO {SCHEMA}.support_messages (name, phone, email, message)
-            VALUES (%s, %s, %s, %s) RETURNING id, created_at""",
-        (name, phone, email or None, message)
+        f"""INSERT INTO {SCHEMA}.support_messages (name, phone, email, message, ref_number, file_urls)
+            VALUES (%s, %s, %s, %s, %s, %s) RETURNING id, created_at""",
+        (name, phone or '', email or None, message, ref_number, file_urls)
     )
     row = cur.fetchone()
     conn.commit()
