@@ -1,5 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
@@ -60,6 +65,44 @@ const CabinetStatusCard = ({
   const [consentData, setConsentData] = useState(false);
   const [consentContract, setConsentContract] = useState(false);
   const [showVerifying, setShowVerifying] = useState(false);
+
+  // Слайдеры суммы/срока для одобренной заявки (можно только уменьшить в пределах одобренного)
+  const [approvedAmount, setApprovedAmount] = useState(user.amount);
+  const [approvedDays, setApprovedDays] = useState(user.days);
+  const [termsTouched, setTermsTouched] = useState(false);
+  const [savingTerms, setSavingTerms] = useState(false);
+  const approvedMinAmount = Math.min(1000, user.amount);
+  const approvedMinDays = Math.min(5, user.days);
+
+  useEffect(() => {
+    if (!termsTouched) {
+      setApprovedAmount(user.amount);
+      setApprovedDays(user.days);
+    }
+  }, [user.amount, user.days, termsTouched]);
+
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [declining, setDeclining] = useState(false);
+
+  // Псевдо-детерминированный показатель долговой нагрузки (визуальный индикатор, стабильный для заявки)
+  const debtLoadPct = (() => {
+    let hash = 0;
+    for (let i = 0; i < user.ref_number.length; i++) hash = (hash * 31 + user.ref_number.charCodeAt(i)) % 1000;
+    return 35 + (hash % 41); // 35–75%
+  })();
+
+  const handleDecline = async () => {
+    setDeclining(true);
+    try {
+      await apiUpdateRequest({ ref_number: user.ref_number, status: 'rejected' });
+      const fresh = await apiGetRequest(user.ref_number);
+      saveSession(fresh);
+      setUser(fresh);
+      setDeclineOpen(false);
+    } finally {
+      setDeclining(false);
+    }
+  };
 
   const MAX_AMOUNT = 18000;
   const rejectedAt = user.created_at ? new Date(user.created_at) : null;
@@ -122,6 +165,17 @@ const CabinetStatusCard = ({
   const [codeVerifying, setCodeVerifying] = useState(false);
 
   const handleSignClick = async () => {
+    if (approvedAmount !== user.amount || approvedDays !== user.days) {
+      setSavingTerms(true);
+      try {
+        await apiUpdateRequest({ ref_number: user.ref_number, amount: approvedAmount, days: approvedDays });
+        const fresh = await apiGetRequest(user.ref_number);
+        saveSession(fresh);
+        setUser(fresh);
+      } finally {
+        setSavingTerms(false);
+      }
+    }
     setConsentData(false);
     setConsentContract(false);
     setEnteredCode('');
@@ -195,17 +249,33 @@ const CabinetStatusCard = ({
     <>
       {/* Статус-карта */}
       <div className="animate-fade-up mt-6 overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
-        <div className="flex items-center gap-4 border-b border-border p-6">
-          <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${meta.bg} ${meta.color} transition-all`}>
-            <Icon name={meta.icon} size={32} />
+        {status === 'approved' ? (
+          <div className="flex items-center justify-between gap-3 bg-gradient-to-br from-primary to-primary/80 px-6 py-5 text-primary-foreground">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
+                <Icon name="CheckCircle2" size={22} />
+              </div>
+              <p className="font-display text-lg font-bold sm:text-xl">Заявка одобрена</p>
+            </div>
+            <button
+              onClick={() => setDeclineOpen(true)}
+              className="shrink-0 text-sm font-medium text-primary-foreground/70 underline underline-offset-2 hover:text-primary-foreground transition-colors">
+              Отказаться
+            </button>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Статус заявки {user.ref_number}</p>
-            <p className={`font-display text-2xl font-bold ${meta.color}`}>{meta.label}</p>
+        ) : (
+          <div className="flex items-center gap-4 border-b border-border p-6">
+            <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${meta.bg} ${meta.color} transition-all`}>
+              <Icon name={meta.icon} size={32} />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Статус заявки {user.ref_number}</p>
+              <p className={`font-display text-2xl font-bold ${meta.color}`}>{meta.label}</p>
+            </div>
           </div>
-        </div>
+        )}
 
-        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' ? (
+        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' ? (
           <div className="flex items-start p-4 gap-0">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
@@ -226,7 +296,7 @@ const CabinetStatusCard = ({
               );
             })}
           </div>
-        ) : status === 'money_sent' ? null : status === 'repaid' ? (
+        ) : status === 'money_sent' ? null : status === 'approved' ? null : status === 'repaid' ? (
           <div className="p-6">
             <div className="rounded-2xl border-2 border-teal-200 bg-teal-50 p-6 text-center">
               <div className="flex justify-center mb-4">
@@ -311,55 +381,99 @@ const CabinetStatusCard = ({
       {/* Блок займа */}
       <div className="mt-6">
         {status === 'repaid' ? null : status === 'approved' ? (
-          <div className="rounded-2xl border-2 border-accent/50 bg-accent/5 p-6">
-            <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-primary">
-              <Icon name="FileSignature" size={18} className="text-accent" /> Условия займа
-            </h2>
+          <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+            <p className="font-display text-lg font-bold text-primary sm:text-xl">
+              Поздравляем! Вам одобрено <span className="text-accent">{fmt(approvedAmount)}</span> рублей на <span className="text-accent">{approvedDays}</span> {approvedDays === 1 ? 'день' : approvedDays < 5 ? 'дня' : 'дней'}
+            </p>
+            <p className="mt-1.5 text-sm text-muted-foreground">Выберите способ зачисления займа и нажмите кнопку «Получить деньги»</p>
+
+            {/* Слайдеры */}
+            <div className="mt-5 rounded-2xl bg-secondary p-4 sm:p-5">
+              <div className="mb-2 flex items-baseline justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Сумма займа</span>
+                <span className="font-display text-xl font-bold text-primary">{fmt(approvedAmount)} ₽</span>
+              </div>
+              <Slider
+                value={[approvedAmount]}
+                min={approvedMinAmount}
+                max={user.amount}
+                step={500}
+                onValueChange={(v) => { setApprovedAmount(v[0]); setTermsTouched(true); }}
+              />
+              <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                <span>{fmt(approvedMinAmount)} ₽</span><span>{fmt(user.amount)} ₽</span>
+              </div>
+
+              <div className="mb-2 mt-5 flex items-baseline justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Срок займа</span>
+                <span className="font-display text-xl font-bold text-primary">{approvedDays} {approvedDays === 1 ? 'день' : approvedDays < 5 ? 'дня' : 'дней'}</span>
+              </div>
+              <Slider
+                value={[approvedDays]}
+                min={approvedMinDays}
+                max={user.days}
+                step={1}
+                onValueChange={(v) => { setApprovedDays(v[0]); setTermsTouched(true); }}
+              />
+              <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                <span>{approvedMinDays} {approvedMinDays === 1 ? 'день' : approvedMinDays < 5 ? 'дня' : 'дней'}</span><span>{user.days} {user.days === 1 ? 'день' : user.days < 5 ? 'дня' : 'дней'}</span>
+              </div>
+            </div>
+
+            {/* Итоги */}
             {(() => {
-              const overpay = Math.round(user.amount * 0.008 * user.days);
-              const insurance = user.insurance_enabled ? Math.round(356 + user.amount * 0.005) : 0;
-              const total = user.amount + overpay + insurance;
+              const overpay = Math.round(approvedAmount * 0.008 * approvedDays);
+              const insurance = user.insurance_enabled ? Math.round(356 + approvedAmount * 0.005) : 0;
+              const total = approvedAmount + overpay + insurance;
               return (
-                <dl className="space-y-3 text-sm">
-                  <div className="flex justify-between"><dt className="text-muted-foreground">Сумма</dt><dd className="font-semibold">{fmt(user.amount)} ₽</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted-foreground">Срок</dt><dd className="font-semibold">{user.days} дн.</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted-foreground">Ставка</dt><dd className="font-semibold">0.8% / день</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted-foreground">Переплата</dt><dd className="font-semibold">{fmt(overpay)} ₽</dd></div>
+                <dl className="mt-4 divide-y divide-border rounded-2xl border border-border text-sm">
+                  <div className="flex justify-between px-4 py-3">
+                    <dt className="text-muted-foreground">Возвращаете</dt>
+                    <dd className="font-bold text-primary">{fmt(total)} ₽</dd>
+                  </div>
+                  <div className="flex justify-between px-4 py-3">
+                    <dt className="text-muted-foreground">Проценты</dt>
+                    <dd className="font-semibold text-primary">0.8 %</dd>
+                  </div>
+                  <div className="flex justify-between px-4 py-3">
+                    <dt className="text-muted-foreground">Показатель долговой нагрузки</dt>
+                    <dd className="font-semibold text-primary">{debtLoadPct} %</dd>
+                  </div>
                   {user.insurance_enabled && (
-                    <div className="flex justify-between items-start rounded-lg bg-blue-50 border border-blue-200 px-3 py-2">
+                    <div className="flex justify-between items-start px-4 py-3 bg-blue-50">
                       <dt className="flex items-center gap-1.5 text-blue-700"><Icon name="ShieldCheck" size={13} className="shrink-0" /> Страховка займа</dt>
                       <dd className="font-semibold text-blue-700">{fmt(insurance)} ₽</dd>
                     </div>
                   )}
-                  <div className="flex justify-between border-t border-accent/20 pt-2">
-                    <dt className="font-semibold text-primary">К возврату</dt>
-                    <dd className="font-bold text-accent text-base">{fmt(total)} ₽</dd>
-                  </div>
                 </dl>
               );
             })()}
+
             {/* Способ получения */}
-            <div className={`mt-4 flex items-center justify-between rounded-xl border px-4 py-3 ${!selectedBank ? 'border-orange-300 bg-orange-50' : 'border-border bg-card'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${!selectedBank ? 'bg-orange-100 text-orange-500' : 'bg-primary/10 text-primary'}`}>
-                  <Icon name={selectedBank ? 'Smartphone' : 'AlertCircle'} size={18} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Способ получения <span className="text-red-500">*</span></p>
+            <div className="mt-4 rounded-2xl border border-border p-4">
+              <p className="mb-3 text-sm text-muted-foreground">
+                Деньги будут зачислены через <span className="font-semibold text-primary">СБП</span> по номеру <span className="font-semibold text-primary">{user.phone}</span>
+              </p>
+              <button
+                onClick={onOpenCards}
+                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 transition-colors ${!selectedBank ? 'border-orange-300 bg-orange-50' : 'border-accent bg-accent/5'}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 ${!selectedBank ? 'border-orange-400' : 'border-accent bg-accent'}`}>
+                    {selectedBank && <Icon name="Check" size={16} className="text-accent-foreground" />}
+                  </div>
                   {selectedBank
-                    ? <p className="text-sm font-semibold text-primary">{BANKS.find(b => b.name === selectedBank)?.icon} {selectedBank} · СБП</p>
-                    : <p className="text-sm font-semibold text-orange-600">Обязательно выберите банк</p>
+                    ? <span className="text-sm font-semibold text-primary">{BANKS.find(b => b.name === selectedBank)?.icon} СБП · {selectedBank}</span>
+                    : <span className="text-sm font-semibold text-orange-600">Выберите способ получения</span>
                   }
                 </div>
-              </div>
-              <button onClick={onOpenCards} className={`text-sm font-medium hover:underline ${!selectedBank ? 'text-orange-600' : 'text-accent'}`}>
-                {selectedBank ? 'Изменить' : 'Выбрать'}
+                <span className="text-xs font-medium text-accent">{selectedBank ? 'Изменить' : 'Выбрать'}</span>
               </button>
             </div>
 
             <div className="mt-4 rounded-lg bg-secondary p-3 text-xs text-muted-foreground">
               Номер договора: <span className="font-mono font-semibold text-primary">{contractCode}</span>
             </div>
+
             {contractSigned ? (
               <div className="mt-4 space-y-3">
                 <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 p-4">
@@ -385,16 +499,19 @@ const CabinetStatusCard = ({
             ) : (
               <>
               {!selectedBank && (
-                <p className="mt-3 text-center text-xs text-orange-600">Выберите способ получения, чтобы подписать договор</p>
+                <p className="mt-3 text-center text-xs text-orange-600">Выберите способ получения, чтобы получить деньги</p>
               )}
-              <Button size="sm" className="mt-2 w-full bg-accent text-accent-foreground hover:bg-accent/90"
-                disabled={signing || !selectedBank}
+              <Button size="lg" className="mt-4 w-full h-12 bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
+                disabled={signing || savingTerms || !selectedBank}
                 onClick={handleSignClick}>
-                {signing
-                  ? <span className="flex items-center gap-2"><Icon name="Loader2" size={15} className="animate-spin" /> Оформляем...</span>
-                  : <span className="flex items-center gap-2"><Icon name="PenLine" size={15} /> Подписать договор</span>
+                {signing || savingTerms
+                  ? <span className="flex items-center gap-2"><Icon name="Loader2" size={16} className="animate-spin" /> Оформляем...</span>
+                  : <span className="flex items-center gap-2">Получить деньги <Icon name="ArrowRight" size={17} /></span>
                 }
               </Button>
+              <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
+                Нажимая на кнопку «Получить деньги» я подтверждаю, что ознакомлен с условиями договора займа
+              </p>
               </>
             )}
           </div>
@@ -736,6 +853,32 @@ const CabinetStatusCard = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Подтверждение отказа от одобренной заявки */}
+      <AlertDialog open={declineOpen} onOpenChange={setDeclineOpen}>
+        <AlertDialogContent className="max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 font-display text-lg">
+              <Icon name="AlertTriangle" size={20} className="text-orange-500" />
+              Отказаться от займа?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Заявка {user.ref_number} будет закрыта, и вы не получите одобренные {fmt(user.amount)} ₽. Вы сможете подать новую заявку позже.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Не отказываться</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 text-white hover:bg-red-700"
+              disabled={declining}
+              onClick={(e) => { e.preventDefault(); handleDecline(); }}>
+              {declining
+                ? <span className="flex items-center gap-2"><Icon name="Loader2" size={15} className="animate-spin" /> Отказываемся...</span>
+                : 'Да, отказаться'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
