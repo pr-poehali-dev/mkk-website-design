@@ -311,7 +311,7 @@ const Index = () => {
       <section className="relative mx-4 mb-8 overflow-hidden rounded-2xl bg-gradient-to-b from-sky-400 via-sky-300 to-primary text-primary-foreground md:mx-auto md:max-w-5xl">
         <div className="absolute inset-0 hero-grid opacity-20" />
         <img
-          src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/46e34286-7da4-4441-b447-ad6ff3c882fc.jpg"
+          src="/assets/hero-person-card.png"
           alt="Человек с картой"
           className="pointer-events-none absolute bottom-0 right-0 h-full w-auto max-w-[45%] object-contain object-bottom opacity-90 md:max-w-[38%]"
         />
