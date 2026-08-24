@@ -357,11 +357,11 @@ const CabinetStatusCard = ({
 
             {canReapply && (
               <Button
-                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold h-12"
+                className="w-full h-12 animate-pulse-scale bg-accent font-semibold text-accent-foreground shadow-lg shadow-accent/30 transition-transform hover:scale-[1.03] hover:bg-accent/90 active:scale-[0.98]"
                 onClick={() => setShowCalc(true)}
               >
                 <Icon name="BadgeDollarSign" size={18} className="mr-2 shrink-0" />
-                Оформить займ — вам доступно до {fmt(MAX_AMOUNT)} ₽
+                <span className="text-xs sm:text-base">Оформить займ — вам доступно до {fmt(MAX_AMOUNT)} ₽</span>
               </Button>
             )}
 
