@@ -6,6 +6,11 @@ import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from '@/components/admin/contractHtml';
+import {
+  buildDebtClearanceCertificateHtml,
+  buildPersonalDataConsentHtml,
+  buildDataTransferConsentHtml,
+} from '@/components/admin/documentTemplates';
 
 const BANKS = [
   { name: 'Сбербанк', icon: '🟢' },
@@ -72,6 +77,28 @@ const CabinetDialogs = ({
     const a = document.createElement('a');
     a.href = url;
     a.download = `Договор_${contractCode}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const clientDocData = {
+    full_name: user.full_name,
+    passport: user.passport,
+    passport_by: user.passport_by,
+    address_registration: user.address_registration,
+    address_residence: user.address_residence,
+    ref_number: user.ref_number,
+    amount: user.amount,
+    created_at: user.created_at,
+  };
+
+  const downloadDoc = (build: (c: typeof clientDocData) => string, fileName: string) => {
+    const html = build(clientDocData);
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -469,18 +496,51 @@ const CabinetDialogs = ({
               </div>
             </div>
 
-            {/* Согласие на обработку персональных данных */}
+            {/* Документы и согласия */}
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Согласие на обработку ПД</p>
-              <div className="rounded-xl border border-border bg-secondary p-4 text-xs text-muted-foreground leading-relaxed space-y-2 max-h-64 overflow-y-auto">
-                <p className="font-semibold text-primary text-sm">Согласие на обработку персональных данных</p>
-                <p>Я, нижеподписавшийся, даю своё согласие КПК «Частные займы плюс» (далее — Оператор) на обработку моих персональных данных в соответствии с Федеральным законом № 152-ФЗ «О персональных данных».</p>
-                <p>Перечень персональных данных: фамилия, имя, отчество; дата рождения; серия и номер паспорта; адрес регистрации и проживания; номер телефона; место работы.</p>
-                <p>Цель обработки: рассмотрение заявки на предоставление микрозайма, заключение и исполнение договора займа, проверка кредитоспособности, передача данных в бюро кредитных историй.</p>
-                <p>Способы обработки: сбор, запись, систематизация, накопление, хранение, уточнение, использование, передача (в том числе третьим лицам в рамках закона), обезличивание, блокирование, удаление.</p>
-                <p>Срок обработки: в течение 5 лет с момента погашения займа либо до отзыва согласия.</p>
-                <p>Настоящее согласие может быть отозвано путём направления письменного заявления по адресу Оператора. Отзыв согласия не прекращает обработку данных, необходимую для исполнения договора и требований законодательства.</p>
-                <p className="pt-1 font-medium text-primary">Заявка: {user.ref_number} · Дата: {user.created_at?.slice(0, 10)}</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Документы и согласия</p>
+              <div className="space-y-2">
+                {[
+                  {
+                    key: 'debt_clearance',
+                    icon: 'FileCheck',
+                    title: 'Справка об отсутствии задолженности',
+                    hint: 'С вашими данными и суммой займа',
+                    build: buildDebtClearanceCertificateHtml,
+                    fileName: `Справка_об_отсутствии_задолженности_${user.ref_number}.html`,
+                  },
+                  {
+                    key: 'pd_consent',
+                    icon: 'ShieldCheck',
+                    title: 'Согласие на обработку персональных данных',
+                    hint: 'Полный текст 152-ФЗ с вашими данными',
+                    build: buildPersonalDataConsentHtml,
+                    fileName: `Согласие_на_обработку_ПД_${user.ref_number}.html`,
+                  },
+                  {
+                    key: 'pd_transfer',
+                    icon: 'Share2',
+                    title: 'Согласие на передачу персональных данных',
+                    hint: 'Передача третьим лицам: БКИ, банки, коллекторы',
+                    build: buildDataTransferConsentHtml,
+                    fileName: `Согласие_на_передачу_ПД_${user.ref_number}.html`,
+                  },
+                ].map((doc) => (
+                  <div key={doc.key} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Icon name={doc.icon} size={17} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-primary">{doc.title}</p>
+                      <p className="text-xs text-muted-foreground">{doc.hint}</p>
+                    </div>
+                    <button
+                      onClick={() => downloadDoc(doc.build, doc.fileName)}
+                      className="shrink-0 flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-accent hover:bg-accent/5 transition-colors">
+                      <Icon name="Download" size={13} /> Скачать
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

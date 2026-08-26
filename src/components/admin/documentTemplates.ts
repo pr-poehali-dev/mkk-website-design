@@ -1,3 +1,23 @@
+export interface ClientDocData {
+  full_name?: string | null;
+  passport?: string | null;
+  passport_by?: string | null;
+  address_registration?: string | null;
+  address_residence?: string | null;
+  ref_number?: string | null;
+  amount?: number | null;
+  created_at?: string | null;
+}
+
+const fmt = (n: number) => n.toLocaleString('ru-RU');
+
+const esc = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const val = (v: string | number | null | undefined, cls = 'blank') =>
+  v || v === 0 ? `<b>${esc(String(v))}</b>` : `<span class="${cls}"></span>`;
+
+const today = () => new Date().toLocaleDateString('ru-RU');
+
 const BASE_STYLE = [
   'body{font-family:Arial,sans-serif;max-width:760px;margin:40px auto;color:#111;font-size:13px;line-height:1.7;padding:0 20px}',
   'h1{font-size:18px;text-align:center;margin-bottom:4px}',
@@ -58,22 +78,22 @@ export function buildPhoneChangeApplicationHtml(): string {
 `);
 }
 
-export function buildDebtClearanceCertificateHtml(): string {
+export function buildDebtClearanceCertificateHtml(client?: ClientDocData): string {
   return wrap('Справка об отсутствии задолженности', `
 <h1>СПРАВКА</h1>
 <p class="center muted">об отсутствии задолженности по договору займа</p>
 
-<p class="center">№ <span class="blank-sm"></span> от <span class="blank-sm"></span></p>
+<p class="center">№ <span class="blank-sm"></span> от ${val(today())}</p>
 
 <p>Кредитный потребительский кооператив «Частные займы плюс» настоящим подтверждает, что:</p>
 
-<p><b>Заёмщик:</b> <span class="blank"></span><br>
+<p><b>Заёмщик:</b> ${val(client?.full_name)}<br>
 (ФИО полностью)</p>
-<p><b>Паспорт:</b> серия <span class="blank-sm"></span> номер <span class="blank-sm"></span>, выдан <span class="blank"></span></p>
-<p><b>Договор займа №:</b> <span class="blank-sm"></span> от <span class="blank-sm"></span></p>
-<p><b>Сумма займа:</b> <span class="blank-sm"></span> ₽</p>
+<p><b>Паспорт:</b> ${val(client?.passport)}, выдан ${val(client?.passport_by)}</p>
+<p><b>Договор займа №:</b> ${val(client?.ref_number)} от ${val(client?.created_at ? client.created_at.slice(0, 10) : undefined)}</p>
+<p><b>Сумма займа:</b> ${client?.amount ? `<b>${fmt(client.amount)} ₽</b>` : '<span class="blank-sm"></span>'}</p>
 
-<p>по состоянию на <span class="blank-sm"></span> исполнил(а) свои обязательства по указанному договору займа в полном объёме. Задолженность по основному долгу, процентам, штрафам и пеням на дату выдачи настоящей справки <b>отсутствует</b>.</p>
+<p>по состоянию на ${val(today())} исполнил(а) свои обязательства по указанному договору займа в полном объёме. Задолженность по основному долгу, процентам, штрафам и пеням на дату выдачи настоящей справки <b>отсутствует</b>.</p>
 
 <p>Настоящая справка выдана для предоставления по месту требования.</p>
 
@@ -84,15 +104,15 @@ export function buildDebtClearanceCertificateHtml(): string {
 `);
 }
 
-export function buildDataTransferConsentHtml(): string {
+export function buildDataTransferConsentHtml(client?: ClientDocData): string {
   return wrap('Согласие на передачу персональных данных третьим лицам', `
 <h1>СОГЛАСИЕ</h1>
 <p class="center muted">на передачу (трансграничную передачу) персональных данных третьим лицам</p>
 
-<p>Я, <span class="blank"></span>,<br>
+<p>Я, ${val(client?.full_name)},<br>
 (ФИО полностью)</p>
-<p>паспорт серия <span class="blank-sm"></span> номер <span class="blank-sm"></span>, выдан <span class="blank"></span>, дата выдачи <span class="blank-sm"></span>,</p>
-<p>зарегистрированный(ая) по адресу: <span class="blank"></span>,</p>
+<p>паспорт ${val(client?.passport)}, выдан ${val(client?.passport_by)},</p>
+<p>зарегистрированный(ая) по адресу: ${val(client?.address_registration || client?.address_residence)},</p>
 
 <p>в соответствии со статьёй 9 Федерального закона от 27.07.2006 № 152-ФЗ «О персональных данных» даю своё согласие КПК «Частные займы плюс» (далее — Оператор) на передачу моих персональных данных следующим категориям третьих лиц:</p>
 
@@ -110,6 +130,8 @@ export function buildDataTransferConsentHtml(): string {
 
 <p>Согласие действует с момента подписания в течение всего срока действия договора займа и 5 (пяти) лет после его исполнения либо до момента отзыва данного согласия путём направления письменного заявления в адрес Оператора.</p>
 
+${client?.ref_number ? `<p class="muted">Заявка: ${esc(client.ref_number)}${client.created_at ? ` · Дата: ${esc(client.created_at.slice(0, 10))}` : ''}</p>` : ''}
+
 <div class="sign">
   <div class="sign-box"><div class="sign-line">Дата</div></div>
   <div class="sign-box"><div class="sign-line">Подпись / расшифровка</div></div>
@@ -117,15 +139,15 @@ export function buildDataTransferConsentHtml(): string {
 `);
 }
 
-export function buildPersonalDataConsentHtml(): string {
+export function buildPersonalDataConsentHtml(client?: ClientDocData): string {
   return wrap('Согласие на обработку персональных данных', `
 <h1>СОГЛАСИЕ</h1>
 <p class="center muted">на обработку персональных данных</p>
 <p class="center muted">(в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных»)</p>
 
-<p>Я, <span class="blank"></span>,<br>(ФИО полностью)</p>
-<p>паспорт серия <span class="blank-sm"></span> номер <span class="blank-sm"></span>, выдан <span class="blank"></span>, дата выдачи <span class="blank-sm"></span>, код подразделения <span class="blank-sm"></span>,</p>
-<p>зарегистрированный(ая) по адресу: <span class="blank"></span>,</p>
+<p>Я, ${val(client?.full_name)},<br>(ФИО полностью)</p>
+<p>паспорт ${val(client?.passport)}, выдан ${val(client?.passport_by)},</p>
+<p>зарегистрированный(ая) по адресу: ${val(client?.address_registration || client?.address_residence)},</p>
 <p>именуемый(ая) в дальнейшем «Субъект персональных данных», настоящим даю своё согласие Кредитному потребительскому кооперативу «Частные займы плюс» (далее — «Оператор») на обработку своих персональных данных на условиях, изложенных ниже.</p>
 
 <h2>1. Общие положения</h2>
@@ -194,6 +216,8 @@ export function buildPersonalDataConsentHtml(): string {
 <p>10.1. Настоящее согласие составлено в двух экземплярах, имеющих одинаковую юридическую силу, по одному для каждой из сторон.</p>
 <p>10.2. Все споры и разногласия, возникающие в связи с обработкой персональных данных, разрешаются путём переговоров, а при недостижении согласия — в судебном порядке в соответствии с законодательством Российской Федерации.</p>
 <p>10.3. Подписывая настоящее согласие, Субъект персональных данных подтверждает, что ознакомлен с настоящими условиями, полностью понимает их содержание, значение и юридические последствия дачи согласия на обработку персональных данных.</p>
+
+${client?.ref_number ? `<p class="muted">Заявка: ${esc(client.ref_number)}${client.created_at ? ` · Дата: ${esc(client.created_at.slice(0, 10))}` : ''}</p>` : ''}
 
 <div class="sign">
   <div class="sign-box"><div class="sign-line">Дата</div></div>
