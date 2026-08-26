@@ -521,7 +521,7 @@ const Anketa = () => {
           {step === 4 && (
             <div className="space-y-6">
               <div className="space-y-1.5">
-                <p className="text-sm font-medium text-primary">Фото паспорта (разворот с фото)</p>
+                <p className="text-sm font-medium text-primary"></p>
                 <CameraCapture
                   label="Фото паспорта (разворот с фото)"
                   hint="Наведите камеру на разворот с фотографией"
