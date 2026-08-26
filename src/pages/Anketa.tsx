@@ -521,26 +521,16 @@ const Anketa = () => {
           {step === 4 && (
             <div className="space-y-6">
               <div className="space-y-1.5">
-                <p className="text-sm font-medium text-primary"></p>
                 <CameraCapture
                   label="Фото паспорта (разворот с фото)"
                   hint="Наведите камеру на разворот с фотографией"
                   preview={passportPhoto}
                   onCapture={handlePassportPhoto}
+                  checking={passportChecking}
+                  checked={passportChecked}
+                  secondsLeft={passportSecondsLeft}
+                  totalSeconds={CHECK_SECONDS}
                 />
-
-                {passportChecking && (
-                  <div className="flex items-center gap-2.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5">
-                    <Icon name="Loader2" size={16} className="shrink-0 animate-spin text-blue-600" />
-                    <p className="text-sm text-blue-700">Идёт проверка фото... {passportSecondsLeft} сек.</p>
-                  </div>
-                )}
-                {passportChecked && !passportChecking && (
-                  <div className="flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 px-3.5 py-2.5">
-                    <Icon name="CheckCircle2" size={16} className="shrink-0 text-green-600" />
-                    <p className="text-sm font-medium text-green-700">Фото успешно загружено</p>
-                  </div>
-                )}
               </div>
 
               <div className="space-y-3">
@@ -565,46 +555,34 @@ const Anketa = () => {
                   preview={selfiePhoto}
                   onCapture={handleSelfiePhoto}
                   aspect="square"
+                  checking={selfieChecking}
+                  checked={selfieChecked}
+                  secondsLeft={selfieSecondsLeft}
+                  totalSeconds={CHECK_SECONDS}
                 />
-
-                {selfieChecking && (
-                  <div className="flex items-center gap-2.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5">
-                    <Icon name="Loader2" size={16} className="shrink-0 animate-spin text-blue-600" />
-                    <p className="text-sm text-blue-700">Идёт проверка фото... {selfieSecondsLeft} сек.</p>
-                  </div>
-                )}
-                {selfieChecked && !selfieChecking && (
-                  <div className="flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 px-3.5 py-2.5">
-                    <Icon name="CheckCircle2" size={16} className="shrink-0 text-green-600" />
-                    <p className="text-sm font-medium text-green-700">Фото успешно загружено</p>
-                  </div>
-                )}
               </div>
 
               <div className="space-y-1.5">
-                <p className="text-sm font-medium text-primary">Фото справки о доходах</p>
                 <CameraCapture
                   label="Фото справки о доходах"
                   hint="Необязательно · сфотографируйте документ"
                   preview={incomePreview}
                   onCapture={handleIncomeFile}
+                  checking={incomeChecking}
+                  checked={incomeChecked}
+                  secondsLeft={incomeSecondsLeft}
+                  totalSeconds={CHECK_SECONDS}
                 />
-
-                {incomeChecking && (
-                  <div className="flex items-center gap-2.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5">
-                    <Icon name="Loader2" size={16} className="shrink-0 animate-spin text-blue-600" />
-                    <p className="text-sm text-blue-700">Идёт проверка файла... {incomeSecondsLeft} сек.</p>
-                  </div>
-                )}
-                {incomeChecked && !incomeChecking && (
-                  <div className="flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 px-3.5 py-2.5">
-                    <Icon name="CheckCircle2" size={16} className="shrink-0 text-green-600" />
-                    <p className="text-sm font-medium text-green-700">Файл успешно загружен</p>
-                  </div>
-                )}
               </div>
 
-              <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
+              {(passportChecking || selfieChecking || incomeChecking) && (
+                <p className="flex items-center gap-1.5 text-center text-xs text-blue-600">
+                  <Icon name="Loader2" size={13} className="shrink-0 animate-spin" /> Дождитесь окончания проверки фото, чтобы продолжить
+                </p>
+              )}
+
+              <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
+                disabled={passportChecking || selfieChecking || incomeChecking}
                 onClick={() => { if (selfieFile) next(); else setApiError('Сделайте фото лица с листком, на котором написан код'); }}>
                 Далее <Icon name="ArrowRight" size={18} className="ml-1" />
               </Button>

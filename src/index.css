@@ -195,3 +195,15 @@
 .animate-pulse-scale {
   animation: pulse-scale 2s ease-in-out infinite;
 }
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(300%);
+  }
+}
+.animate-scan-line {
+  animation: scan-line 1.8s ease-in-out infinite;
+}
