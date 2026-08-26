@@ -94,12 +94,9 @@ const Cabinet = () => {
       />
 
       <main className="container max-w-3xl px-4 py-10">
-        <h1 className="font-display text-3xl font-bold text-primary">Личный кабинет</h1>
-        <p className="mt-1 text-muted-foreground">Здравствуйте, {user.full_name.split(' ').slice(0, 2).join(' ')}!</p>
-
         {/* Комментарий оператора */}
         {user.operator_comment && (
-          <div className="mt-5 flex gap-3 rounded-2xl border border-accent/30 bg-accent/5 p-5">
+          <div className="flex gap-3 rounded-2xl border border-accent/30 bg-accent/5 p-5">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
               <Icon name="MessageSquare" size={20} />
             </div>
