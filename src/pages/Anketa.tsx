@@ -337,7 +337,7 @@ const Anketa = () => {
         </div>
       </header>
 
-      <main className="container max-w-2xl px-4 py-10 md:py-14">
+      <main className="container max-w-2xl px-4 py-10 md:max-w-3xl md:py-14">
         {/* Прогресс */}
         <div className="mb-8">
           <div className="mb-4 flex items-center justify-between gap-2">
@@ -366,7 +366,7 @@ const Anketa = () => {
           <p className="mt-3 text-center text-sm text-muted-foreground">Шаг {step} из {STEPS.length} — {STEPS[step - 1].title}</p>
         </div>
 
-        <div className="animate-fade-up rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
+        <div className="animate-fade-up rounded-2xl border border-border bg-card/40 p-6 backdrop-blur-md sm:p-8">
           <h1 className="font-display mb-6 text-2xl font-bold text-primary">{STEPS[step - 1].title}</h1>
 
           {apiError && (
