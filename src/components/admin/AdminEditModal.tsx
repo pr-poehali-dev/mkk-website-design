@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import RichTextEditor from '@/components/ui/rich-text-editor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
@@ -75,6 +76,7 @@ const AdminEditModal = ({
   });
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
+  const [emailFileUploading, setEmailFileUploading] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
   const [emailMsg, setEmailMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
@@ -158,6 +160,16 @@ const AdminEditModal = ({
     await apiSaveEmailTemplates(next);
     setTemplates(next);
     if (selectedTemplateId === id) setSelectedTemplateId('');
+  };
+
+  const handleEmailFileUpload = async (file: File) => {
+    setEmailFileUploading(true);
+    try {
+      const url = await apiUploadFile(file, 'email-attachments');
+      setEmailBody((prev) => `${prev}<p><a href="${url}" target="_blank" rel="noopener noreferrer">📎 ${file.name}</a></p>`);
+    } finally {
+      setEmailFileUploading(false);
+    }
   };
 
   const handleSendEmail = async () => {
@@ -489,12 +501,18 @@ const AdminEditModal = ({
                     value={emailSubject}
                     onChange={(e) => { setEmailSubject(e.target.value); setEmailMsg(null); }}
                   />
-                  <Textarea
-                    placeholder="Текст письма"
+                  <RichTextEditor
                     value={emailBody}
-                    onChange={(e) => { setEmailBody(e.target.value); setEmailMsg(null); }}
-                    className="min-h-[100px]"
+                    onChange={(html) => { setEmailBody(html); setEmailMsg(null); }}
+                    placeholder="Текст письма..."
                   />
+                  <label className={`flex w-fit cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition-colors ${emailFileUploading ? 'pointer-events-none text-muted-foreground' : 'text-primary hover:bg-secondary'}`}>
+                    {emailFileUploading
+                      ? <><Icon name="Loader2" size={13} className="animate-spin" /> Загрузка...</>
+                      : <><Icon name="Paperclip" size={13} /> Прикрепить файл</>}
+                    <input type="file" className="hidden" disabled={emailFileUploading}
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleEmailFileUpload(f); e.target.value = ''; }} />
+                  </label>
 
                   {saveTemplateMode ? (
                     <div className="flex gap-2">
