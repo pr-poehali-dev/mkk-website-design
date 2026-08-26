@@ -45,22 +45,62 @@ def send_code_email(to_email: str, code: str, purpose: str, settings: dict) -> N
     tpl = code_templates.get(purpose) or {}
     subject = tpl.get('subject') or default_subject
     intro = tpl.get('intro') or default_intro
-    logo_html = f'<img src="{design["logo_url"]}" alt="{design["brand_name"]}" style="max-height:48px;margin:0 0 12px;display:block;" />' if design.get('logo_url') else ''
+    layout = design.get('layout', 'classic')
+    logo_html = ''
+    if design.get('logo_url'):
+        if layout == 'header':
+            logo_html = f'<div style="display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin:0 0 10px;"><img src="{design["logo_url"]}" alt="{design["brand_name"]}" style="max-height:36px;display:block;" /></div>'
+        else:
+            margin = 'margin:0 auto 12px' if layout == 'card' else 'margin:0 0 12px'
+            logo_html = f'<img src="{design["logo_url"]}" alt="{design["brand_name"]}" style="max-height:48px;{margin};display:block;" />'
     signature_html = ''
     if design.get('signature'):
         sig = design['signature'].replace(chr(10), '<br>')
-        signature_html = f'<p style="color:#888;font-size:12px;margin:20px 0 0;border-top:1px solid #eee;padding-top:12px;">{sig}</p>'
-    html_body = f"""
-    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-      {logo_html}
-      <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
-      <p style="color:#333;font-size:14px;line-height:1.6;">{intro}</p>
-      <p style="font-size:28px;font-weight:bold;letter-spacing:6px;color:{design['primary_color']};text-align:center;
-                background:{design['accent_color']};border-radius:10px;padding:16px;">{code}</p>
-      <p style="color:#888;font-size:12px;">Код действителен {CODE_TTL_MINUTES} минут. Никому не сообщайте его.</p>
-      {signature_html}
-    </div>
-    """
+        align = 'text-align:center;' if layout == 'card' else ''
+        signature_html = f'<p style="color:#888;font-size:12px;margin:20px 0 0;border-top:1px solid #eee;padding-top:12px;{align}">{sig}</p>'
+    code_block = (
+        f'<p style="font-size:28px;font-weight:bold;letter-spacing:6px;color:{design["primary_color"]};text-align:center;'
+        f'background:{design["accent_color"]};border-radius:10px;padding:16px;">{code}</p>'
+    )
+    ttl_note = f'<p style="color:#888;font-size:12px;">Код действителен {CODE_TTL_MINUTES} минут. Никому не сообщайте его.</p>'
+    if layout == 'card':
+        html_body = f"""
+        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 28px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;text-align:center;">
+          {logo_html}
+          <h2 style="color:{design['primary_color']};margin:0 0 16px;">{design['brand_name']}</h2>
+          <div style="border-top:1px solid #eee;margin:0 0 16px;"></div>
+          <p style="color:#333;font-size:14px;line-height:1.6;">{intro}</p>
+          {code_block}
+          {ttl_note}
+          {signature_html}
+        </div>
+        """
+    elif layout == 'header':
+        html_body = f"""
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;border:1px solid #eee;border-radius:14px;overflow:hidden;">
+          <div style="background:{design['primary_color']};padding:24px;text-align:center;">
+            {logo_html}
+            <h2 style="color:#fff;margin:0;font-size:18px;">{design['brand_name']}</h2>
+          </div>
+          <div style="padding:24px;background:#ffffff;">
+            <p style="color:#333;font-size:14px;line-height:1.6;">{intro}</p>
+            {code_block}
+            {ttl_note}
+            {signature_html}
+          </div>
+        </div>
+        """
+    else:
+        html_body = f"""
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+          {logo_html}
+          <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
+          <p style="color:#333;font-size:14px;line-height:1.6;">{intro}</p>
+          {code_block}
+          {ttl_note}
+          {signature_html}
+        </div>
+        """
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
     msg['From'] = login

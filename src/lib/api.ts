@@ -247,6 +247,7 @@ export interface SystemEmailDesign {
   accent_color: string;
   logo_url?: string;
   signature?: string;
+  layout?: 'classic' | 'card' | 'header';
 }
 
 export interface SystemEmailTemplate {
@@ -274,6 +275,7 @@ export const DEFAULT_SYSTEM_EMAIL_TEMPLATES: SystemEmailTemplates = {
     accent_color: '#f2f4f8',
     logo_url: '',
     signature: 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
+    layout: 'classic',
   },
   register_email: {
     subject: 'Ваш запрос принят',

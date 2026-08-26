@@ -17,6 +17,12 @@ const CODE_PURPOSES: { key: 'register' | 'sign'; label: string; icon: string }[]
   { key: 'sign', label: 'Код подписи договора', icon: 'PenLine' },
 ];
 
+const EMAIL_LAYOUTS: { key: 'classic' | 'card' | 'header'; name: string; icon: string; description: string }[] = [
+  { key: 'classic', name: 'Классика', icon: 'AlignLeft', description: 'Логотип и текст без рамок' },
+  { key: 'card', name: 'Карточка по центру', icon: 'Square', description: 'Белая карточка с рамкой, всё по центру' },
+  { key: 'header', name: 'Цветная шапка', icon: 'PanelTop', description: 'Плашка основного цвета сверху с логотипом' },
+];
+
 const EMAIL_THEMES: { name: string; primary_color: string; accent_color: string }[] = [
   { name: 'Классика', primary_color: '#1a2b4c', accent_color: '#f2f4f8' },
   { name: 'Тёмно-синий', primary_color: '#00215e', accent_color: '#e3e3e3' },
@@ -71,15 +77,48 @@ const AdminEmails = () => {
     }
   };
 
-  const previewHtml = (body: string, isCode?: boolean) => `
-    <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:14px;border:1px solid #eee;border-radius:10px;">
-      ${tpl.design.logo_url ? `<img src="${tpl.design.logo_url}" alt="${tpl.design.brand_name}" style="max-height:34px;margin:0 0 8px;display:block;" />` : ''}
-      <h3 style="color:${tpl.design.primary_color};margin:0 0 8px;font-size:15px;">${tpl.design.brand_name}</h3>
-      <p style="color:#333;font-size:12px;line-height:1.5;margin:0 0 8px;">${body.replace('{ref}', 'ZP-1234')}</p>
-      ${isCode ? `<p style="font-size:18px;font-weight:bold;letter-spacing:4px;color:${tpl.design.primary_color};text-align:center;background:${tpl.design.accent_color};border-radius:6px;padding:8px;margin:0 0 8px;">123456</p>` : ''}
-      ${tpl.design.signature ? `<p style="color:#888;font-size:10px;white-space:pre-line;margin:10px 0 0;border-top:1px solid #eee;padding-top:8px;">${tpl.design.signature}</p>` : ''}
-    </div>
-  `;
+  const previewHtml = (body: string, isCode?: boolean) => {
+    const layout = tpl.design.layout || 'classic';
+    const codeBlock = isCode ? `<p style="font-size:18px;font-weight:bold;letter-spacing:4px;color:${tpl.design.primary_color};text-align:center;background:${tpl.design.accent_color};border-radius:6px;padding:8px;margin:0 0 8px;">123456</p>` : '';
+    const bodyText = body.replace('{ref}', 'ZP-1234');
+
+    if (layout === 'card') {
+      return `
+        <div style="font-family:Arial,sans-serif;max-width:420px;margin:0 auto;padding:20px 18px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;text-align:center;">
+          ${tpl.design.logo_url ? `<img src="${tpl.design.logo_url}" alt="${tpl.design.brand_name}" style="max-height:30px;margin:0 auto 8px;display:block;" />` : ''}
+          <h3 style="color:${tpl.design.primary_color};margin:0 0 10px;font-size:15px;">${tpl.design.brand_name}</h3>
+          <div style="border-top:1px solid #eee;margin:0 0 10px;"></div>
+          <p style="color:#333;font-size:12px;line-height:1.5;margin:0 0 8px;">${bodyText}</p>
+          ${codeBlock}
+          ${tpl.design.signature ? `<p style="color:#888;font-size:10px;white-space:pre-line;margin:10px 0 0;border-top:1px solid #eee;padding-top:8px;">${tpl.design.signature}</p>` : ''}
+        </div>
+      `;
+    }
+    if (layout === 'header') {
+      return `
+        <div style="font-family:Arial,sans-serif;max-width:420px;margin:0 auto;border:1px solid #eee;border-radius:12px;overflow:hidden;">
+          <div style="background:${tpl.design.primary_color};padding:14px;text-align:center;">
+            ${tpl.design.logo_url ? `<div style="display:inline-block;background:#fff;border-radius:6px;padding:4px 8px;margin:0 0 6px;"><img src="${tpl.design.logo_url}" alt="${tpl.design.brand_name}" style="max-height:24px;display:block;" /></div>` : ''}
+            <h3 style="color:#fff;margin:0;font-size:14px;">${tpl.design.brand_name}</h3>
+          </div>
+          <div style="padding:14px;background:#fff;">
+            <p style="color:#333;font-size:12px;line-height:1.5;margin:0 0 8px;">${bodyText}</p>
+            ${codeBlock}
+            ${tpl.design.signature ? `<p style="color:#888;font-size:10px;white-space:pre-line;margin:10px 0 0;border-top:1px solid #eee;padding-top:8px;">${tpl.design.signature}</p>` : ''}
+          </div>
+        </div>
+      `;
+    }
+    return `
+      <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:14px;border:1px solid #eee;border-radius:10px;">
+        ${tpl.design.logo_url ? `<img src="${tpl.design.logo_url}" alt="${tpl.design.brand_name}" style="max-height:34px;margin:0 0 8px;display:block;" />` : ''}
+        <h3 style="color:${tpl.design.primary_color};margin:0 0 8px;font-size:15px;">${tpl.design.brand_name}</h3>
+        <p style="color:#333;font-size:12px;line-height:1.5;margin:0 0 8px;">${bodyText}</p>
+        ${codeBlock}
+        ${tpl.design.signature ? `<p style="color:#888;font-size:10px;white-space:pre-line;margin:10px 0 0;border-top:1px solid #eee;padding-top:8px;">${tpl.design.signature}</p>` : ''}
+      </div>
+    `;
+  };
 
   return (
     <div className="min-h-screen bg-secondary/40">
@@ -119,6 +158,32 @@ const AdminEmails = () => {
               <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 <Icon name="Palette" size={14} className="text-accent" /> Дизайн письма
               </p>
+
+              <div className="mb-4 space-y-1.5">
+                <Label className="text-xs">Макет письма</Label>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  {EMAIL_LAYOUTS.map((l) => {
+                    const isActive = (tpl.design.layout || 'classic') === l.key;
+                    return (
+                      <button
+                        key={l.key}
+                        type="button"
+                        onClick={() => setTpl({ ...tpl, design: { ...tpl.design, layout: l.key } })}
+                        className={`flex items-start gap-2 rounded-lg border p-2.5 text-left transition ${isActive ? 'border-primary ring-1 ring-primary bg-secondary/50' : 'border-border hover:bg-secondary'}`}
+                      >
+                        <Icon name={l.icon} size={16} className={isActive ? 'text-primary shrink-0 mt-0.5' : 'text-muted-foreground shrink-0 mt-0.5'} />
+                        <span>
+                          <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+                            {l.name}
+                            {isActive && <Icon name="Check" size={11} className="text-primary" />}
+                          </span>
+                          <span className="block text-[11px] text-muted-foreground">{l.description}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               <div className="mb-4 space-y-1.5">
                 <Label className="text-xs">Готовая тема оформления</Label>

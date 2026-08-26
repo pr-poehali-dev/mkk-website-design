@@ -37,11 +37,42 @@ def get_system_email_settings(cur) -> dict:
 
 
 def render_email_html(design: dict, body_html: str) -> str:
-    logo_html = f'<img src="{design["logo_url"]}" alt="{design["brand_name"]}" style="max-height:48px;margin:0 0 12px;display:block;" />' if design.get('logo_url') else ''
+    layout = design.get('layout', 'classic')
+    logo_html = ''
+    if design.get('logo_url'):
+        if layout == 'header':
+            logo_html = f'<div style="display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin:0 0 10px;"><img src="{design["logo_url"]}" alt="{design["brand_name"]}" style="max-height:36px;display:block;" /></div>'
+        else:
+            margin = 'margin:0 auto 12px' if layout == 'card' else 'margin:0 0 12px'
+            logo_html = f'<img src="{design["logo_url"]}" alt="{design["brand_name"]}" style="max-height:48px;{margin};display:block;" />'
     signature_html = ''
     if design.get('signature'):
         sig = design['signature'].replace(chr(10), '<br>')
-        signature_html = f'<p style="color:#888;font-size:12px;margin:20px 0 0;border-top:1px solid #eee;padding-top:12px;">{sig}</p>'
+        align = 'text-align:center;' if layout == 'card' else ''
+        signature_html = f'<p style="color:#888;font-size:12px;margin:20px 0 0;border-top:1px solid #eee;padding-top:12px;{align}">{sig}</p>'
+    if layout == 'card':
+        return f"""
+        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 28px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;text-align:center;">
+          {logo_html}
+          <h2 style="color:{design['primary_color']};margin:0 0 16px;">{design['brand_name']}</h2>
+          <div style="border-top:1px solid #eee;margin:0 0 16px;"></div>
+          <p style="color:#333;font-size:14px;line-height:1.6;text-align:center;">{body_html}</p>
+          {signature_html}
+        </div>
+        """
+    if layout == 'header':
+        return f"""
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;border:1px solid #eee;border-radius:14px;overflow:hidden;">
+          <div style="background:{design['primary_color']};padding:24px;text-align:center;">
+            {logo_html}
+            <h2 style="color:#fff;margin:0;font-size:18px;">{design['brand_name']}</h2>
+          </div>
+          <div style="padding:24px;background:#ffffff;">
+            <p style="color:#333;font-size:14px;line-height:1.6;">{body_html}</p>
+            {signature_html}
+          </div>
+        </div>
+        """
     return f"""
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
       {logo_html}
