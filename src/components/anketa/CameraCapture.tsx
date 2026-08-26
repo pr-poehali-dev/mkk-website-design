@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 
 interface Props {
@@ -77,21 +78,24 @@ const CameraCapture = ({
     <div className="space-y-1.5">
       <p className="text-sm font-medium text-primary">{label}</p>
 
-      {active ? (
-        <div className="overflow-hidden rounded-xl border-2 border-accent bg-black">
-          <div className={aspect === 'square' ? 'aspect-square' : 'aspect-[4/3]'}>
+      <Dialog open={active} onOpenChange={(open) => { if (!open) cancel(); }}>
+        <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-black p-0 sm:h-[92vh] sm:w-[95vw] sm:max-w-2xl sm:rounded-2xl">
+          <DialogTitle className="sr-only">{label}</DialogTitle>
+          <div className="relative flex-1 overflow-hidden bg-black">
             <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
           </div>
-          <div className="flex gap-2 bg-background p-3">
-            <Button type="button" variant="outline" className="flex-1" onClick={cancel}>
+          <div className="flex gap-2 bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <Button type="button" variant="outline" className="h-12 flex-1" onClick={cancel}>
               Отмена
             </Button>
-            <Button type="button" className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90" onClick={takeShot}>
-              <Icon name="Camera" size={16} className="mr-1.5" /> Сделать снимок
+            <Button type="button" className="h-12 flex-1 bg-accent text-accent-foreground hover:bg-accent/90" onClick={takeShot}>
+              <Icon name="Camera" size={18} className="mr-1.5" /> Сделать снимок
             </Button>
           </div>
-        </div>
-      ) : preview ? (
+        </DialogContent>
+      </Dialog>
+
+      {preview ? (
         <div className={`overflow-hidden rounded-xl border-2 transition-colors ${
           checking ? 'border-blue-300' : checked ? 'border-green-400' : 'border-border'
         }`}>
