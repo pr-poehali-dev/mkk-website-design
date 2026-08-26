@@ -150,6 +150,10 @@ const Admin = () => {
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="Newspaper" size={18} className="text-accent" /> Новости
             </Link>
+            <Link to="/admin/documents" onClick={() => setMenuOpen(false)}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="FileStack" size={18} className="text-accent" /> Документы
+            </Link>
             <button onClick={openChatModal}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="MessageCircle" size={18} className="text-accent" /> Код чата
