@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import Icon from '@/components/ui/icon';
 import {
   apiUpdateRequest, apiAdminSetPassword, apiUploadFile, apiAdminSetDocStatus, apiSendEmail,
-  apiGetEmailTemplates, apiSaveEmailTemplates, type UserSession, type EmailTemplate,
+  apiGetEmailTemplates, apiSaveEmailTemplates, apiGetSiteSettings, apiRunScoring,
+  type UserSession, type EmailTemplate, type ScoringResult,
 } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { buildContractHtml } from './contractHtml';
@@ -82,6 +83,17 @@ const AdminEditModal = ({
   const [saveTemplateMode, setSaveTemplateMode] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
   const [templateSaving, setTemplateSaving] = useState(false);
+  const [scoringEnabled, setScoringEnabled] = useState(false);
+  const [scoringRunning, setScoringRunning] = useState(false);
+  const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null);
+
+  useEffect(() => {
+    apiGetSiteSettings().then((s) => setScoringEnabled(s.scoring_enabled === 'true')).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setScoringResult(null);
+  }, [selected?.ref_number]);
 
   useEffect(() => {
     if (selected) {
@@ -178,6 +190,21 @@ const AdminEditModal = ({
       onDocStatusChanged?.(selected.ref_number, patch);
     } finally {
       setDocStatusSaving(null);
+    }
+  };
+
+  const handleRunScoring = async () => {
+    if (!selected) return;
+    setScoringRunning(true);
+    setScoringResult(null);
+    try {
+      const result = await apiRunScoring(selected.ref_number);
+      setScoringResult(result);
+      const patch: Partial<UserSession> = { status: result.status };
+      onDocStatusChanged?.(selected.ref_number, patch);
+      setEditForm({ ...editForm, status: result.status });
+    } finally {
+      setScoringRunning(false);
     }
   };
 
@@ -286,6 +313,8 @@ const AdminEditModal = ({
                 { label: 'Место работы', value: selected.work_place },
                 { label: 'Рабочий телефон', value: selected.work_phone },
                 { label: 'Email', value: selected.email },
+                { label: 'Открытые займы/кредиты', value: selected.existing_loans_count != null ? String(selected.existing_loans_count) : undefined },
+                { label: 'Сумма текущего долга', value: selected.existing_debt_amount != null ? `${fmt(selected.existing_debt_amount)} ₽` : undefined },
                 { label: 'Дата заявки', value: selected.created_at?.slice(0, 10) },
               ].filter(f => f.value).map(f => (
                 <div key={f.label} className="flex justify-between gap-4 border-b border-border pb-1.5 last:border-0 last:pb-0">
@@ -294,6 +323,33 @@ const AdminEditModal = ({
                 </div>
               ))}
             </div>
+
+            {/* Автоскоринг */}
+            {scoringEnabled && (
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 space-y-3">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-blue-700">
+                  <Icon name="Bot" size={14} /> Автоскоринг роботом
+                </p>
+                <p className="text-xs text-blue-700/80">
+                  Проверит сумму текущего долга клиента и автоматически одобрит или отклонит заявку.
+                </p>
+                <Button size="sm" disabled={scoringRunning} onClick={handleRunScoring}
+                  className="w-full bg-blue-600 text-white hover:bg-blue-700">
+                  {scoringRunning
+                    ? <span className="flex items-center gap-1.5"><Icon name="Loader2" size={14} className="animate-spin" /> Проверяем...</span>
+                    : <span className="flex items-center gap-1.5"><Icon name="ScanSearch" size={14} /> Запустить скоринг</span>}
+                </Button>
+                {scoringResult && (
+                  <div className={`rounded-lg border p-3 text-xs ${scoringResult.approved ? 'border-green-300 bg-green-50 text-green-700' : 'border-red-300 bg-red-50 text-red-700'}`}>
+                    <p className="flex items-center gap-1.5 font-semibold">
+                      <Icon name={scoringResult.approved ? 'CheckCircle2' : 'XCircle'} size={14} />
+                      {scoringResult.approved ? 'Одобрено роботом' : 'Отклонено роботом'}
+                    </p>
+                    {scoringResult.reason && <p className="mt-1">{scoringResult.reason}</p>}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Документы клиента */}
             {(selected.passport_photo_url || selected.registration_photo_url || selected.income_doc_url || selected.selfie_photo_url) && (

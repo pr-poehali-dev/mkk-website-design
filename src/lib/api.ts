@@ -47,6 +47,8 @@ export interface UserSession {
   money_sent_at?: string | null;
   selfie_photo_url?: string | null;
   selfie_photo_status?: string | null;
+  existing_loans_count?: number | null;
+  existing_debt_amount?: number | null;
 }
 
 export function getSession(): UserSession | null {
@@ -91,6 +93,7 @@ export async function apiRegister(data: {
   address_residence?: string; address_registration?: string;
   work_place?: string; work_phone?: string; income_doc_url?: string;
   email: string; passport_photo_url?: string; selfie_photo_url?: string;
+  existing_loans_count?: number; existing_debt_amount?: number;
 }) {
   const res = await fetch(URLS.register, {
     method: 'POST',
@@ -203,6 +206,26 @@ export async function apiUpdateClientDocs(data: {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка');
+}
+
+export interface ScoringResult {
+  ok: boolean;
+  approved: boolean;
+  status: string;
+  reason: string | null;
+  debt_amount: number;
+  threshold: number;
+}
+
+export async function apiRunScoring(ref_number: string): Promise<ScoringResult> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'run_scoring', ref_number }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка скоринга');
+  return json as ScoringResult;
 }
 
 export async function apiDeleteRequests(ref_numbers: string[]): Promise<void> {

@@ -16,6 +16,7 @@ STATUS_LABELS = {
 }
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
+DEFAULT_DEBT_THRESHOLD = 120000
 
 DEFAULT_DESIGN = {
     'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
@@ -194,6 +195,55 @@ def handler(event: dict, context) -> dict:
         conn.commit()
         conn.close()
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
+
+    # Автоскоринг заявки роботом
+    if body.get('action') == 'run_scoring':
+        ref = body.get('ref_number')
+        if not ref:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(f"SELECT value FROM {SCHEMA}.site_settings WHERE key = 'scoring_debt_threshold'", ())
+        row = cur.fetchone()
+        try:
+            threshold = int(row[0]) if row and row[0] else DEFAULT_DEBT_THRESHOLD
+        except (ValueError, TypeError):
+            threshold = DEFAULT_DEBT_THRESHOLD
+        cur.execute(
+            f"SELECT existing_debt_amount, email, phone FROM {SCHEMA}.loan_requests WHERE ref_number = %s",
+            (ref,)
+        )
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
+        debt_amount, client_email, client_phone = row
+        debt_amount = debt_amount or 0
+        approved = debt_amount <= threshold
+        new_status = 'approved' if approved else 'rejected'
+        reason = (
+            f'Долговая нагрузка в норме ({debt_amount:,} ₽ ≤ {threshold:,} ₽)'.replace(',', ' ')
+            if approved else
+            f'Превышен порог допустимого долга: {debt_amount:,} ₽ > {threshold:,} ₽'.replace(',', ' ')
+        )
+        cur.execute(
+            f"UPDATE {SCHEMA}.loan_requests SET status = %s, updated_at = NOW() WHERE ref_number = %s",
+            (new_status, ref)
+        )
+        default_subject, default_body = DEFAULT_STATUS_EMAIL_TEXT.get(new_status, (STATUS_LABELS.get(new_status, new_status), ''))
+        email_settings = get_system_email_settings(cur)
+        status_templates = (email_settings.get('status_emails') or {})
+        tpl = status_templates.get(new_status) or {}
+        notif_text = (tpl.get('body') or default_body).format(ref=ref)
+        create_notification(cur, client_phone, ref, 'status', f'Статус заявки {ref}: {STATUS_LABELS.get(new_status, new_status)}', notif_text)
+        conn.commit()
+        conn.close()
+        if client_email:
+            send_status_email(client_email, ref, new_status, email_settings)
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({
+            'ok': True, 'approved': approved, 'status': new_status, 'reason': reason,
+            'debt_amount': debt_amount, 'threshold': threshold,
+        })}
 
     # Удаление списка заявок
     if event.get('httpMethod') == 'DELETE' or body.get('action') == 'delete':

@@ -5,6 +5,8 @@ import Icon from '@/components/ui/icon';
 import { apiGetSiteSettings, apiSaveSiteSettings } from '@/lib/api';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 
+const DEFAULT_DEBT_THRESHOLD = 120000;
+
 const AdminSettings = () => {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('zaimy_admin') === '1');
   const [maintenanceBanner, setMaintenanceBanner] = useState(false);
@@ -12,12 +14,19 @@ const AdminSettings = () => {
   const [siteClosed, setSiteClosed] = useState(false);
   const [siteClosedSaving, setSiteClosedSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [scoringEnabled, setScoringEnabled] = useState(false);
+  const [scoringSaving, setScoringSaving] = useState(false);
+  const [debtThreshold, setDebtThreshold] = useState(String(DEFAULT_DEBT_THRESHOLD));
+  const [thresholdSaving, setThresholdSaving] = useState(false);
+  const [thresholdSaved, setThresholdSaved] = useState(false);
 
   useEffect(() => {
     if (authed) {
       apiGetSiteSettings().then((s) => {
         setMaintenanceBanner(s.maintenance_banner === 'true');
         setSiteClosed(s.site_closed === 'true');
+        setScoringEnabled(s.scoring_enabled === 'true');
+        setDebtThreshold(s.scoring_debt_threshold || String(DEFAULT_DEBT_THRESHOLD));
         setLoaded(true);
       });
     }
@@ -135,6 +144,91 @@ const AdminSettings = () => {
                 }
               </Button>
             </div>
+
+            {/* Автоскоринг заявок */}
+            <div className={`mt-4 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${scoringEnabled ? 'border-blue-300 bg-blue-50' : 'border-border bg-card'}`}>
+              <div className="flex items-start gap-3">
+                <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${scoringEnabled ? 'bg-blue-200 text-blue-700' : 'bg-secondary text-muted-foreground'}`}>
+                  <Icon name="Bot" size={18} />
+                </div>
+                <div>
+                  <p className="font-semibold text-primary">Автоскоринг заявок роботом</p>
+                  <p className="text-sm text-muted-foreground">
+                    {scoringEnabled
+                      ? 'Включён — оператор может запустить проверку по заявке в её карточке'
+                      : 'Выключен — кнопка проверки в карточке заявки скрыта'}
+                  </p>
+                </div>
+              </div>
+              <Button
+                disabled={scoringSaving}
+                size="sm"
+                onClick={async () => {
+                  setScoringSaving(true);
+                  const next = !scoringEnabled;
+                  try {
+                    await apiSaveSiteSettings({ scoring_enabled: next ? 'true' : 'false' });
+                    setScoringEnabled(next);
+                  } catch (_e) {
+                    // ignore
+                  } finally { setScoringSaving(false); }
+                }}
+                className={scoringEnabled
+                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'}>
+                {scoringSaving
+                  ? <span className="flex items-center gap-1.5"><Icon name="Loader2" size={14} className="animate-spin" /> Сохранение...</span>
+                  : scoringEnabled
+                    ? <span className="flex items-center gap-1.5"><Icon name="Power" size={14} /> Выключить</span>
+                    : <span className="flex items-center gap-1.5"><Icon name="Power" size={14} /> Включить</span>
+                }
+              </Button>
+            </div>
+
+            {scoringEnabled && (
+              <div className="mt-3 rounded-2xl border border-border bg-card p-4">
+                <p className="mb-1 flex items-center gap-2 text-sm font-semibold text-primary">
+                  <Icon name="AlertTriangle" size={16} className="text-blue-600" /> Порог отказа по долгу
+                </p>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Если сумма текущего долга клиента (указанного в анкете) больше этого значения — робот автоматически отклонит заявку.
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1 max-w-[200px]">
+                    <input
+                      type="number"
+                      min={0}
+                      step={1000}
+                      value={debtThreshold}
+                      onChange={(e) => { setDebtThreshold(e.target.value); setThresholdSaved(false); }}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 pr-8 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">₽</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={thresholdSaving || !debtThreshold}
+                    onClick={async () => {
+                      setThresholdSaving(true);
+                      try {
+                        await apiSaveSiteSettings({ scoring_debt_threshold: String(Math.max(0, Number(debtThreshold) || 0)) });
+                        setThresholdSaved(true);
+                        setTimeout(() => setThresholdSaved(false), 2000);
+                      } catch (_e) {
+                        // ignore
+                      } finally { setThresholdSaving(false); }
+                    }}>
+                    {thresholdSaving
+                      ? <Icon name="Loader2" size={14} className="animate-spin" />
+                      : thresholdSaved
+                        ? <Icon name="Check" size={14} className="text-green-600" />
+                        : <Icon name="Save" size={14} />}
+                    <span className="ml-1.5">Сохранить</span>
+                  </Button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </main>

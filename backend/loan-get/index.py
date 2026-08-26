@@ -11,14 +11,16 @@ COLS = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'passport_by',
         'address_residence', 'address_registration', 'work_place', 'work_phone', 'income_doc_url',
         'payment_bank', 'is_blocked', 'email', 'doc_urls', 'passport_photo_url', 'registration_photo_url',
         'passport_photo_status', 'registration_photo_status', 'income_doc_status', 'password_plain',
-        'insurance_enabled', 'money_sent_at', 'selfie_photo_url', 'selfie_photo_status']
+        'insurance_enabled', 'money_sent_at', 'selfie_photo_url', 'selfie_photo_status',
+        'existing_loans_count', 'existing_debt_amount']
 
 SELECT_COLS = """id, ref_number, full_name, phone, passport, passport_by,
                        birth_date, amount, days, status, operator_comment, created_at,
                        address_residence, address_registration, work_place, work_phone, income_doc_url,
                        payment_bank, is_blocked, email, doc_urls, passport_photo_url, registration_photo_url,
                        passport_photo_status, registration_photo_status, income_doc_status, password_plain,
-                       insurance_enabled, money_sent_at, selfie_photo_url, selfie_photo_status"""
+                       insurance_enabled, money_sent_at, selfie_photo_url, selfie_photo_status,
+                       existing_loans_count, existing_debt_amount"""
 
 def row_to_dict(row):
     d = dict(zip(COLS, row))
