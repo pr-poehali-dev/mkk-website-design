@@ -45,6 +45,8 @@ export interface UserSession {
   password_plain?: string | null;
   insurance_enabled?: boolean;
   money_sent_at?: string | null;
+  selfie_photo_url?: string | null;
+  selfie_photo_status?: string | null;
 }
 
 export function getSession(): UserSession | null {
@@ -88,7 +90,7 @@ export async function apiRegister(data: {
   passport?: string; passport_by?: string; birth_date?: string;
   address_residence?: string; address_registration?: string;
   work_place?: string; work_phone?: string; income_doc_url?: string;
-  email: string; passport_photo_url?: string;
+  email: string; passport_photo_url?: string; selfie_photo_url?: string;
 }) {
   const res = await fetch(URLS.register, {
     method: 'POST',
@@ -191,6 +193,7 @@ export async function apiUpdateClientDocs(data: {
   passport_photo_url?: string;
   registration_photo_url?: string;
   income_doc_url?: string;
+  selfie_photo_url?: string;
 }): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',

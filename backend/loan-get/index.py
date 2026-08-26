@@ -11,7 +11,14 @@ COLS = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'passport_by',
         'address_residence', 'address_registration', 'work_place', 'work_phone', 'income_doc_url',
         'payment_bank', 'is_blocked', 'email', 'doc_urls', 'passport_photo_url', 'registration_photo_url',
         'passport_photo_status', 'registration_photo_status', 'income_doc_status', 'password_plain',
-        'insurance_enabled', 'money_sent_at']
+        'insurance_enabled', 'money_sent_at', 'selfie_photo_url', 'selfie_photo_status']
+
+SELECT_COLS = """id, ref_number, full_name, phone, passport, passport_by,
+                       birth_date, amount, days, status, operator_comment, created_at,
+                       address_residence, address_registration, work_place, work_phone, income_doc_url,
+                       payment_bank, is_blocked, email, doc_urls, passport_photo_url, registration_photo_url,
+                       passport_photo_status, registration_photo_status, income_doc_status, password_plain,
+                       insurance_enabled, money_sent_at, selfie_photo_url, selfie_photo_status"""
 
 def row_to_dict(row):
     d = dict(zip(COLS, row))
@@ -45,12 +52,7 @@ def handler(event: dict, context) -> dict:
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
         cur.execute(
-            f"""SELECT id, ref_number, full_name, phone, passport, passport_by,
-                       birth_date, amount, days, status, operator_comment, created_at,
-                       address_residence, address_registration, work_place, work_phone, income_doc_url,
-                       payment_bank, is_blocked, email, doc_urls, passport_photo_url, registration_photo_url,
-                       passport_photo_status, registration_photo_status, income_doc_status, password_plain,
-                       insurance_enabled, money_sent_at
+            f"""SELECT {SELECT_COLS}
                 FROM {SCHEMA}.loan_requests WHERE phone = %s ORDER BY created_at DESC""",
             (phone,)
         )
@@ -71,12 +73,7 @@ def handler(event: dict, context) -> dict:
 
     if is_admin:
         cur.execute(
-            f"""SELECT id, ref_number, full_name, phone, passport, passport_by,
-                       birth_date, amount, days, status, operator_comment, created_at,
-                       address_residence, address_registration, work_place, work_phone, income_doc_url,
-                       payment_bank, is_blocked, email, doc_urls, passport_photo_url, registration_photo_url,
-                       passport_photo_status, registration_photo_status, income_doc_status, password_plain,
-                       insurance_enabled, money_sent_at
+            f"""SELECT {SELECT_COLS}
                 FROM {SCHEMA}.loan_requests ORDER BY created_at DESC"""
         )
         rows = cur.fetchall()
@@ -88,12 +85,7 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref обязателен'})}
 
     cur.execute(
-        f"""SELECT id, ref_number, full_name, phone, passport, passport_by,
-                   birth_date, amount, days, status, operator_comment, created_at,
-                   address_residence, address_registration, work_place, work_phone, income_doc_url,
-                   payment_bank, is_blocked, email, doc_urls, passport_photo_url, registration_photo_url,
-                   passport_photo_status, registration_photo_status, income_doc_status, password_plain,
-                   insurance_enabled, money_sent_at
+        f"""SELECT {SELECT_COLS}
             FROM {SCHEMA}.loan_requests WHERE ref_number = %s""",
         (ref,)
     )

@@ -123,7 +123,7 @@ def handler(event: dict, context) -> dict:
         fields = []
         values = []
         # При загрузке нового файла — сбрасываем статус в pending
-        for field in ('passport_photo_url', 'registration_photo_url', 'income_doc_url'):
+        for field in ('passport_photo_url', 'registration_photo_url', 'income_doc_url', 'selfie_photo_url'):
             if field in body:
                 fields.append(f'{field} = %s')
                 values.append(body[field] or None)
@@ -235,7 +235,7 @@ def handler(event: dict, context) -> dict:
 
     # Статусы документов (принять/отклонить) — только для админа
     VALID_DOC_STATUSES = ('pending', 'approved', 'rejected')
-    for doc_status_field in ('passport_photo_status', 'registration_photo_status', 'income_doc_status'):
+    for doc_status_field in ('passport_photo_status', 'registration_photo_status', 'income_doc_status', 'selfie_photo_status'):
         if doc_status_field in body:
             val = body[doc_status_field]
             if val not in VALID_DOC_STATUSES:

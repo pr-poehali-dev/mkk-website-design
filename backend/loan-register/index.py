@@ -162,8 +162,9 @@ def handler(event: dict, context) -> dict:
             cur.execute(
                 f"""INSERT INTO {SCHEMA}.loan_requests
                     (ref_number, full_name, phone, password_hash, birth_date, passport, passport_by, amount, days,
-                     address_residence, address_registration, work_place, work_phone, income_doc_url, email, passport_photo_url)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     address_residence, address_registration, work_place, work_phone, income_doc_url, email, passport_photo_url,
+                     selfie_photo_url)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id, ref_number, status, created_at""",
                 (
                     ref_number,
@@ -182,6 +183,7 @@ def handler(event: dict, context) -> dict:
                     body.get('income_doc_url') or None,
                     email,
                     body.get('passport_photo_url') or None,
+                    body.get('selfie_photo_url') or None,
                 )
             )
             row = cur.fetchone()
