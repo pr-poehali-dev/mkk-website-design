@@ -178,6 +178,7 @@ export async function apiAdminSetDocStatus(data: {
   passport_photo_status?: string;
   registration_photo_status?: string;
   income_doc_status?: string;
+  selfie_photo_status?: string;
 }): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',

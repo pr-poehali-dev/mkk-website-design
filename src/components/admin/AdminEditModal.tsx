@@ -70,6 +70,7 @@ const AdminEditModal = ({
     passport_photo_status: selected?.passport_photo_status || 'pending',
     registration_photo_status: selected?.registration_photo_status || 'pending',
     income_doc_status: selected?.income_doc_status || 'pending',
+    selfie_photo_status: selected?.selfie_photo_status || 'pending',
   });
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
@@ -88,9 +89,10 @@ const AdminEditModal = ({
         passport_photo_status: selected.passport_photo_status || 'pending',
         registration_photo_status: selected.registration_photo_status || 'pending',
         income_doc_status: selected.income_doc_status || 'pending',
+        selfie_photo_status: selected.selfie_photo_status || 'pending',
       });
     }
-  }, [selected?.passport_photo_status, selected?.registration_photo_status, selected?.income_doc_status]);
+  }, [selected?.passport_photo_status, selected?.registration_photo_status, selected?.income_doc_status, selected?.selfie_photo_status]);
 
   useEffect(() => {
     setEmailSubject('');
@@ -294,12 +296,13 @@ const AdminEditModal = ({
             </div>
 
             {/* Документы клиента */}
-            {(selected.passport_photo_url || selected.registration_photo_url || selected.income_doc_url) && (
+            {(selected.passport_photo_url || selected.registration_photo_url || selected.income_doc_url || selected.selfie_photo_url) && (
               <div className="rounded-xl border border-border bg-card p-4 space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Документы клиента</p>
                 {([
                   { urlKey: 'passport_photo_url' as const, statusKey: 'passport_photo_status', label: 'Фото паспорта' },
                   { urlKey: 'registration_photo_url' as const, statusKey: 'registration_photo_status', label: 'Фото регистрации' },
+                  { urlKey: 'selfie_photo_url' as const, statusKey: 'selfie_photo_status', label: 'Фото с кодом' },
                   { urlKey: 'income_doc_url' as const, statusKey: 'income_doc_status', label: 'Справка о доходах' },
                 ]).filter(d => selected[d.urlKey]).map(({ urlKey, statusKey, label }) => {
                   const st = docStatuses[statusKey] || 'pending';
@@ -307,14 +310,16 @@ const AdminEditModal = ({
                   return (
                     <div key={urlKey} className={`rounded-lg border p-3 space-y-2 ${st === 'approved' ? 'border-green-300 bg-green-50' : st === 'rejected' ? 'border-red-300 bg-red-50' : 'border-orange-200 bg-orange-50'}`}>
                       <div className="flex items-center justify-between gap-2">
-                        <a href={selected[urlKey]!} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline">
+                        <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">
                           <Icon name="FileImage" size={13} /> {label}
-                        </a>
+                        </span>
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${st === 'approved' ? 'bg-green-100 text-green-700' : st === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`}>
                           {st === 'approved' ? '✓ Принято' : st === 'rejected' ? '✗ Отклонено' : '⏳ На проверке'}
                         </span>
                       </div>
+                      <a href={selected[urlKey]!} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-md border border-border bg-black/5">
+                        <img src={selected[urlKey]!} alt={label} className="max-h-48 w-full object-contain" />
+                      </a>
                       <div className="flex gap-2">
                         <Button size="sm" variant="outline"
                           className={`flex-1 h-7 text-xs ${st === 'approved' ? 'border-green-500 bg-green-100 text-green-700' : 'border-green-400 text-green-700 hover:bg-green-50'}`}
