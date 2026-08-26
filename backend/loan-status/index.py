@@ -226,9 +226,10 @@ def handler(event: dict, context) -> dict:
             if approved else
             f'Превышен порог допустимого долга: {debt_amount:,} ₽ > {threshold:,} ₽'.replace(',', ' ')
         )
+        client_reason = None if approved else 'Высокая долговая нагрузка'
         cur.execute(
-            f"UPDATE {SCHEMA}.loan_requests SET status = %s, updated_at = NOW() WHERE ref_number = %s",
-            (new_status, ref)
+            f"UPDATE {SCHEMA}.loan_requests SET status = %s, rejection_reason = %s, updated_at = NOW() WHERE ref_number = %s",
+            (new_status, client_reason, ref)
         )
         default_subject, default_body = DEFAULT_STATUS_EMAIL_TEXT.get(new_status, (STATUS_LABELS.get(new_status, new_status), ''))
         email_settings = get_system_email_settings(cur)
@@ -274,6 +275,10 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неверный статус'})}
         fields.append('status = %s')
         values.append(status)
+        if status != 'rejected':
+            # Ручная смена статуса оператором — сбрасываем причину автоотказа робота
+            fields.append('rejection_reason = %s')
+            values.append(None)
         if status == 'money_sent':
             # Фиксируем дату выдачи денег — отсчёт срока начинается заново
             fields.append('money_sent_at = NOW()')

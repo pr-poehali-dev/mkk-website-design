@@ -355,6 +355,16 @@ const CabinetStatusCard = ({
                 : `Вы сможете подать новую заявку через ${7 - daysSinceRejected} дн.`}
             </p>
 
+            {user.rejection_reason && (
+              <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5">
+                <Icon name="AlertTriangle" size={16} className="mt-0.5 shrink-0 text-red-500" />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-red-500">Причина отказа</p>
+                  <p className="text-sm text-red-700">{user.rejection_reason}</p>
+                </div>
+              </div>
+            )}
+
             {canReapply && (
               <Button
                 className="w-full h-12 animate-pulse-scale bg-accent font-semibold text-accent-foreground shadow-lg shadow-accent/30 transition-transform hover:scale-[1.03] hover:bg-accent/90 active:scale-[0.98]"

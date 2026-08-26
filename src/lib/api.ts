@@ -49,6 +49,7 @@ export interface UserSession {
   selfie_photo_status?: string | null;
   existing_loans_count?: number | null;
   existing_debt_amount?: number | null;
+  rejection_reason?: string | null;
 }
 
 export function getSession(): UserSession | null {
