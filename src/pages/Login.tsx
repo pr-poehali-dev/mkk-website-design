@@ -82,7 +82,7 @@ const Login = () => {
 
           <p className="mt-4 text-center text-muted-foreground text-sm">
             Если вы забыли пароль — позвоните нам{' '}
-            <a href="tel:+74999610736" className="font-medium text-accent hover:underline">+7 (499) 961-07-36</a>
+            <a href="tel:+74999610736" className="font-medium text-accent hover:underline">  +7 (499) 961-07-36</a>
             {' '}или напишите нам в чат
           </p>
         </div>
