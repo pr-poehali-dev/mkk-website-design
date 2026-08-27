@@ -39,7 +39,7 @@ const Login = () => {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-foreground">
             <Icon name="Landmark" size={20} />
           </div>
-          <span className="font-display text-xl font-bold tracking-wide">ЗАЙМЫ ПЛЮС</span>
+          <span className="font-display text-xl font-bold tracking-wide">ЗП</span>
         </Link>
 
         <div className="rounded-2xl bg-background p-8 text-foreground shadow-2xl">
