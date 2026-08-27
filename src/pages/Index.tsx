@@ -91,7 +91,7 @@ const Index = () => {
               <Icon name="Landmark" size={19} />
             </div>
             <div className="leading-none">
-              <p className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</p>
+              <p className="font-display text-lg font-bold tracking-wide text-primary">ЗП </p>
               <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Займы онлайн 24/7</p>
             </div>
           </div>
