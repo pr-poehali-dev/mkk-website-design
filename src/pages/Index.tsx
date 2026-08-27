@@ -422,7 +422,7 @@ const Index = () => {
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Год основания</span>
-                  <span className="font-semibold text-primary">2014</span>
+                  <span className="font-semibold text-primary">2026</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Регулятор</span>
