@@ -123,7 +123,7 @@ const Appeal = () => {
             </div>
             <div className="rounded-2xl bg-card p-5">
               <p className="text-sm text-muted-foreground">Письменное обращение на почтовый адрес</p>
-              <p className="mt-1 font-semibold text-primary">121087, город Москва, ул. Барклая, д. 6, стр. 5, помещ. 23в/3</p>
+              <p className="mt-1 font-semibold text-red-700">Сервис не доступен </p>
             </div>
           </div>
 
