@@ -426,7 +426,7 @@ const Index = () => {
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Регулятор</span>
-                  <span className="font-semibold text-primary">Банк России (ФЗ №151)</span>
+                  <span className="font-semibold text-primary">ФЗ -  обработка данных (ФЗ №151)</span>
                 </div>
               </div>
               <p><span className="font-medium text-primary">Деятельность:</span> предоставление микрозаймов физическим лицам. Внесены в государственный реестр микрофинансовых организаций Банка России.</p>
