@@ -145,7 +145,7 @@ const Index = () => {
         <div className="container relative grid items-center gap-10 px-4 py-14 md:grid-cols-2 md:py-20">
           {/* Left */}
           <div className="animate-fade-up relative">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/5 px-4 py-1.5 text-xs font-medium">Одобрение 96% заявок · работаем 24/7</div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/5 px-4 py-1.5 text-xs font-medium">🔥 Одобрение 96% заявок · работаем 24/7</div>
             <h1 className="font-display font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl text-3xl md:pr-28 lg:pr-36">
               Оформите заявку онлайн и получите{' '}
               <span className="inline-block rounded-full bg-accent px-4 py-1 text-primary">до 30 000 ₽</span>{' '}
