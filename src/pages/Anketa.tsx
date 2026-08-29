@@ -87,8 +87,8 @@ const Anketa = () => {
   // Step 4
   const [amount, setAmount] = useState(15000);
   const [days, setDays] = useState(14);
-  const [existingLoansCount, setExistingLoansCount] = useState(0);
-  const [existingDebtAmount, setExistingDebtAmount] = useState(0);
+  const [existingLoansCount, setExistingLoansCount] = useState('');
+  const [existingDebtAmount, setExistingDebtAmount] = useState('');
   // Step 5
   const [f4, setF4] = useState({ address_residence: '', address_registration: '', work_place: '', work_phone: '' });
   const [incomeFile, setIncomeFile] = useState<File | null>(null);
@@ -251,8 +251,8 @@ const Anketa = () => {
         email: f1.email,
         passport_photo_url,
         selfie_photo_url,
-        existing_loans_count: existingLoansCount,
-        existing_debt_amount: existingDebtAmount,
+        existing_loans_count: Number(existingLoansCount),
+        existing_debt_amount: Number(existingDebtAmount),
       });
       setStep(7);
     } catch (err: unknown) {
@@ -520,23 +520,26 @@ const Anketa = () => {
                   <Icon name="CreditCard" size={15} className="text-accent" /> Текущая долговая нагрузка
                 </legend>
                 <div className="space-y-1.5">
-                  <Label htmlFor="existing_loans_count">Количество открытых займов/кредитов</Label>
+                  <Label htmlFor="existing_loans_count">Количество открытых займов/кредитов *</Label>
                   <Input id="existing_loans_count" type="number" min={0} max={50} inputMode="numeric"
-                    value={existingLoansCount === 0 ? '' : existingLoansCount}
+                    value={existingLoansCount}
                     placeholder="0"
-                    onChange={(e) => setExistingLoansCount(Math.max(0, Number(e.target.value) || 0))} />
+                    required
+                    onChange={(e) => setExistingLoansCount(e.target.value.replace(/[^0-9]/g, ''))} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="existing_debt_amount">Общая сумма долга по ним (₽)</Label>
+                  <Label htmlFor="existing_debt_amount">Общая сумма долга по ним (₽) *</Label>
                   <Input id="existing_debt_amount" type="number" min={0} step={1000} inputMode="numeric"
-                    value={existingDebtAmount === 0 ? '' : existingDebtAmount}
+                    value={existingDebtAmount}
                     placeholder="0"
-                    onChange={(e) => setExistingDebtAmount(Math.max(0, Number(e.target.value) || 0))} />
+                    required
+                    onChange={(e) => setExistingDebtAmount(e.target.value.replace(/[^0-9]/g, ''))} />
                 </div>
                 <p className="text-xs text-muted-foreground">Укажите честно — это влияет на решение по заявке.</p>
               </fieldset>
 
-              <Button size="lg" className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90" onClick={next}>
+              <Button size="lg" className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
+                onClick={() => { if (existingLoansCount !== '' && existingDebtAmount !== '') next(); else setApiError('Заполните информацию о текущей долговой нагрузке'); }}>
                 Далее <Icon name="ArrowRight" size={18} className="ml-1" />
               </Button>
             </div>
