@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { apiGetSiteSettings, apiSaveSiteSettings, apiUploadFile } from '@/lib/api';
-import { DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_LOGO_URL } from '@/lib/maintenanceContext';
+import { DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_LOGO_URL, DEFAULT_CABINET_BANNER_URL } from '@/lib/maintenanceContext';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 
 const DEFAULT_DEBT_THRESHOLD = 120000;
@@ -25,6 +25,8 @@ const AdminSettings = () => {
   const [companyNameSaved, setCompanyNameSaved] = useState(false);
   const [companyLogoUrl, setCompanyLogoUrl] = useState(DEFAULT_COMPANY_LOGO_URL);
   const [logoUploading, setLogoUploading] = useState(false);
+  const [cabinetBannerUrl, setCabinetBannerUrl] = useState(DEFAULT_CABINET_BANNER_URL);
+  const [bannerImgUploading, setBannerImgUploading] = useState(false);
 
   useEffect(() => {
     if (authed) {
@@ -35,6 +37,7 @@ const AdminSettings = () => {
         setDebtThreshold(s.scoring_debt_threshold || String(DEFAULT_DEBT_THRESHOLD));
         setCompanyName(s.company_name || DEFAULT_COMPANY_NAME);
         setCompanyLogoUrl(s.company_logo_url || DEFAULT_COMPANY_LOGO_URL);
+        setCabinetBannerUrl(s.cabinet_banner_url || DEFAULT_CABINET_BANNER_URL);
         setLoaded(true);
       });
     }
@@ -50,6 +53,31 @@ const AdminSettings = () => {
       // ignore
     } finally {
       setLogoUploading(false);
+    }
+  };
+
+  const handleBannerUpload = async (file: File) => {
+    setBannerImgUploading(true);
+    try {
+      const url = await apiUploadFile(file, 'branding');
+      await apiSaveSiteSettings({ cabinet_banner_url: url });
+      setCabinetBannerUrl(url);
+    } catch (_e) {
+      // ignore
+    } finally {
+      setBannerImgUploading(false);
+    }
+  };
+
+  const handleBannerRemove = async () => {
+    setBannerImgUploading(true);
+    try {
+      await apiSaveSiteSettings({ cabinet_banner_url: '' });
+      setCabinetBannerUrl('');
+    } catch (_e) {
+      // ignore
+    } finally {
+      setBannerImgUploading(false);
     }
   };
 
@@ -145,6 +173,38 @@ const AdminSettings = () => {
                           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ''; }} />
                       </label>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Баннер в личном кабинете */}
+            <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
+                  <Icon name="Image" size={18} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-primary">Баннер в личном кабинете</p>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Показывается клиентам сверху в личном кабинете (акции, новости)
+                  </p>
+                  {cabinetBannerUrl && (
+                    <img src={cabinetBannerUrl} alt="Баннер" className="mb-3 w-full max-w-md rounded-xl border border-border object-cover" />
+                  )}
+                  <div className="flex items-center gap-2">
+                    <label className={`flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium transition-colors ${bannerImgUploading ? 'pointer-events-none text-muted-foreground' : 'text-primary hover:bg-secondary'}`}>
+                      {bannerImgUploading
+                        ? <><Icon name="Loader2" size={13} className="animate-spin" /> Загрузка...</>
+                        : <><Icon name="Upload" size={13} /> {cabinetBannerUrl ? 'Заменить баннер' : 'Загрузить баннер'}</>}
+                      <input type="file" accept="image/*" className="hidden" disabled={bannerImgUploading}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleBannerUpload(f); e.target.value = ''; }} />
+                    </label>
+                    {cabinetBannerUrl && (
+                      <Button size="sm" variant="outline" disabled={bannerImgUploading} onClick={handleBannerRemove}>
+                        <Icon name="Trash2" size={13} className="mr-1.5" /> Убрать
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

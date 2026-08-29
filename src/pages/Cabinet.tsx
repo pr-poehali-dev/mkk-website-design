@@ -11,7 +11,7 @@ const PARTNERS_URL = 'https://slds.pro/87ubi';
 const PARTNERS_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/f991efb1-fabf-4d5a-befe-7584c3317fcf.jpg';
 
 const Cabinet = () => {
-  const { companyName } = useMaintenance();
+  const { companyName, cabinetBannerUrl } = useMaintenance();
   const nav = useNavigate();
   const [user, setUser] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -96,6 +96,12 @@ const Cabinet = () => {
       />
 
       <main className="container max-w-3xl px-4 py-10">
+        {cabinetBannerUrl && (
+          <div className="mb-6 overflow-hidden rounded-2xl">
+            <img src={cabinetBannerUrl} alt="Акция" className="w-full object-cover" />
+          </div>
+        )}
+
         {/* Комментарий оператора */}
         {user.operator_comment && (
           <div className="flex gap-3 rounded-2xl border border-accent/30 bg-accent/5 p-5">
