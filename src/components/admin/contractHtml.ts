@@ -2,6 +2,8 @@ import { type UserSession } from '@/lib/api';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
+export const DEFAULT_COMPANY_NAME = 'КПК «Частные займы плюс»';
+
 export function buildContractHtml(
   selected: UserSession,
   amt: number,
@@ -9,6 +11,7 @@ export function buildContractHtml(
   contractCode: string,
   returnDate: string,
   signatureCode?: string,
+  companyName: string = DEFAULT_COMPANY_NAME,
 ): string {
   const overpay = Math.round(amt * 0.008 * dys);
   const insurance = selected.insurance_enabled ? Math.round(356 + amt * 0.005) : 0;
@@ -39,7 +42,7 @@ export function buildContractHtml(
 <h1>ДОГОВОР ЗАЙМА</h1>
 <p style="text-align:center;color:#666">${contractCode} &nbsp;·&nbsp; от ${selected.created_at?.slice(0, 10)}</p>
 <h2>Стороны</h2>
-<p><b>Займодавец:</b> КПК «Частные займы плюс»</p>
+<p><b>Займодавец:</b> ${companyName}</p>
 <p><b>Заёмщик:</b> ${selected.full_name}, тел. ${selected.phone}${selected.email ? `, email: ${selected.email}` : ''}</p>
 <h2>Условия займа</h2>
 <div class="row"><span class="label">Сумма займа</span><span class="val">${fmt(amt)} ₽</span></div>
@@ -53,7 +56,7 @@ ${selected.insurance_enabled ? `<div class="row"><span class="label">Страх�
 <p>Номер заявки: <b>${selected.ref_number}</b></p>
 <p>Паспорт: <b>${selected.passport || '—'}</b></p>
 <h2>Общие условия договора потребительского займа</h2>
-<p>КПК «Частные займы плюс»</p>
+<p>${companyName}</p>
 <p><b>Сторона (Стороны)</b> – Заемщик и Кредитор, упоминаемые по отдельности или вместе; Иные термины и выражения, используемые в настоящем документе, имеют значение, которое придается им в соответствующих законах и иных нормативных актах Российской Федерации.</p>
 <p><b>ОБЩИЕ ПОЛОЖЕНИЯ</b></p>
 <p>1. Общие условия устанавливаются Кредитором в одностороннем порядке в целях многократного применения.</p>
@@ -71,7 +74,7 @@ ${selected.insurance_enabled ? `<div class="row"><span class="label">Страх�
 ${selected.insurance_enabled ? `<p><b>СТРАХОВАНИЕ ЗАЙМА</b></p><p>11. Заемщик подключил услугу добровольного страхования займа. Стоимость страховки составляет <b>${fmt(insurance)} ₽</b> и включена в общую сумму к возврату. Страховка обеспечивает защиту Заемщика в случае наступления страхового события, предусмотренного условиями страхования.</p>` : ''}
 ${signatureCode ? `<div style="margin-top:32px;border:1px solid #ccc;border-radius:8px;padding:12px;background:#f9fafb;text-align:center"><p style="color:#666;font-size:11px;margin:0 0 4px">Код электронной подписи</p><p style="font-family:monospace;font-size:18px;font-weight:bold;letter-spacing:4px;color:#1a56db;margin:0">${signatureCode}</p><p style="color:#666;font-size:10px;margin:4px 0 0">Подтверждает согласие заёмщика с условиями договора</p></div>` : ''}
 <div class="sign">
-  <div class="sign-box"><div class="sign-line">Займодавец / КПК «Частные займы плюс»</div></div>
+  <div class="sign-box"><div class="sign-line">Займодавец / ${companyName}</div></div>
   <div class="sign-box"><div class="sign-line">Заёмщик / ${selected.full_name}</div></div>
 </div>
 </body>

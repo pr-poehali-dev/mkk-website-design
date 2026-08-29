@@ -6,11 +6,13 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { apiSubmitSupportRequest, apiUploadFile } from '@/lib/api';
 import { getSession } from '@/lib/api';
+import { useMaintenance } from '@/lib/maintenanceContext';
 
 const HERO_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/affeadbd-d565-4434-9e7e-31d8281c0679.jpg';
 const MAX_FILES = 10;
 
 const Appeal = () => {
+  const { companyName } = useMaintenance();
   const nav = useNavigate();
   const session = getSession();
 
@@ -251,7 +253,7 @@ const Appeal = () => {
                 <Icon name="Mail" size={16} className="text-accent" /> zaymy.plyus@bk.ru
               </a>
             </div>
-            <p className="text-primary-foreground/60 text-center">© 2026 КПК «Частные займы плюс». Все права защищены.</p>
+            <p className="text-primary-foreground/60 text-center">© 2026 {companyName}. Все права защищены.</p>
           </div>
         </div>
       </footer>

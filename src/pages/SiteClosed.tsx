@@ -1,4 +1,7 @@
+import { useMaintenance } from '@/lib/maintenanceContext';
+
 const SiteClosed = () => {
+  const { companyName } = useMaintenance();
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#1a1050] to-[#24243e] px-4 text-center my-0">
       <div className="w-full max-w-md">
@@ -37,7 +40,7 @@ const SiteClosed = () => {
           </a>
         </div>
 
-        <p className="mt-6 text-xs text-white/25">© {new Date().getFullYear()} КПК «Частные займы плюс»</p>
+        <p className="mt-6 text-xs text-white/25">© {new Date().getFullYear()} {companyName}</p>
       </div>
     </div>
   );

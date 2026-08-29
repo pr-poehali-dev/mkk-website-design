@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { apiGetNews, type NewsItem } from '@/lib/api';
+import { useMaintenance } from '@/lib/maintenanceContext';
 
 const PAGE_SIZE = 5;
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 const News = () => {
+  const { companyName } = useMaintenance();
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -139,7 +141,7 @@ const News = () => {
                 <Icon name="Mail" size={16} className="text-accent" /> zaymy.plyus@bk.ru
               </a>
             </div>
-            <p className="text-primary-foreground/60 text-center">© 2026 КПК «Частные займы плюс». Все права защищены.</p>
+            <p className="text-primary-foreground/60 text-center">© 2026 {companyName}. Все права защищены.</p>
           </div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link to="/appeal"

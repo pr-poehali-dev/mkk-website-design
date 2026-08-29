@@ -27,7 +27,7 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => {
 const RATE = 0.008; // 0.8% в день
 
 const Index = () => {
-  const { maintenance } = useMaintenance();
+  const { maintenance, companyName } = useMaintenance();
   const [amount, setAmount] = useState(15000);
   const [days, setDays] = useState(14);
   const [modal, setModal] = useState<'privacy' | 'about' | null>(null);
@@ -345,7 +345,7 @@ const Index = () => {
                 <Icon name="Mail" size={16} className="text-accent" /> zaymy.plyus@bk.ru
               </a>
             </div>
-            <p className="text-primary-foreground/60 text-center">© 2026  «Частные займы плюс». Все права защищены.</p>
+            <p className="text-primary-foreground/60 text-center">© 2026 {companyName}. Все права защищены.</p>
           </div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button onClick={() => setModal('privacy')}
@@ -384,7 +384,7 @@ const Index = () => {
               </button>
             </div>
             <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-              <p className="font-semibold text-primary">КПК «Частные займы плюс»</p>
+              <p className="font-semibold text-primary">{companyName}</p>
               <p>Настоящая политика описывает порядок обработки персональных данных пользователей в соответствии с Федеральным законом №152-ФЗ «О персональных данных».</p>
               <p><span className="font-medium text-primary">Какие данные собираем:</span> ФИО, дата рождения, паспортные данные, адрес регистрации и проживания, номер телефона, место работы, фотографии документов.</p>
               <p><span className="font-medium text-primary">Цели обработки:</span> рассмотрение заявки на займ, заключение и исполнение договора, проверка кредитоспособности, передача данных в бюро кредитных историй.</p>
@@ -409,8 +409,8 @@ const Index = () => {
               </button>
             </div>
             <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-              <p className="font-semibold text-primary text-base">КПК «Частные займы плюс»</p>
-              <p>Кредитный потребительский кооператив «Частные займы плюс» работает на рынке потребительского кредитования с 2014 года. Мы помогаем людям решать финансовые вопросы быстро и прозрачно.</p>
+              <p className="font-semibold text-primary text-base">{companyName}</p>
+              <p>{companyName} работает на рынке потребительского кредитования с 2014 года. Мы помогаем людям решать финансовые вопросы быстро и прозрачно.</p>
               <div className="rounded-xl bg-secondary p-4 space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">ИНН</span>

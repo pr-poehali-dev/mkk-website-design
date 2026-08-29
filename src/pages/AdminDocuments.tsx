@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
+import { useMaintenance } from '@/lib/maintenanceContext';
 import {
   buildPhoneChangeApplicationHtml,
   buildDebtClearanceCertificateHtml,
@@ -15,7 +16,7 @@ interface DocDef {
   description: string;
   icon: string;
   fileName: string;
-  build: () => string;
+  build: (companyName: string) => string;
 }
 
 const DOCS: DocDef[] = [
@@ -33,7 +34,7 @@ const DOCS: DocDef[] = [
     description: 'Типовой бланк справки для клиента, полностью погасившего займ',
     icon: 'FileCheck',
     fileName: 'Справка_об_отсутствии_задолженности.html',
-    build: buildDebtClearanceCertificateHtml,
+    build: (companyName) => buildDebtClearanceCertificateHtml(undefined, companyName),
   },
   {
     key: 'pd_consent',
@@ -41,7 +42,7 @@ const DOCS: DocDef[] = [
     description: 'Развёрнутый типовой текст 152-ФЗ (10 страниц)',
     icon: 'ShieldCheck',
     fileName: 'Согласие_на_обработку_ПД.html',
-    build: buildPersonalDataConsentHtml,
+    build: (companyName) => buildPersonalDataConsentHtml(undefined, companyName),
   },
   {
     key: 'pd_transfer',
@@ -49,19 +50,20 @@ const DOCS: DocDef[] = [
     description: 'Согласие на передачу данных третьим лицам (БКИ, банки, коллекторы и др.)',
     icon: 'Share2',
     fileName: 'Согласие_на_передачу_ПД.html',
-    build: buildDataTransferConsentHtml,
+    build: (companyName) => buildDataTransferConsentHtml(undefined, companyName),
   },
 ];
 
 const AdminDocuments = () => {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('zaimy_admin') === '1');
+  const { companyName } = useMaintenance();
 
   if (!authed) {
     return <AdminLoginScreen onAuth={() => setAuthed(true)} />;
   }
 
   const download = (doc: DocDef) => {
-    const html = doc.build();
+    const html = doc.build(companyName);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -72,7 +74,7 @@ const AdminDocuments = () => {
   };
 
   const preview = (doc: DocDef) => {
-    const html = doc.build();
+    const html = doc.build(companyName);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');

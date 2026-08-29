@@ -1,3 +1,5 @@
+export const DEFAULT_COMPANY_NAME = 'КПК «Частные займы плюс»';
+
 export interface ClientDocData {
   full_name?: string | null;
   passport?: string | null;
@@ -48,12 +50,12 @@ ${body}
 </body>
 </html>`;
 
-export function buildPhoneChangeApplicationHtml(): string {
+export function buildPhoneChangeApplicationHtml(companyName = DEFAULT_COMPANY_NAME): string {
   return wrap('Заявление на смену номера телефона', `
 <h1>ЗАЯВЛЕНИЕ</h1>
 <p class="center muted">на изменение номера контактного телефона</p>
 
-<p>Генеральному директору<br>КПК «Частные займы плюс»</p>
+<p>Генеральному директору<br>${esc(companyName)}</p>
 
 <p>от <span class="blank"></span><br>
 (ФИО заёмщика полностью)</p>
@@ -78,14 +80,14 @@ export function buildPhoneChangeApplicationHtml(): string {
 `);
 }
 
-export function buildDebtClearanceCertificateHtml(client?: ClientDocData): string {
+export function buildDebtClearanceCertificateHtml(client?: ClientDocData, companyName = DEFAULT_COMPANY_NAME): string {
   return wrap('Справка об отсутствии задолженности', `
 <h1>СПРАВКА</h1>
 <p class="center muted">об отсутствии задолженности по договору займа</p>
 
 <p class="center">№ <span class="blank-sm"></span> от ${val(today())}</p>
 
-<p>Кредитный потребительский кооператив «Частные займы плюс» настоящим подтверждает, что:</p>
+<p>${esc(companyName)} настоящим подтверждает, что:</p>
 
 <p><b>Заёмщик:</b> ${val(client?.full_name)}<br>
 (ФИО полностью)</p>
@@ -104,7 +106,7 @@ export function buildDebtClearanceCertificateHtml(client?: ClientDocData): strin
 `);
 }
 
-export function buildDataTransferConsentHtml(client?: ClientDocData): string {
+export function buildDataTransferConsentHtml(client?: ClientDocData, companyName = DEFAULT_COMPANY_NAME): string {
   return wrap('Согласие на передачу персональных данных третьим лицам', `
 <h1>СОГЛАСИЕ</h1>
 <p class="center muted">на передачу (трансграничную передачу) персональных данных третьим лицам</p>
@@ -114,7 +116,7 @@ export function buildDataTransferConsentHtml(client?: ClientDocData): string {
 <p>паспорт ${val(client?.passport)}, выдан ${val(client?.passport_by)},</p>
 <p>зарегистрированный(ая) по адресу: ${val(client?.address_registration || client?.address_residence)},</p>
 
-<p>в соответствии со статьёй 9 Федерального закона от 27.07.2006 № 152-ФЗ «О персональных данных» даю своё согласие КПК «Частные займы плюс» (далее — Оператор) на передачу моих персональных данных следующим категориям третьих лиц:</p>
+<p>в соответствии со статьёй 9 Федерального закона от 27.07.2006 № 152-ФЗ «О персональных данных» даю своё согласие ${esc(companyName)} (далее — Оператор) на передачу моих персональных данных следующим категориям третьих лиц:</p>
 
 <ol>
   <li>Бюро кредитных историй — в целях формирования и предоставления кредитной истории;</li>
@@ -139,7 +141,7 @@ ${client?.ref_number ? `<p class="muted">Заявка: ${esc(client.ref_number)}
 `);
 }
 
-export function buildPersonalDataConsentHtml(client?: ClientDocData): string {
+export function buildPersonalDataConsentHtml(client?: ClientDocData, companyName = DEFAULT_COMPANY_NAME): string {
   return wrap('Согласие на обработку персональных данных', `
 <h1>СОГЛАСИЕ</h1>
 <p class="center muted">на обработку персональных данных</p>
@@ -148,7 +150,7 @@ export function buildPersonalDataConsentHtml(client?: ClientDocData): string {
 <p>Я, ${val(client?.full_name)},<br>(ФИО полностью)</p>
 <p>паспорт ${val(client?.passport)}, выдан ${val(client?.passport_by)},</p>
 <p>зарегистрированный(ая) по адресу: ${val(client?.address_registration || client?.address_residence)},</p>
-<p>именуемый(ая) в дальнейшем «Субъект персональных данных», настоящим даю своё согласие Кредитному потребительскому кооперативу «Частные займы плюс» (далее — «Оператор») на обработку своих персональных данных на условиях, изложенных ниже.</p>
+<p>именуемый(ая) в дальнейшем «Субъект персональных данных», настоящим даю своё согласие ${esc(companyName)} (далее — «Оператор») на обработку своих персональных данных на условиях, изложенных ниже.</p>
 
 <h2>1. Общие положения</h2>
 <p>1.1. Настоящее согласие даётся Субъектом персональных данных свободно, своей волей и в своём интересе, действует в течение всего срока взаимодействия с Оператором.</p>

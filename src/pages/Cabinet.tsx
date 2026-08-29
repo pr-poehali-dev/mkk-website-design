@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { getSession, clearSession, apiGetRequest, saveSession, type UserSession } from '@/lib/api';
+import { useMaintenance } from '@/lib/maintenanceContext';
 import CabinetHeader from '@/components/cabinet/CabinetHeader';
 import CabinetStatusCard from '@/components/cabinet/CabinetStatusCard';
 import CabinetDialogs from '@/components/cabinet/CabinetDialogs';
@@ -10,6 +11,7 @@ const PARTNERS_URL = 'https://slds.pro/87ubi';
 const PARTNERS_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/f991efb1-fabf-4d5a-befe-7584c3317fcf.jpg';
 
 const Cabinet = () => {
+  const { companyName } = useMaintenance();
   const nav = useNavigate();
   const [user, setUser] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -145,7 +147,7 @@ const Cabinet = () => {
         <div className="container max-w-3xl px-4 py-8">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div>
-              <p className="mb-2 font-display font-bold text-primary">КПК «Частные займы плюс»</p>
+              <p className="mb-2 font-display font-bold text-primary">{companyName}</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 ИНН: 7710000000<br />
                 ОГРН: 1117746000000
@@ -179,7 +181,7 @@ const Cabinet = () => {
             </div>
           </div>
           <div className="mt-6 border-t border-border pt-4 text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} КПК «Частные займы плюс». Все права защищены.
+            © {new Date().getFullYear()} {companyName}. Все права защищены.
           </div>
         </div>
       </footer>

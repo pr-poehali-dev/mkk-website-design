@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { apiGetSiteSettings, apiSaveSiteSettings } from '@/lib/api';
+import { DEFAULT_COMPANY_NAME } from '@/lib/maintenanceContext';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 
 const DEFAULT_DEBT_THRESHOLD = 120000;
@@ -19,6 +20,9 @@ const AdminSettings = () => {
   const [debtThreshold, setDebtThreshold] = useState(String(DEFAULT_DEBT_THRESHOLD));
   const [thresholdSaving, setThresholdSaving] = useState(false);
   const [thresholdSaved, setThresholdSaved] = useState(false);
+  const [companyName, setCompanyName] = useState(DEFAULT_COMPANY_NAME);
+  const [companyNameSaving, setCompanyNameSaving] = useState(false);
+  const [companyNameSaved, setCompanyNameSaved] = useState(false);
 
   useEffect(() => {
     if (authed) {
@@ -27,6 +31,7 @@ const AdminSettings = () => {
         setSiteClosed(s.site_closed === 'true');
         setScoringEnabled(s.scoring_enabled === 'true');
         setDebtThreshold(s.scoring_debt_threshold || String(DEFAULT_DEBT_THRESHOLD));
+        setCompanyName(s.company_name || DEFAULT_COMPANY_NAME);
         setLoaded(true);
       });
     }
@@ -65,6 +70,50 @@ const AdminSettings = () => {
           </div>
         ) : (
           <>
+            {/* Название компании */}
+            <div className="mt-5 rounded-2xl border border-border bg-card p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
+                  <Icon name="Building2" size={18} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-primary">Название компании</p>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Используется на сайте (шапка, футер, договоры и справки для клиентов)
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => { setCompanyName(e.target.value); setCompanyNameSaved(false); }}
+                      className="w-full max-w-sm rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={companyNameSaving || !companyName.trim()}
+                      onClick={async () => {
+                        setCompanyNameSaving(true);
+                        try {
+                          await apiSaveSiteSettings({ company_name: companyName.trim() });
+                          setCompanyNameSaved(true);
+                          setTimeout(() => setCompanyNameSaved(false), 2000);
+                        } catch (_e) {
+                          // ignore
+                        } finally { setCompanyNameSaving(false); }
+                      }}>
+                      {companyNameSaving
+                        ? <Icon name="Loader2" size={14} className="animate-spin" />
+                        : companyNameSaved
+                          ? <Icon name="Check" size={14} className="text-green-600" />
+                          : <Icon name="Save" size={14} />}
+                      <span className="ml-1.5">Сохранить</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Баннер технических работ */}
             <div className={`mt-5 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${maintenanceBanner ? 'border-yellow-300 bg-yellow-50' : 'border-border bg-card'}`}>
               <div className="flex items-start gap-3">

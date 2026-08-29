@@ -12,6 +12,7 @@ import {
   type UserSession, type EmailTemplate, type ScoringResult,
 } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
+import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from './contractHtml';
 import { useState, useEffect } from 'react';
 
@@ -62,6 +63,7 @@ const AdminEditModal = ({
   onBlockToggled,
   onDocStatusChanged,
 }: Props) => {
+  const { companyName } = useMaintenance();
   const [newPassword, setNewPassword] = useState('');
   const [pwdSaving, setPwdSaving] = useState(false);
   const [pwdMsg, setPwdMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -294,7 +296,7 @@ const AdminEditModal = ({
     const d = new Date(selected.created_at || Date.now());
     d.setDate(d.getDate() + dys);
     const returnDate = d.toLocaleDateString('ru-RU');
-    const getHtml = () => buildContractHtml(selected, amt, dys, contractCode, returnDate);
+    const getHtml = () => buildContractHtml(selected, amt, dys, contractCode, returnDate, undefined, companyName);
     return { amt, dys, overpay, total, contractCode, returnDate, getHtml };
   };
 

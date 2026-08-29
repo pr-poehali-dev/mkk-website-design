@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
+import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from '@/components/admin/contractHtml';
 import {
   buildDebtClearanceCertificateHtml,
@@ -60,6 +61,7 @@ const CabinetDialogs = ({
   setUser,
   onLogout,
 }: Props) => {
+  const { companyName } = useMaintenance();
   const returnDate = (() => {
     const d = new Date(user.created_at || Date.now());
     d.setDate(d.getDate() + user.days);
@@ -71,7 +73,7 @@ const CabinetDialogs = ({
 
   const downloadContract = () => {
     const sigCode = localStorage.getItem(`sig_code_${user.ref_number}`) || undefined;
-    const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate, sigCode);
+    const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate, sigCode, companyName);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -92,8 +94,8 @@ const CabinetDialogs = ({
     created_at: user.created_at,
   };
 
-  const downloadDoc = (build: (c: typeof clientDocData) => string, fileName: string) => {
-    const html = build(clientDocData);
+  const downloadDoc = (build: (c: typeof clientDocData, companyName?: string) => string, fileName: string) => {
+    const html = build(clientDocData, companyName);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
