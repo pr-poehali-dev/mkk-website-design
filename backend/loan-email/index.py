@@ -4,6 +4,7 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.utils import formatdate, make_msgid, formataddr
 import psycopg2
 
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
@@ -14,6 +15,15 @@ DEFAULT_DESIGN = {
     'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
     'logo_url': '', 'signature': 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
 }
+
+
+def html_to_text(html: str) -> str:
+    import re
+    text = re.sub(r'<br\s*/?>', '\n', html)
+    text = re.sub(r'</p>', '\n\n', text)
+    text = re.sub(r'<[^>]+>', '', text)
+    text = text.replace('&nbsp;', ' ').replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
+    return re.sub(r'\n{3,}', '\n\n', text).strip()
 
 
 def get_system_email_settings(cur) -> dict:
@@ -27,13 +37,17 @@ def get_system_email_settings(cur) -> dict:
         return {}
 
 
-def send_email(to_email: str, subject: str, html_body: str) -> None:
+def send_email(to_email: str, subject: str, html_body: str, text_body: str, brand_name: str) -> None:
     login = os.environ['SMTP_LOGIN']
     password = os.environ['SMTP_PASSWORD']
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
-    msg['From'] = login
+    msg['From'] = formataddr((brand_name, login))
     msg['To'] = to_email
+    msg['Reply-To'] = login
+    msg['Date'] = formatdate(localtime=True)
+    msg['Message-ID'] = make_msgid(domain=login.split('@')[-1])
+    msg.attach(MIMEText(text_body, 'plain', 'utf-8'))
     msg.attach(MIMEText(html_body, 'html', 'utf-8'))
     with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
         server.login(login, password)
@@ -124,8 +138,10 @@ def handler(event: dict, context) -> dict:
         </div>
         """
 
+    text_body = html_to_text(html_body)
+
     try:
-        send_email(to_email, subject, html_body)
+        send_email(to_email, subject, html_body, text_body, design['brand_name'])
     except Exception as e:
         return {'statusCode': 500, 'headers': headers, 'body': json.dumps({'error': f'Не удалось отправить письмо: {str(e)}'})}
 
