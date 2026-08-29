@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import { apiGetSiteSettings, apiSaveSiteSettings } from '@/lib/api';
-import { DEFAULT_COMPANY_NAME } from '@/lib/maintenanceContext';
+import { apiGetSiteSettings, apiSaveSiteSettings, apiUploadFile } from '@/lib/api';
+import { DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_LOGO_URL } from '@/lib/maintenanceContext';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 
 const DEFAULT_DEBT_THRESHOLD = 120000;
@@ -23,6 +23,8 @@ const AdminSettings = () => {
   const [companyName, setCompanyName] = useState(DEFAULT_COMPANY_NAME);
   const [companyNameSaving, setCompanyNameSaving] = useState(false);
   const [companyNameSaved, setCompanyNameSaved] = useState(false);
+  const [companyLogoUrl, setCompanyLogoUrl] = useState(DEFAULT_COMPANY_LOGO_URL);
+  const [logoUploading, setLogoUploading] = useState(false);
 
   useEffect(() => {
     if (authed) {
@@ -32,10 +34,24 @@ const AdminSettings = () => {
         setScoringEnabled(s.scoring_enabled === 'true');
         setDebtThreshold(s.scoring_debt_threshold || String(DEFAULT_DEBT_THRESHOLD));
         setCompanyName(s.company_name || DEFAULT_COMPANY_NAME);
+        setCompanyLogoUrl(s.company_logo_url || DEFAULT_COMPANY_LOGO_URL);
         setLoaded(true);
       });
     }
   }, [authed]);
+
+  const handleLogoUpload = async (file: File) => {
+    setLogoUploading(true);
+    try {
+      const url = await apiUploadFile(file, 'branding');
+      await apiSaveSiteSettings({ company_logo_url: url });
+      setCompanyLogoUrl(url);
+    } catch (_e) {
+      // ignore
+    } finally {
+      setLogoUploading(false);
+    }
+  };
 
   if (!authed) {
     return <AdminLoginScreen onAuth={() => setAuthed(true)} />;
@@ -70,7 +86,7 @@ const AdminSettings = () => {
           </div>
         ) : (
           <>
-            {/* Название компании */}
+            {/* Название компании и логотип */}
             <div className="mt-5 rounded-2xl border border-border bg-card p-4">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
@@ -109,6 +125,26 @@ const AdminSettings = () => {
                           : <Icon name="Save" size={14} />}
                       <span className="ml-1.5">Сохранить</span>
                     </Button>
+                  </div>
+
+                  <div className="mt-4 border-t border-border pt-4">
+                    <p className="mb-2 text-sm font-medium text-primary">Логотип в личном кабинете</p>
+                    <div className="flex items-center gap-3">
+                      {companyLogoUrl ? (
+                        <img src={companyLogoUrl} alt="Логотип" className="h-14 w-14 rounded-2xl object-cover border border-border" />
+                      ) : (
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
+                          <Icon name="Image" size={22} />
+                        </div>
+                      )}
+                      <label className={`flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium transition-colors ${logoUploading ? 'pointer-events-none text-muted-foreground' : 'text-primary hover:bg-secondary'}`}>
+                        {logoUploading
+                          ? <><Icon name="Loader2" size={13} className="animate-spin" /> Загрузка...</>
+                          : <><Icon name="Upload" size={13} /> {companyLogoUrl ? 'Заменить логотип' : 'Загрузить логотип'}</>}
+                        <input type="file" accept="image/*" className="hidden" disabled={logoUploading}
+                          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ''; }} />
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
