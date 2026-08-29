@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useMaintenance } from '@/lib/maintenanceContext';
+import SocialLinks from '@/components/SocialLinks';
 
 const HERO_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/9f0e7a2b-03ec-4a7f-a33a-840b8a8482eb.jpg';
 const INSTANT_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/8a82cfa3-2030-49ad-8529-b59fa37dff22.jpg';
@@ -9,7 +10,7 @@ const CARD_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b
 const REQUISITES_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/ef4fb6e5-0536-424a-a437-88dd4a0d8e12.jpg';
 
 const PaymentMethods = () => {
-  const { companyName } = useMaintenance();
+  const { companyName, companyPhone, companyEmail } = useMaintenance();
   return (
     <div className="min-h-screen bg-secondary/40">
       {/* Header */}
@@ -119,12 +120,13 @@ const PaymentMethods = () => {
             <p className="font-display text-lg font-bold tracking-wide text-primary-foreground text-center">ЧАСТНЫЕ ЗАЙМЫ ПЛЮС</p>
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/40">Служба поддержки</p>
-              <a href="tel:84999610736" className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
-                <Icon name="Phone" size={16} className="text-accent" /> 8 499 961-07-36
+              <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
+                <Icon name="Phone" size={16} className="text-accent" /> {companyPhone}
               </a>
-              <a href="mailto:zaymy.plyus@bk.ru" className="flex items-center gap-2 hover:text-accent transition-colors">
-                <Icon name="Mail" size={16} className="text-accent" /> zaymy.plyus@bk.ru
+              <a href={`mailto:${companyEmail}`} className="flex items-center gap-2 hover:text-accent transition-colors">
+                <Icon name="Mail" size={16} className="text-accent" /> {companyEmail}
               </a>
+              <SocialLinks className="mt-1" />
             </div>
             <p className="text-primary-foreground/60 text-center">© 2026 {companyName}. Все права защищены.</p>
           </div>

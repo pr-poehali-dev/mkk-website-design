@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { apiGetNews, type NewsItem } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
+import SocialLinks from '@/components/SocialLinks';
 
 const PAGE_SIZE = 5;
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 const News = () => {
-  const { companyName } = useMaintenance();
+  const { companyName, companyPhone, companyEmail } = useMaintenance();
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -134,12 +135,13 @@ const News = () => {
             <p className="font-display text-lg font-bold tracking-wide text-primary-foreground text-center">ЧАСТНЫЕ ЗАЙМЫ ПЛЮС</p>
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/40">Служба поддержки</p>
-              <a href="tel:84999610736" className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
-                <Icon name="Phone" size={16} className="text-accent" /> 8 499 961-07-36
+              <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
+                <Icon name="Phone" size={16} className="text-accent" /> {companyPhone}
               </a>
-              <a href="mailto:zaymy.plyus@bk.ru" className="flex items-center gap-2 hover:text-accent transition-colors">
-                <Icon name="Mail" size={16} className="text-accent" /> zaymy.plyus@bk.ru
+              <a href={`mailto:${companyEmail}`} className="flex items-center gap-2 hover:text-accent transition-colors">
+                <Icon name="Mail" size={16} className="text-accent" /> {companyEmail}
               </a>
+              <SocialLinks className="mt-1" />
             </div>
             <p className="text-primary-foreground/60 text-center">© 2026 {companyName}. Все права защищены.</p>
           </div>

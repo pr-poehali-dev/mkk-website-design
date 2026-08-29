@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { apiGetSiteSettings, apiSaveSiteSettings, apiUploadFile } from '@/lib/api';
-import { DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_LOGO_URL, DEFAULT_CABINET_BANNER_URL, DEFAULT_COMPANY_INN, DEFAULT_COMPANY_OGRN } from '@/lib/maintenanceContext';
+import {
+  DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_LOGO_URL, DEFAULT_CABINET_BANNER_URL, DEFAULT_COMPANY_INN, DEFAULT_COMPANY_OGRN,
+  DEFAULT_COMPANY_PHONE, DEFAULT_COMPANY_EMAIL, DEFAULT_SOCIAL_TELEGRAM, DEFAULT_SOCIAL_VK, DEFAULT_SOCIAL_OK, DEFAULT_SOCIAL_MAX,
+} from '@/lib/maintenanceContext';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 
 const DEFAULT_DEBT_THRESHOLD = 120000;
@@ -31,6 +34,16 @@ const AdminSettings = () => {
   const [companyOgrn, setCompanyOgrn] = useState(DEFAULT_COMPANY_OGRN);
   const [requisitesSaving, setRequisitesSaving] = useState(false);
   const [requisitesSaved, setRequisitesSaved] = useState(false);
+  const [companyPhone, setCompanyPhone] = useState(DEFAULT_COMPANY_PHONE);
+  const [companyEmail, setCompanyEmail] = useState(DEFAULT_COMPANY_EMAIL);
+  const [contactsSaving, setContactsSaving] = useState(false);
+  const [contactsSaved, setContactsSaved] = useState(false);
+  const [socialTelegram, setSocialTelegram] = useState(DEFAULT_SOCIAL_TELEGRAM);
+  const [socialVk, setSocialVk] = useState(DEFAULT_SOCIAL_VK);
+  const [socialOk, setSocialOk] = useState(DEFAULT_SOCIAL_OK);
+  const [socialMax, setSocialMax] = useState(DEFAULT_SOCIAL_MAX);
+  const [socialSaving, setSocialSaving] = useState(false);
+  const [socialSaved, setSocialSaved] = useState(false);
 
   useEffect(() => {
     if (authed) {
@@ -44,6 +57,12 @@ const AdminSettings = () => {
         setCabinetBannerUrl(s.cabinet_banner_url || DEFAULT_CABINET_BANNER_URL);
         setCompanyInn(s.company_inn || DEFAULT_COMPANY_INN);
         setCompanyOgrn(s.company_ogrn || DEFAULT_COMPANY_OGRN);
+        setCompanyPhone(s.company_phone || DEFAULT_COMPANY_PHONE);
+        setCompanyEmail(s.company_email || DEFAULT_COMPANY_EMAIL);
+        setSocialTelegram(s.social_telegram ?? DEFAULT_SOCIAL_TELEGRAM);
+        setSocialVk(s.social_vk ?? DEFAULT_SOCIAL_VK);
+        setSocialOk(s.social_ok ?? DEFAULT_SOCIAL_OK);
+        setSocialMax(s.social_max ?? DEFAULT_SOCIAL_MAX);
         setLoaded(true);
       });
     }
@@ -256,6 +275,142 @@ const AdminSettings = () => {
                       </Button>
                     )}
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Контакты */}
+            <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
+                  <Icon name="Phone" size={18} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-primary">Телефон и почта</p>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Показываются в шапке, футере и модальных окнах на сайте
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="text"
+                      value={companyPhone}
+                      placeholder="Телефон"
+                      onChange={(e) => { setCompanyPhone(e.target.value); setContactsSaved(false); }}
+                      className="w-48 rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    />
+                    <input
+                      type="text"
+                      value={companyEmail}
+                      placeholder="Email"
+                      onChange={(e) => { setCompanyEmail(e.target.value); setContactsSaved(false); }}
+                      className="w-56 rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={contactsSaving || !companyPhone.trim() || !companyEmail.trim()}
+                      onClick={async () => {
+                        setContactsSaving(true);
+                        try {
+                          await apiSaveSiteSettings({ company_phone: companyPhone.trim(), company_email: companyEmail.trim() });
+                          setContactsSaved(true);
+                          setTimeout(() => setContactsSaved(false), 2000);
+                        } catch (_e) {
+                          // ignore
+                        } finally { setContactsSaving(false); }
+                      }}>
+                      {contactsSaving
+                        ? <Icon name="Loader2" size={14} className="animate-spin" />
+                        : contactsSaved
+                          ? <Icon name="Check" size={14} className="text-green-600" />
+                          : <Icon name="Save" size={14} />}
+                      <span className="ml-1.5">Сохранить</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Соцсети */}
+            <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
+                  <Icon name="Share2" size={18} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-primary">Ссылки на соцсети</p>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Оставьте поле пустым, чтобы значок не показывался на сайте
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-28 shrink-0 text-xs text-muted-foreground">Telegram</span>
+                      <input
+                        type="text"
+                        value={socialTelegram}
+                        placeholder="https://t.me/..."
+                        onChange={(e) => { setSocialTelegram(e.target.value); setSocialSaved(false); }}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-28 shrink-0 text-xs text-muted-foreground">VK</span>
+                      <input
+                        type="text"
+                        value={socialVk}
+                        placeholder="https://vk.com/..."
+                        onChange={(e) => { setSocialVk(e.target.value); setSocialSaved(false); }}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-28 shrink-0 text-xs text-muted-foreground">Одноклассники</span>
+                      <input
+                        type="text"
+                        value={socialOk}
+                        placeholder="https://ok.ru/..."
+                        onChange={(e) => { setSocialOk(e.target.value); setSocialSaved(false); }}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-28 shrink-0 text-xs text-muted-foreground">MAX</span>
+                      <input
+                        type="text"
+                        value={socialMax}
+                        placeholder="https://max.ru/..."
+                        onChange={(e) => { setSocialMax(e.target.value); setSocialSaved(false); }}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-3"
+                    disabled={socialSaving}
+                    onClick={async () => {
+                      setSocialSaving(true);
+                      try {
+                        await apiSaveSiteSettings({
+                          social_telegram: socialTelegram.trim(),
+                          social_vk: socialVk.trim(),
+                          social_ok: socialOk.trim(),
+                          social_max: socialMax.trim(),
+                        });
+                        setSocialSaved(true);
+                        setTimeout(() => setSocialSaved(false), 2000);
+                      } catch (_e) {
+                        // ignore
+                      } finally { setSocialSaving(false); }
+                    }}>
+                    {socialSaving
+                      ? <Icon name="Loader2" size={14} className="animate-spin" />
+                      : socialSaved
+                        ? <Icon name="Check" size={14} className="text-green-600" />
+                        : <Icon name="Save" size={14} />}
+                    <span className="ml-1.5">Сохранить</span>
+                  </Button>
                 </div>
               </div>
             </div>

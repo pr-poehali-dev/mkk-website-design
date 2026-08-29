@@ -11,7 +11,7 @@ const PARTNERS_URL = 'https://slds.pro/87ubi';
 const PARTNERS_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/f991efb1-fabf-4d5a-befe-7584c3317fcf.jpg';
 
 const Cabinet = () => {
-  const { companyName, cabinetBannerUrl, companyInn, companyOgrn } = useMaintenance();
+  const { companyName, cabinetBannerUrl, companyInn, companyOgrn, companyPhone, socialTelegram } = useMaintenance();
   const nav = useNavigate();
   const [user, setUser] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -164,12 +164,14 @@ const Cabinet = () => {
               <ul className="space-y-1.5 text-xs text-muted-foreground">
                 <li className="flex items-center gap-1.5">
                   <Icon name="Phone" size={12} className="shrink-0 text-accent" />
-                  <a href="tel:+74999610736" className="hover:text-primary transition-colors">+7 (499) 961-07-36</a>
+                  <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="hover:text-primary transition-colors">{companyPhone}</a>
                 </li>
-                <li className="flex items-center gap-1.5">
-                  <Icon name="MessageCircle" size={12} className="shrink-0 text-accent" />
-                  <a href="https://t.me/zaymiplus263" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">@zaymiplus263 — поддержка</a>
-                </li>
+                {socialTelegram && (
+                  <li className="flex items-center gap-1.5">
+                    <Icon name="MessageCircle" size={12} className="shrink-0 text-accent" />
+                    <a href={socialTelegram} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Telegram — поддержка</a>
+                  </li>
+                )}
                 <li className="flex items-center gap-1.5">
                   <Icon name="Globe" size={12} className="shrink-0 text-accent" />
                   <a href="https://займы-плюс.рф" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">займы-плюс.рф</a>

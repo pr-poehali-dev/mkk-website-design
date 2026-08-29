@@ -5,6 +5,7 @@ import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import Icon from '@/components/ui/icon';
 import { useMaintenance } from '@/lib/maintenanceContext';
+import SocialLinks from '@/components/SocialLinks';
 
 const FaqItem = ({ q, a }: { q: string; a: string }) => {
   const [open, setOpen] = useState(false);
@@ -27,7 +28,7 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => {
 const RATE = 0.008; // 0.8% в день
 
 const Index = () => {
-  const { maintenance, companyName, companyInn, companyOgrn } = useMaintenance();
+  const { maintenance, companyName, companyInn, companyOgrn, companyPhone, companyEmail } = useMaintenance();
   const [amount, setAmount] = useState(15000);
   const [days, setDays] = useState(14);
   const [modal, setModal] = useState<'privacy' | 'about' | null>(null);
@@ -338,12 +339,13 @@ const Index = () => {
             <p className="font-display text-lg font-bold tracking-wide text-primary-foreground text-center">ЧАСТНЫЕ ЗАЙМЫ ПЛЮС</p>
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/40">Служба поддержки</p>
-              <a href="tel:84999610736" className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
-                <Icon name="Phone" size={16} className="text-accent" /> 8 499 961-07-36
+              <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
+                <Icon name="Phone" size={16} className="text-accent" /> {companyPhone}
               </a>
-              <a href="mailto:zaymy.plyus@bk.ru" className="flex items-center gap-2 hover:text-accent transition-colors">
-                <Icon name="Mail" size={16} className="text-accent" /> zaymy.plyus@bk.ru
+              <a href={`mailto:${companyEmail}`} className="flex items-center gap-2 hover:text-accent transition-colors">
+                <Icon name="Mail" size={16} className="text-accent" /> {companyEmail}
               </a>
+              <SocialLinks className="mt-1" />
             </div>
             <p className="text-primary-foreground/60 text-center">© 2026 {companyName}. Все права защищены.</p>
           </div>
@@ -392,7 +394,7 @@ const Index = () => {
               <p><span className="font-medium text-primary">Цели обработки:</span> рассмотрение заявки на займ, заключение и исполнение договора, проверка кредитоспособности, передача данных в бюро кредитных историй.</p>
               <p><span className="font-medium text-primary">Хранение:</span> данные хранятся не более 5 лет с момента погашения займа или до отзыва согласия.</p>
               <p><span className="font-medium text-primary">Передача третьим лицам:</span> данные могут передаваться в бюро кредитных историй, государственные органы — строго в рамках законодательства РФ.</p>
-              <p><span className="font-medium text-primary">Права субъекта:</span> вы вправе запросить доступ к своим данным, потребовать их исправления или удаления, направив обращение на email: zaymy.plyus@bk.ru.</p>
+              <p><span className="font-medium text-primary">Права субъекта:</span> вы вправе запросить доступ к своим данным, потребовать их исправления или удаления, направив обращение на email: {companyEmail}.</p>
               <p><span className="font-medium text-primary">Защита данных:</span> передача данных осуществляется по защищённому каналу HTTPS. Доступ к данным ограничен кругом уполномоченных сотрудников.</p>
               <p className="pt-2 text-xs">Используя наш сайт и подавая заявку, вы соглашаетесь с настоящей политикой.</p>
             </div>
@@ -433,8 +435,8 @@ const Index = () => {
               </div>
               <p><span className="font-medium text-primary">Деятельность:</span> предоставление микрозаймов физическим лицам. Внесены в государственный реестр микрофинансовых организаций Банка России.</p>
               <p><span className="font-medium text-primary">Контакты:</span></p>
-              <p>Телефон: <a href="tel:84999610736" className="text-accent hover:underline">8 499 961-07-36</a></p>
-              <p>Email: <a href="mailto:zaymy.plyus@bk.ru" className="text-accent hover:underline">zaymy.plyus@bk.ru</a></p>
+              <p>Телефон: <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="text-accent hover:underline">{companyPhone}</a></p>
+              <p>Email: <a href={`mailto:${companyEmail}`} className="text-accent hover:underline">{companyEmail}</a></p>
             </div>
           </div>
         </div>
