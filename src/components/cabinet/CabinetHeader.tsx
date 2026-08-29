@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import NotificationsBell from '@/components/cabinet/NotificationsBell';
-import { useMaintenance } from '@/lib/maintenanceContext';
 
 interface Props {
   initials: string;
@@ -10,19 +9,13 @@ interface Props {
   onMenuOpen: () => void;
 }
 
-const CabinetHeader = ({ initials, firstName, phone, onMenuOpen }: Props) => {
-  const { companyLogoUrl } = useMaintenance();
-  return (
+const CabinetHeader = ({ initials, firstName, phone, onMenuOpen }: Props) => (
   <header className="border-b border-border bg-background">
     <div className="container flex h-16 items-center justify-between px-4">
       <Link to="/" className="flex items-center gap-2">
-        {companyLogoUrl ? (
-          <img src={companyLogoUrl} alt="Логотип" className="h-9 w-9 rounded-xl object-cover" />
-        ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Icon name="Landmark" size={20} />
-          </div>
-        )}
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Icon name="Landmark" size={20} />
+        </div>
         <span className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</span>
       </Link>
 
@@ -40,7 +33,6 @@ const CabinetHeader = ({ initials, firstName, phone, onMenuOpen }: Props) => {
       </div>
     </div>
   </header>
-  );
-};
+);
 
 export default CabinetHeader;
