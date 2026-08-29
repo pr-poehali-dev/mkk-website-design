@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { apiGetSiteSettings, apiSaveSiteSettings, apiUploadFile } from '@/lib/api';
-import { DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_LOGO_URL, DEFAULT_CABINET_BANNER_URL } from '@/lib/maintenanceContext';
+import { DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_LOGO_URL, DEFAULT_CABINET_BANNER_URL, DEFAULT_COMPANY_INN, DEFAULT_COMPANY_OGRN } from '@/lib/maintenanceContext';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 
 const DEFAULT_DEBT_THRESHOLD = 120000;
@@ -27,6 +27,10 @@ const AdminSettings = () => {
   const [logoUploading, setLogoUploading] = useState(false);
   const [cabinetBannerUrl, setCabinetBannerUrl] = useState(DEFAULT_CABINET_BANNER_URL);
   const [bannerImgUploading, setBannerImgUploading] = useState(false);
+  const [companyInn, setCompanyInn] = useState(DEFAULT_COMPANY_INN);
+  const [companyOgrn, setCompanyOgrn] = useState(DEFAULT_COMPANY_OGRN);
+  const [requisitesSaving, setRequisitesSaving] = useState(false);
+  const [requisitesSaved, setRequisitesSaved] = useState(false);
 
   useEffect(() => {
     if (authed) {
@@ -38,6 +42,8 @@ const AdminSettings = () => {
         setCompanyName(s.company_name || DEFAULT_COMPANY_NAME);
         setCompanyLogoUrl(s.company_logo_url || DEFAULT_COMPANY_LOGO_URL);
         setCabinetBannerUrl(s.cabinet_banner_url || DEFAULT_CABINET_BANNER_URL);
+        setCompanyInn(s.company_inn || DEFAULT_COMPANY_INN);
+        setCompanyOgrn(s.company_ogrn || DEFAULT_COMPANY_OGRN);
         setLoaded(true);
       });
     }
@@ -172,6 +178,50 @@ const AdminSettings = () => {
                         <input type="file" accept="image/*" className="hidden" disabled={logoUploading}
                           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ''; }} />
                       </label>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 border-t border-border pt-4">
+                    <p className="mb-2 text-sm font-medium text-primary">Реквизиты (ИНН и ОГРН)</p>
+                    <p className="mb-3 text-xs text-muted-foreground">
+                      Подставляются в договоры, справки и на страницы сайта
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        type="text"
+                        value={companyInn}
+                        placeholder="ИНН"
+                        onChange={(e) => { setCompanyInn(e.target.value); setRequisitesSaved(false); }}
+                        className="w-40 rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                      <input
+                        type="text"
+                        value={companyOgrn}
+                        placeholder="ОГРН"
+                        onChange={(e) => { setCompanyOgrn(e.target.value); setRequisitesSaved(false); }}
+                        className="w-48 rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={requisitesSaving || !companyInn.trim() || !companyOgrn.trim()}
+                        onClick={async () => {
+                          setRequisitesSaving(true);
+                          try {
+                            await apiSaveSiteSettings({ company_inn: companyInn.trim(), company_ogrn: companyOgrn.trim() });
+                            setRequisitesSaved(true);
+                            setTimeout(() => setRequisitesSaved(false), 2000);
+                          } catch (_e) {
+                            // ignore
+                          } finally { setRequisitesSaving(false); }
+                        }}>
+                        {requisitesSaving
+                          ? <Icon name="Loader2" size={14} className="animate-spin" />
+                          : requisitesSaved
+                            ? <Icon name="Check" size={14} className="text-green-600" />
+                            : <Icon name="Save" size={14} />}
+                        <span className="ml-1.5">Сохранить</span>
+                      </Button>
                     </div>
                   </div>
                 </div>

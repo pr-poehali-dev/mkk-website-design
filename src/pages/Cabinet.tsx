@@ -11,7 +11,7 @@ const PARTNERS_URL = 'https://slds.pro/87ubi';
 const PARTNERS_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/f991efb1-fabf-4d5a-befe-7584c3317fcf.jpg';
 
 const Cabinet = () => {
-  const { companyName, cabinetBannerUrl } = useMaintenance();
+  const { companyName, cabinetBannerUrl, companyInn, companyOgrn } = useMaintenance();
   const nav = useNavigate();
   const [user, setUser] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -155,8 +155,8 @@ const Cabinet = () => {
             <div>
               <p className="mb-2 font-display font-bold text-primary">{companyName}</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                ИНН: 7710000000<br />
-                ОГРН: 1117746000000
+                ИНН: {companyInn}<br />
+                ОГРН: {companyOgrn}
               </p>
             </div>
             <div>

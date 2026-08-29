@@ -1,4 +1,6 @@
 export const DEFAULT_COMPANY_NAME = 'КПК «Частные займы плюс»';
+export const DEFAULT_COMPANY_INN = '220038299987';
+export const DEFAULT_COMPANY_OGRN = '0092800992828288';
 
 export interface ClientDocData {
   full_name?: string | null;
@@ -80,14 +82,14 @@ export function buildPhoneChangeApplicationHtml(companyName = DEFAULT_COMPANY_NA
 `);
 }
 
-export function buildDebtClearanceCertificateHtml(client?: ClientDocData, companyName = DEFAULT_COMPANY_NAME): string {
+export function buildDebtClearanceCertificateHtml(client?: ClientDocData, companyName = DEFAULT_COMPANY_NAME, companyInn = DEFAULT_COMPANY_INN, companyOgrn = DEFAULT_COMPANY_OGRN): string {
   return wrap('Справка об отсутствии задолженности', `
 <h1>СПРАВКА</h1>
 <p class="center muted">об отсутствии задолженности по договору займа</p>
 
 <p class="center">№ <span class="blank-sm"></span> от ${val(today())}</p>
 
-<p>${esc(companyName)} настоящим подтверждает, что:</p>
+<p>${esc(companyName)} (ИНН ${esc(companyInn)}, ОГРН ${esc(companyOgrn)}) настоящим подтверждает, что:</p>
 
 <p><b>Заёмщик:</b> ${val(client?.full_name)}<br>
 (ФИО полностью)</p>

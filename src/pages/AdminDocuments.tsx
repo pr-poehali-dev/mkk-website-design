@@ -16,7 +16,7 @@ interface DocDef {
   description: string;
   icon: string;
   fileName: string;
-  build: (companyName: string) => string;
+  build: (companyName: string, companyInn: string, companyOgrn: string) => string;
 }
 
 const DOCS: DocDef[] = [
@@ -26,7 +26,7 @@ const DOCS: DocDef[] = [
     description: 'Бланк для клиента на изменение контактного номера в договоре займа',
     icon: 'Smartphone',
     fileName: 'Заявление_смена_номера.html',
-    build: buildPhoneChangeApplicationHtml,
+    build: (companyName) => buildPhoneChangeApplicationHtml(companyName),
   },
   {
     key: 'debt_clearance',
@@ -34,7 +34,7 @@ const DOCS: DocDef[] = [
     description: 'Типовой бланк справки для клиента, полностью погасившего займ',
     icon: 'FileCheck',
     fileName: 'Справка_об_отсутствии_задолженности.html',
-    build: (companyName) => buildDebtClearanceCertificateHtml(undefined, companyName),
+    build: (companyName, companyInn, companyOgrn) => buildDebtClearanceCertificateHtml(undefined, companyName, companyInn, companyOgrn),
   },
   {
     key: 'pd_consent',
@@ -56,14 +56,14 @@ const DOCS: DocDef[] = [
 
 const AdminDocuments = () => {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('zaimy_admin') === '1');
-  const { companyName } = useMaintenance();
+  const { companyName, companyInn, companyOgrn } = useMaintenance();
 
   if (!authed) {
     return <AdminLoginScreen onAuth={() => setAuthed(true)} />;
   }
 
   const download = (doc: DocDef) => {
-    const html = doc.build(companyName);
+    const html = doc.build(companyName, companyInn, companyOgrn);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -74,7 +74,7 @@ const AdminDocuments = () => {
   };
 
   const preview = (doc: DocDef) => {
-    const html = doc.build(companyName);
+    const html = doc.build(companyName, companyInn, companyOgrn);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');

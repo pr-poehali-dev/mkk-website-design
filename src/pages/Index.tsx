@@ -27,7 +27,7 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => {
 const RATE = 0.008; // 0.8% в день
 
 const Index = () => {
-  const { maintenance, companyName } = useMaintenance();
+  const { maintenance, companyName, companyInn, companyOgrn } = useMaintenance();
   const [amount, setAmount] = useState(15000);
   const [days, setDays] = useState(14);
   const [modal, setModal] = useState<'privacy' | 'about' | null>(null);
@@ -368,10 +368,10 @@ const Index = () => {
               Способы оплаты
             </Link>
           </div>
-          <p className="mt-4 text-xs text-primary-foreground/40 text-center">Деятельность регулируется ФЗ №190-ФЗ «О кредитной кооперации». Расчёты на калькуляторе носят ознакомительный характер. ИНН: 220038299987 · ОГРН: 0092800992828288
+          <p className="mt-4 text-xs text-primary-foreground/40 text-center">Деятельность регулируется ФЗ №190-ФЗ «О кредитной кооперации». Расчёты на калькуляторе носят ознакомительный характер. ИНН: {companyInn} · ОГРН: {companyOgrn}
 Сайт не является МКК или МФО, наш сервис даёт вам лучшие условия по займу.</p>
           <p className="mt-3 text-xs text-primary-foreground/40 text-center">При использовании сайта применяются файлы cookie и иные технологии, позволяющие идентифицировать пользователя и анализировать особенности использования веб-ресурса. Cookie представляют собой текстовые файлы, сохраняемые на устройстве пользователя (ПК, смартфон, планшет) и содержащие сведения о действиях на сайте (в том числе о выборе языка, статусе авторизации и др.). Факт дальнейшего использования сайта свидетельствует о согласии пользователя с применением указанных технологий.</p>
-          <p className="mt-3 text-xs text-primary-foreground/40 text-center">Оплатить заём можно банковской картой VISA, MasterCard или МИР. Все платежи проходят через защищённое соединение с использованием протокола безопасности транспортного уровня. Безопасность транзакций обеспечивает процессинговый центр Best2Pay, который соответствует международным стандартам безопасности индустрии платёжных карт. Реквизиты карты и персональные данные не передаются интернет-магазину: их обработка происходит на стороне Best2Pay и полностью защищена. Компания ООО «» не имеет доступа к этим данным.</p>
+          <p className="mt-3 text-xs text-primary-foreground/40 text-center">Оплатить заём можно банковской картой VISA, MasterCard или МИР. Все платежи проходят через защищённое соединение с использованием протокола безопасности транспортного уровня. Безопасность транзакций обеспечивает процессинговый центр Best2Pay, который соответствует международным стандартам безопасности индустрии платёжных карт. Реквизиты карты и персональные данные не передаются интернет-магазину: их обработка происходит на стороне Best2Pay и полностью защищена. Компания ООО «Итком» не имеет доступа к этим данным.</p>
         </div>
       </footer>
 
@@ -416,11 +416,11 @@ const Index = () => {
               <div className="rounded-xl bg-secondary p-4 space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">ИНН</span>
-                  <span className="font-mono font-semibold text-primary">220038299987</span>
+                  <span className="font-mono font-semibold text-primary">{companyInn}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">ОГРН</span>
-                  <span className="font-mono font-semibold text-primary">0092800992828288</span>
+                  <span className="font-mono font-semibold text-primary">{companyOgrn}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Год основания</span>

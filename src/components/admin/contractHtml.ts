@@ -3,6 +3,8 @@ import { type UserSession } from '@/lib/api';
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
 export const DEFAULT_COMPANY_NAME = 'КПК «Частные займы плюс»';
+export const DEFAULT_COMPANY_INN = '220038299987';
+export const DEFAULT_COMPANY_OGRN = '0092800992828288';
 
 export function buildContractHtml(
   selected: UserSession,
@@ -12,6 +14,8 @@ export function buildContractHtml(
   returnDate: string,
   signatureCode?: string,
   companyName: string = DEFAULT_COMPANY_NAME,
+  companyInn: string = DEFAULT_COMPANY_INN,
+  companyOgrn: string = DEFAULT_COMPANY_OGRN,
 ): string {
   const overpay = Math.round(amt * 0.008 * dys);
   const insurance = selected.insurance_enabled ? Math.round(356 + amt * 0.005) : 0;
@@ -42,7 +46,7 @@ export function buildContractHtml(
 <h1>ДОГОВОР ЗАЙМА</h1>
 <p style="text-align:center;color:#666">${contractCode} &nbsp;·&nbsp; от ${selected.created_at?.slice(0, 10)}</p>
 <h2>Стороны</h2>
-<p><b>Займодавец:</b> ${companyName}</p>
+<p><b>Займодавец:</b> ${companyName}, ИНН ${companyInn}, ОГРН ${companyOgrn}</p>
 <p><b>Заёмщик:</b> ${selected.full_name}, тел. ${selected.phone}${selected.email ? `, email: ${selected.email}` : ''}</p>
 <h2>Условия займа</h2>
 <div class="row"><span class="label">Сумма займа</span><span class="val">${fmt(amt)} ₽</span></div>

@@ -61,7 +61,7 @@ const CabinetDialogs = ({
   setUser,
   onLogout,
 }: Props) => {
-  const { companyName } = useMaintenance();
+  const { companyName, companyInn, companyOgrn } = useMaintenance();
   const returnDate = (() => {
     const d = new Date(user.created_at || Date.now());
     d.setDate(d.getDate() + user.days);
@@ -73,7 +73,7 @@ const CabinetDialogs = ({
 
   const downloadContract = () => {
     const sigCode = localStorage.getItem(`sig_code_${user.ref_number}`) || undefined;
-    const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate, sigCode, companyName);
+    const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate, sigCode, companyName, companyInn, companyOgrn);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -94,8 +94,8 @@ const CabinetDialogs = ({
     created_at: user.created_at,
   };
 
-  const downloadDoc = (build: (c: typeof clientDocData, companyName?: string) => string, fileName: string) => {
-    const html = build(clientDocData, companyName);
+  const downloadDoc = (build: (c: typeof clientDocData, companyName?: string, companyInn?: string, companyOgrn?: string) => string, fileName: string) => {
+    const html = build(clientDocData, companyName, companyInn, companyOgrn);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

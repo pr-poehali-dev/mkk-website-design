@@ -63,7 +63,7 @@ const AdminEditModal = ({
   onBlockToggled,
   onDocStatusChanged,
 }: Props) => {
-  const { companyName } = useMaintenance();
+  const { companyName, companyInn, companyOgrn } = useMaintenance();
   const [newPassword, setNewPassword] = useState('');
   const [pwdSaving, setPwdSaving] = useState(false);
   const [pwdMsg, setPwdMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -296,7 +296,7 @@ const AdminEditModal = ({
     const d = new Date(selected.created_at || Date.now());
     d.setDate(d.getDate() + dys);
     const returnDate = d.toLocaleDateString('ru-RU');
-    const getHtml = () => buildContractHtml(selected, amt, dys, contractCode, returnDate, undefined, companyName);
+    const getHtml = () => buildContractHtml(selected, amt, dys, contractCode, returnDate, undefined, companyName, companyInn, companyOgrn);
     return { amt, dys, overpay, total, contractCode, returnDate, getHtml };
   };
 
