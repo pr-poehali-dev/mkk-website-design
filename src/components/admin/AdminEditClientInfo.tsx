@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import { type UserSession, type ScoringResult } from '@/lib/api';
+import { type UserSession, type ScoringResult, type IdentifyLink } from '@/lib/api';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -13,6 +14,10 @@ interface Props {
   docStatuses: Record<string, string>;
   docStatusSaving: string | null;
   onDocStatus: (field: string, newStatus: string) => void;
+  identifyLink: IdentifyLink | null;
+  identifyGenerating: boolean;
+  identifyError: string | null;
+  onGenerateIdentifyLink: () => void;
 }
 
 const AdminEditClientInfo = ({
@@ -24,7 +29,21 @@ const AdminEditClientInfo = ({
   docStatuses,
   docStatusSaving,
   onDocStatus,
+  identifyLink,
+  identifyGenerating,
+  identifyError,
+  onGenerateIdentifyLink,
 }: Props) => {
+  const [copied, setCopied] = useState(false);
+  const identifyUrl = identifyLink ? `${window.location.origin}/verify/${identifyLink.token}` : null;
+
+  const handleCopy = () => {
+    if (!identifyUrl) return;
+    navigator.clipboard.writeText(identifyUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
   return (
     <>
       {/* Данные клиента */}
@@ -49,6 +68,38 @@ const AdminEditClientInfo = ({
             <span className="font-medium text-primary text-right">{f.value}</span>
           </div>
         ))}
+      </div>
+
+      {/* Ссылка для идентификации клиента */}
+      <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <Icon name="Link" size={14} /> Ссылка для идентификации
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Одноразовая ссылка для загрузки фото паспорта, селфи с паспортом и согласий. Действует 40 минут, повторно заполнить нельзя.
+        </p>
+        {identifyLink && identifyUrl ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2">
+              <span className="flex-1 truncate text-xs text-primary">{identifyUrl}</span>
+              <button onClick={handleCopy} className="shrink-0 text-muted-foreground hover:text-accent transition-colors">
+                <Icon name={copied ? 'Check' : 'Copy'} size={14} className={copied ? 'text-green-600' : ''} />
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">Действует до {new Date(identifyLink.expires_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</p>
+            <Button size="sm" variant="outline" disabled={identifyGenerating} onClick={onGenerateIdentifyLink} className="w-full">
+              {identifyGenerating ? <Icon name="Loader2" size={13} className="animate-spin" /> : <Icon name="RefreshCw" size={13} />}
+              <span className="ml-1.5">Сгенерировать новую</span>
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" disabled={identifyGenerating} onClick={onGenerateIdentifyLink} className="w-full">
+            {identifyGenerating
+              ? <span className="flex items-center gap-1.5"><Icon name="Loader2" size={13} className="animate-spin" /> Генерируем...</span>
+              : <span className="flex items-center gap-1.5"><Icon name="Link" size={13} /> Сгенерировать ссылку</span>}
+          </Button>
+        )}
+        {identifyError && <p className="text-xs text-red-500">{identifyError}</p>}
       </div>
 
       {/* Автоскоринг */}

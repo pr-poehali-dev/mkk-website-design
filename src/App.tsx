@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { apiCheckReminders } from "@/lib/api";
 import Index from "./pages/Index";
 import Anketa from "./pages/Anketa";
+import Identify from "./pages/Identify";
 import Login from "./pages/Login";
 import Cabinet from "./pages/Cabinet";
 import News from "./pages/News";
@@ -58,6 +59,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/anketa" element={<Anketa />} />
+              <Route path="/verify/:token" element={<Identify />} />
               <Route path="/login" element={<Login />} />
               <Route path="/cabinet" element={<Cabinet />} />
               <Route path="/news" element={<News />} />

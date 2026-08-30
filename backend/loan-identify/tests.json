@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET without token",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400
+    },
+    {
+      "name": "GET unknown token",
+      "method": "GET",
+      "path": "/?token=nonexistent123",
+      "expectedStatus": 404
+    },
+    {
+      "name": "Generate without admin token",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "generate", "ref_number": "ZP-0001"},
+      "expectedStatus": 403
+    },
+    {
+      "name": "Submit without token",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "submit"},
+      "expectedStatus": 400
+    }
+  ]
+}
