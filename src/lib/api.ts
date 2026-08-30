@@ -588,7 +588,7 @@ export async function apiSubmitIdentify(data: {
   selfie_photo_url: string;
   consent_pd: boolean;
   consent_transfer: boolean;
-  consent_contract: boolean;
+  consent_sms: boolean;
 }): Promise<void> {
   const res = await fetch(URLS.identify, {
     method: 'POST',

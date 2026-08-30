@@ -9,6 +9,7 @@ import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 import AdminClientGroup from '@/components/admin/AdminClientGroup';
 import AdminEditModal, { type EditForm } from '@/components/admin/AdminEditModal';
+import AdminIdentifyLinkModal from '@/components/admin/AdminIdentifyLinkModal';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -17,6 +18,7 @@ const Admin = () => {
   const [requests, setRequests] = useState<UserSession[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [selected, setSelected] = useState<UserSession | null>(null);
+  const [identifyTarget, setIdentifyTarget] = useState<UserSession | null>(null);
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', payment_bank: '', insurance_enabled: false });
   const [checkedRefs, setCheckedRefs] = useState<Set<string>>(new Set());
@@ -334,6 +336,7 @@ const Admin = () => {
                 checkedRefs={checkedRefs}
                 onCheck={handleCheck}
                 onEdit={openModal}
+                onIdentify={setIdentifyTarget}
                 fmt={fmt}
               />
             ));
@@ -366,6 +369,8 @@ const Admin = () => {
           setSelected((prev) => prev ? { ...prev, ...patch } : null);
         }}
       />
+
+      <AdminIdentifyLinkModal target={identifyTarget} onClose={() => setIdentifyTarget(null)} />
     </div>
   );
 };

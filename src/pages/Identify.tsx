@@ -39,7 +39,7 @@ const Identify = () => {
 
   const [consentPd, setConsentPd] = useState(false);
   const [consentTransfer, setConsentTransfer] = useState(false);
-  const [consentContract, setConsentContract] = useState(false);
+  const [consentSms, setConsentSms] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -117,7 +117,7 @@ const Identify = () => {
     window.open(url, '_blank');
   };
 
-  const canSubmit = passportFile && selfieFile && !passportChecking && !selfieChecking && consentPd && consentTransfer && consentContract;
+  const canSubmit = passportFile && selfieFile && !passportChecking && !selfieChecking && consentPd && consentTransfer;
 
   const handleSubmit = async () => {
     if (!token || !passportFile || !selfieFile) return;
@@ -132,7 +132,7 @@ const Identify = () => {
         selfie_photo_url,
         consent_pd: consentPd,
         consent_transfer: consentTransfer,
-        consent_contract: consentContract,
+        consent_sms: consentSms,
       });
       setSubmitted(true);
     } catch (e: unknown) {
@@ -315,8 +315,8 @@ const Identify = () => {
               </label>
 
               <label className="flex items-start gap-2.5 text-sm">
-                <Checkbox checked={consentContract} onCheckedChange={(v) => setConsentContract(!!v)} className="mt-0.5" />
-                <span>Согласен(на) с условиями договора займа</span>
+                <Checkbox checked={consentSms} onCheckedChange={(v) => setConsentSms(!!v)} className="mt-0.5" />
+                <span className="text-muted-foreground">Согласен(на) на получение SMS- и email-рассылок <span className="text-xs">(необязательно)</span></span>
               </label>
             </div>
 

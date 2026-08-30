@@ -117,13 +117,13 @@ def handler(event: dict, context) -> dict:
         selfie_photo_url = body.get('selfie_photo_url')
         consent_pd = bool(body.get('consent_pd'))
         consent_transfer = bool(body.get('consent_transfer'))
-        consent_contract = bool(body.get('consent_contract'))
+        consent_sms = bool(body.get('consent_sms'))
         if not passport_photo_url or not selfie_photo_url:
             conn.close()
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нужны оба фото'})}
-        if not (consent_pd and consent_transfer and consent_contract):
+        if not (consent_pd and consent_transfer):
             conn.close()
-            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нужно принять все согласия'})}
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нужно принять обязательные согласия'})}
 
         cur.execute(
             f"""SELECT ref_number, phone, identify_token_expires_at, identify_submitted_at
@@ -147,11 +147,11 @@ def handler(event: dict, context) -> dict:
             f"""UPDATE {SCHEMA}.loan_requests SET
                     passport_photo_url = %s, passport_photo_status = 'pending',
                     selfie_photo_url = %s, selfie_photo_status = 'pending',
-                    identify_consent_pd = %s, identify_consent_transfer = %s, identify_consent_contract = %s,
+                    identify_consent_pd = %s, identify_consent_transfer = %s, identify_consent_sms = %s,
                     identify_submitted_at = NOW(), identify_token = NULL, identify_token_expires_at = NULL,
                     updated_at = NOW()
                 WHERE ref_number = %s""",
-            (passport_photo_url, selfie_photo_url, consent_pd, consent_transfer, consent_contract, ref_number)
+            (passport_photo_url, selfie_photo_url, consent_pd, consent_transfer, consent_sms, ref_number)
         )
         create_notification(
             cur, phone, ref_number, 'comment',

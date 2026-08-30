@@ -1,8 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   apiUpdateRequest, apiAdminSetPassword, apiUploadFile, apiAdminSetDocStatus, apiSendEmail,
-  apiGetEmailTemplates, apiSaveEmailTemplates, apiGetSiteSettings, apiRunScoring, apiGenerateIdentifyLink,
-  type UserSession, type EmailTemplate, type ScoringResult, type IdentifyLink,
+  apiGetEmailTemplates, apiSaveEmailTemplates, apiGetSiteSettings, apiRunScoring,
+  type UserSession, type EmailTemplate, type ScoringResult,
 } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from './contractHtml';
@@ -65,9 +65,6 @@ const AdminEditModal = ({
   const [scoringEnabled, setScoringEnabled] = useState(false);
   const [scoringRunning, setScoringRunning] = useState(false);
   const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null);
-  const [identifyLink, setIdentifyLink] = useState<IdentifyLink | null>(null);
-  const [identifyGenerating, setIdentifyGenerating] = useState(false);
-  const [identifyError, setIdentifyError] = useState<string | null>(null);
 
   useEffect(() => {
     apiGetSiteSettings().then((s) => setScoringEnabled(s.scoring_enabled === 'true')).catch(() => {});
@@ -75,8 +72,6 @@ const AdminEditModal = ({
 
   useEffect(() => {
     setScoringResult(null);
-    setIdentifyLink(null);
-    setIdentifyError(null);
   }, [selected?.ref_number]);
 
   useEffect(() => {
@@ -202,20 +197,6 @@ const AdminEditModal = ({
     }
   };
 
-  const handleGenerateIdentifyLink = async () => {
-    if (!selected) return;
-    setIdentifyGenerating(true);
-    setIdentifyError(null);
-    try {
-      const link = await apiGenerateIdentifyLink(selected.ref_number);
-      setIdentifyLink(link);
-    } catch (e: unknown) {
-      setIdentifyError(e instanceof Error ? e.message : 'Не удалось создать ссылку');
-    } finally {
-      setIdentifyGenerating(false);
-    }
-  };
-
   const handleSetPassword = async () => {
     if (!selected || !newPassword) return;
     setPwdSaving(true);
@@ -317,10 +298,6 @@ const AdminEditModal = ({
               docStatuses={docStatuses}
               docStatusSaving={docStatusSaving}
               onDocStatus={handleDocStatus}
-              identifyLink={identifyLink}
-              identifyGenerating={identifyGenerating}
-              identifyError={identifyError}
-              onGenerateIdentifyLink={handleGenerateIdentifyLink}
             />
 
             <AdminEditDocumentsPassword
