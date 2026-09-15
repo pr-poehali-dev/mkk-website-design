@@ -84,6 +84,21 @@ const CabinetStatusCard = ({
   const [declineOpen, setDeclineOpen] = useState(false);
   const [declining, setDeclining] = useState(false);
 
+  // Через 10 минут после подачи заявки показываем предупреждение о возможной задержке рассмотрения
+  const [showDelayNotice, setShowDelayNotice] = useState(false);
+  useEffect(() => {
+    if (status !== 'review' || !user.created_at) return;
+    const DELAY_MS = 10 * 60 * 1000;
+    const createdMs = new Date(user.created_at).getTime();
+    const elapsedMs = Date.now() - createdMs;
+    if (elapsedMs >= DELAY_MS) {
+      setShowDelayNotice(true);
+      return;
+    }
+    const timer = setTimeout(() => setShowDelayNotice(true), DELAY_MS - elapsedMs);
+    return () => clearTimeout(timer);
+  }, [status, user.created_at]);
+
   // Псевдо-детерминированный показатель долговой нагрузки (визуальный индикатор, стабильный для заявки)
   const debtLoadPct = (() => {
     let hash = 0;
@@ -296,7 +311,18 @@ const CabinetStatusCard = ({
               );
             })}
           </div>
-        ) : status === 'money_sent' ? null : status === 'approved' ? null : status === 'repaid' ? (
+        ) : null}
+
+        {status === 'review' && showDelayNotice && (
+          <div className="mx-4 mb-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3.5">
+            <Icon name="Clock" size={18} className="mt-0.5 shrink-0 text-amber-600" />
+            <p className="text-sm text-amber-700">
+              Рассмотрение заявки занимает больше времени, чем обычно. Иногда это может занять до 24 часов — мы уведомим вас, как только решение будет готово.
+            </p>
+          </div>
+        )}
+
+        {status === 'money_sent' ? null : status === 'approved' ? null : status === 'repaid' ? (
           <div className="p-6">
             <div className="rounded-2xl border-2 border-teal-200 bg-teal-50 p-6 text-center">
               <div className="flex justify-center mb-4">
