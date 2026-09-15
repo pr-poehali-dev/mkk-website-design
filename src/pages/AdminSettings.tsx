@@ -44,6 +44,14 @@ const AdminSettings = () => {
   const [socialMax, setSocialMax] = useState(DEFAULT_SOCIAL_MAX);
   const [socialSaving, setSocialSaving] = useState(false);
   const [socialSaved, setSocialSaved] = useState(false);
+  const [operatorName, setOperatorName] = useState('Оператор');
+  const [operatorAvatarUrl, setOperatorAvatarUrl] = useState('');
+  const [operatorAvatarUploading, setOperatorAvatarUploading] = useState(false);
+  const [operatorStatus, setOperatorStatus] = useState<'online' | 'busy' | 'offline'>('online');
+  const [chatWorkingHours, setChatWorkingHours] = useState('ежедневно с 09:00 до 18:00 по мск');
+  const [operatorSaving, setOperatorSaving] = useState(false);
+  const [operatorSaved, setOperatorSaved] = useState(false);
+  const [operatorStatusSaving, setOperatorStatusSaving] = useState(false);
 
   useEffect(() => {
     if (authed) {
@@ -63,6 +71,10 @@ const AdminSettings = () => {
         setSocialVk(s.social_vk ?? DEFAULT_SOCIAL_VK);
         setSocialOk(s.social_ok ?? DEFAULT_SOCIAL_OK);
         setSocialMax(s.social_max ?? DEFAULT_SOCIAL_MAX);
+        setOperatorName(s.operator_name || 'Оператор');
+        setOperatorAvatarUrl(s.operator_avatar_url || '');
+        setOperatorStatus((s.operator_status as 'online' | 'busy' | 'offline') || 'online');
+        setChatWorkingHours(s.chat_working_hours || 'ежедневно с 09:00 до 18:00 по мск');
         setLoaded(true);
       });
     }
@@ -91,6 +103,31 @@ const AdminSettings = () => {
       // ignore
     } finally {
       setBannerImgUploading(false);
+    }
+  };
+
+  const handleOperatorAvatarUpload = async (file: File) => {
+    setOperatorAvatarUploading(true);
+    try {
+      const url = await apiUploadFile(file, 'branding');
+      await apiSaveSiteSettings({ operator_avatar_url: url });
+      setOperatorAvatarUrl(url);
+    } catch (_e) {
+      // ignore
+    } finally {
+      setOperatorAvatarUploading(false);
+    }
+  };
+
+  const handleOperatorStatusChange = async (status: 'online' | 'busy' | 'offline') => {
+    setOperatorStatusSaving(true);
+    try {
+      await apiSaveSiteSettings({ operator_status: status });
+      setOperatorStatus(status);
+    } catch (_e) {
+      // ignore
+    } finally {
+      setOperatorStatusSaving(false);
     }
   };
 
@@ -411,6 +448,100 @@ const AdminSettings = () => {
                         : <Icon name="Save" size={14} />}
                     <span className="ml-1.5">Сохранить</span>
                   </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Оператор чата */}
+            <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
+                  <Icon name="Headset" size={18} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-primary">Оператор чата</p>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Имя, аватар и статус оператора видны клиентам в чате на сайте
+                  </p>
+
+                  <div className="flex items-center gap-3">
+                    {operatorAvatarUrl ? (
+                      <img src={operatorAvatarUrl} alt="Аватар оператора" className="h-14 w-14 rounded-full object-cover border border-border" />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                        <Icon name="User" size={22} />
+                      </div>
+                    )}
+                    <label className={`flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium transition-colors ${operatorAvatarUploading ? 'pointer-events-none text-muted-foreground' : 'text-primary hover:bg-secondary'}`}>
+                      {operatorAvatarUploading
+                        ? <><Icon name="Loader2" size={13} className="animate-spin" /> Загрузка...</>
+                        : <><Icon name="Upload" size={13} /> {operatorAvatarUrl ? 'Заменить аватар' : 'Загрузить аватар'}</>}
+                      <input type="file" accept="image/*" className="hidden" disabled={operatorAvatarUploading}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleOperatorAvatarUpload(f); e.target.value = ''; }} />
+                    </label>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <input
+                      type="text"
+                      value={operatorName}
+                      placeholder="Имя оператора"
+                      onChange={(e) => { setOperatorName(e.target.value); setOperatorSaved(false); }}
+                      className="w-48 rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    />
+                    <input
+                      type="text"
+                      value={chatWorkingHours}
+                      placeholder="Время работы чата"
+                      onChange={(e) => { setChatWorkingHours(e.target.value); setOperatorSaved(false); }}
+                      className="w-64 rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={operatorSaving || !operatorName.trim()}
+                      onClick={async () => {
+                        setOperatorSaving(true);
+                        try {
+                          await apiSaveSiteSettings({
+                            operator_name: operatorName.trim(),
+                            chat_working_hours: chatWorkingHours.trim(),
+                          });
+                          setOperatorSaved(true);
+                          setTimeout(() => setOperatorSaved(false), 2000);
+                        } catch (_e) {
+                          // ignore
+                        } finally { setOperatorSaving(false); }
+                      }}>
+                      {operatorSaving
+                        ? <Icon name="Loader2" size={14} className="animate-spin" />
+                        : operatorSaved
+                          ? <Icon name="Check" size={14} className="text-green-600" />
+                          : <Icon name="Save" size={14} />}
+                      <span className="ml-1.5">Сохранить</span>
+                    </Button>
+                  </div>
+
+                  <div className="mt-4 border-t border-border pt-4">
+                    <p className="mb-2 text-sm font-medium text-primary">Статус в чате</p>
+                    <div className="flex flex-wrap gap-2">
+                      {([
+                        { key: 'online', label: 'На связи', icon: 'CircleCheck', active: 'bg-green-600 text-white hover:bg-green-700' },
+                        { key: 'busy', label: 'Занят', icon: 'Clock', active: 'bg-amber-500 text-white hover:bg-amber-600' },
+                        { key: 'offline', label: 'Не работает', icon: 'CircleOff', active: 'bg-red-600 text-white hover:bg-red-700' },
+                      ] as const).map((opt) => (
+                        <Button
+                          key={opt.key}
+                          size="sm"
+                          disabled={operatorStatusSaving}
+                          variant={operatorStatus === opt.key ? 'default' : 'outline'}
+                          className={operatorStatus === opt.key ? opt.active : ''}
+                          onClick={() => handleOperatorStatusChange(opt.key)}>
+                          <Icon name={opt.icon} size={13} className="mr-1.5" /> {opt.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

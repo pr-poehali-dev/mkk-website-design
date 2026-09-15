@@ -21,6 +21,7 @@ import AdminEmails from "./pages/AdminEmails";
 import AdminSupport from "./pages/AdminSupport";
 import AdminNews from "./pages/AdminNews";
 import AdminDocuments from "./pages/AdminDocuments";
+import AdminChats from "./pages/AdminChats";
 import SiteClosed from "./pages/SiteClosed";
 import NotFound from "./pages/NotFound";
 import MaintenanceBanner from "./components/MaintenanceBanner";
@@ -33,7 +34,7 @@ const queryClient = new QueryClient();
 const SiteGuard = ({ children }: { children: React.ReactNode }) => {
   const { siteClosed } = useMaintenance();
   const location = useLocation();
-  const adminPaths = ['/admin', '/admin/settings', '/admin/emails', '/admin/support', '/admin/news', '/admin/documents'];
+  const adminPaths = ['/admin', '/admin/settings', '/admin/emails', '/admin/support', '/admin/news', '/admin/documents', '/admin/chats'];
   if (siteClosed && !adminPaths.includes(location.pathname)) {
     return <SiteClosed />;
   }
@@ -72,6 +73,7 @@ const App = () => {
               <Route path="/admin/support" element={<AdminSupport />} />
               <Route path="/admin/news" element={<AdminNews />} />
               <Route path="/admin/documents" element={<AdminDocuments />} />
+              <Route path="/admin/chats" element={<AdminChats />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

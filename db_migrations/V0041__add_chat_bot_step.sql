@@ -1,0 +1,3 @@
+ALTER TABLE chat_sessions
+  ADD COLUMN IF NOT EXISTS bot_step VARCHAR(30),
+  ADD COLUMN IF NOT EXISTS bot_phone VARCHAR(20);

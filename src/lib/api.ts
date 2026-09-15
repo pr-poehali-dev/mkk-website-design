@@ -11,6 +11,7 @@ const URLS = {
   news:     'https://functions.poehali.dev/15f735f2-8919-476c-a802-0903e3c80c85',
   notifications: 'https://functions.poehali.dev/12de820d-b0b0-429a-8e74-07540c902a56',
   identify: 'https://functions.poehali.dev/abb4d64c-4032-45bd-b046-71c260456257',
+  chat: 'https://functions.poehali.dev/d6f6f3bc-c558-4c99-afc7-cdf27317a32e',
 };
 
 const ADMIN_TOKEN = 'admin_zaimy_plus';
@@ -608,4 +609,143 @@ export async function apiSubmitIdentify(data: {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Не удалось отправить данные');
+}
+
+export type ChatSender = 'client' | 'bot' | 'operator' | 'system';
+export type ChatSessionStatus = 'bot' | 'waiting_operator' | 'active' | 'closed';
+
+export interface ChatMessage {
+  id: number;
+  session_id: number;
+  sender: ChatSender;
+  text: string | null;
+  file_url: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface ChatSession {
+  id: number;
+  session_key: string;
+  client_name: string | null;
+  client_phone: string | null;
+  ref_number: string | null;
+  status: ChatSessionStatus;
+  operator_name: string | null;
+  rating: number | null;
+  rating_comment: string | null;
+  created_at: string;
+  updated_at: string;
+  accepted_at: string | null;
+  closed_at: string | null;
+  bot_step: string | null;
+  bot_phone: string | null;
+  unread_count?: number;
+}
+
+export interface ChatStartResult {
+  session: ChatSession;
+  messages: ChatMessage[];
+  operator_name: string;
+  operator_avatar_url: string;
+  working_hours: string;
+}
+
+export async function apiChatStart(name?: string, phone?: string): Promise<ChatStartResult> {
+  const res = await fetch(URLS.chat, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'start', name, phone }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось начать чат');
+  return json as ChatStartResult;
+}
+
+export async function apiChatSend(session_key: string, text?: string, file_url?: string): Promise<{ messages: ChatMessage[] }> {
+  const res = await fetch(URLS.chat, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'send', session_key, text, file_url }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось отправить сообщение');
+  return json as { messages: ChatMessage[] };
+}
+
+export async function apiChatMenuSelect(session_key: string, option: 'status' | 'operator' | 'other'): Promise<{ messages: ChatMessage[] }> {
+  const res = await fetch(URLS.chat, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'menu_select', session_key, option }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as { messages: ChatMessage[] };
+}
+
+export async function apiChatPoll(session_key: string, after_id: number): Promise<{ session: ChatSession; messages: ChatMessage[] }> {
+  const res = await fetch(`${URLS.chat}?session_key=${encodeURIComponent(session_key)}&after_id=${after_id}`);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as { session: ChatSession; messages: ChatMessage[] };
+}
+
+export async function apiChatRate(session_key: string, rating: number, comment?: string): Promise<void> {
+  const res = await fetch(URLS.chat, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'rate', session_key, rating, comment }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+}
+
+export async function apiChatAdminList(): Promise<ChatSession[]> {
+  const res = await fetch(`${URLS.chat}?admin=1`, {
+    headers: { 'x-admin-token': ADMIN_TOKEN },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as ChatSession[];
+}
+
+export async function apiChatAdminGet(session_key: string): Promise<{ session: ChatSession; messages: ChatMessage[] }> {
+  const res = await fetch(`${URLS.chat}?admin=1&session_key=${encodeURIComponent(session_key)}`, {
+    headers: { 'x-admin-token': ADMIN_TOKEN },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as { session: ChatSession; messages: ChatMessage[] };
+}
+
+export async function apiChatAdminSend(session_key: string, text?: string, file_url?: string): Promise<ChatMessage> {
+  const res = await fetch(URLS.chat, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'admin_send', session_key, text, file_url }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as ChatMessage;
+}
+
+export async function apiChatAdminAccept(session_key: string): Promise<void> {
+  const res = await fetch(URLS.chat, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'admin_accept', session_key }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+}
+
+export async function apiChatAdminClose(session_key: string): Promise<void> {
+  const res = await fetch(URLS.chat, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'admin_close', session_key }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
 }
