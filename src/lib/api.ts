@@ -29,6 +29,7 @@ export interface UserSession {
   status: string;
   operator_comment?: string | null;
   created_at: string;
+  updated_at?: string;
   address_residence?: string;
   address_registration?: string;
   work_place?: string;
