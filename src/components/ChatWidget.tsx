@@ -181,7 +181,7 @@ const ChatWidget = () => {
       {!open && (
         <button
           onClick={openChat}
-          className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-xl transition-transform hover:scale-105 active:scale-95"
+          className="fixed bottom-5 right-5 z-[100] flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-xl transition-transform hover:scale-105 active:scale-95"
         >
           <Icon name="MessageCircle" size={26} />
           {unread > 0 && (
@@ -193,7 +193,7 @@ const ChatWidget = () => {
       )}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-end sm:inset-auto sm:bottom-5 sm:right-5">
+        <div className="fixed inset-0 z-[100] flex items-end justify-end sm:inset-auto sm:bottom-5 sm:right-5">
           <div className="flex h-full w-full flex-col bg-background sm:h-[600px] sm:max-h-[85vh] sm:w-[380px] sm:rounded-2xl sm:border sm:border-border sm:shadow-2xl">
             {/* Шапка */}
             <div className="flex shrink-0 items-center justify-between gap-3 bg-primary px-4 py-3 text-primary-foreground sm:rounded-t-2xl">
