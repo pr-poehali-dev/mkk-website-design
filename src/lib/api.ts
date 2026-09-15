@@ -68,7 +68,7 @@ export function clearSession() {
   sessionStorage.removeItem(SESSION_KEY);
 }
 
-export async function apiSendVerificationCode(email: string, purpose: 'register' | 'sign', ref_number?: string): Promise<void> {
+export async function apiSendVerificationCode(email: string, purpose: 'register' | 'sign' | 'email_change', ref_number?: string): Promise<void> {
   const res = await fetch(URLS.verify, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -78,7 +78,7 @@ export async function apiSendVerificationCode(email: string, purpose: 'register'
   if (!res.ok) throw new Error(json.error || 'Не удалось отправить код');
 }
 
-export async function apiVerifyCode(email: string, purpose: 'register' | 'sign', code: string): Promise<void> {
+export async function apiVerifyCode(email: string, purpose: 'register' | 'sign' | 'email_change', code: string): Promise<void> {
   const res = await fetch(URLS.verify, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -192,6 +192,16 @@ export async function apiAdminSetDocStatus(data: {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка');
+}
+
+export async function apiUpdateClientEmail(ref_number: string, email: string): Promise<void> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'client_update_email', ref_number, email }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось изменить email');
 }
 
 export async function apiUpdateClientDocs(data: {

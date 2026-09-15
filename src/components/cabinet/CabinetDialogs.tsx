@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, apiUpdateClientEmail, apiSendVerificationCode, apiVerifyCode, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from '@/components/admin/contractHtml';
@@ -118,6 +118,57 @@ const CabinetDialogs = ({
       setHistoryItems(items);
     } finally {
       setHistoryLoading(false);
+    }
+  };
+
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [emailStep, setEmailStep] = useState<'enter' | 'code'>('enter');
+  const [newEmail, setNewEmail] = useState('');
+  const [emailCode, setEmailCode] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailVerifying, setEmailVerifying] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [emailSuccess, setEmailSuccess] = useState(false);
+
+  const openEmailDialog = () => {
+    setNewEmail(user.email || '');
+    setEmailCode('');
+    setEmailStep('enter');
+    setEmailError('');
+    setEmailSuccess(false);
+    setEmailOpen(true);
+  };
+
+  const handleSendEmailCode = async () => {
+    setEmailError('');
+    if (!newEmail || !newEmail.includes('@')) { setEmailError('Введите корректный email'); return; }
+    setEmailSending(true);
+    try {
+      await apiSendVerificationCode(newEmail.trim().toLowerCase(), 'email_change');
+      setEmailStep('code');
+    } catch (e: unknown) {
+      setEmailError(e instanceof Error ? e.message : 'Не удалось отправить код');
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
+  const handleVerifyEmailCode = async () => {
+    setEmailError('');
+    if (!emailCode) { setEmailError('Введите код из письма'); return; }
+    setEmailVerifying(true);
+    try {
+      const email = newEmail.trim().toLowerCase();
+      await apiVerifyCode(email, 'email_change', emailCode);
+      await apiUpdateClientEmail(user.ref_number, email);
+      const fresh = await apiGetRequest(user.ref_number);
+      saveSession(fresh);
+      setUser(fresh);
+      setEmailSuccess(true);
+    } catch (e: unknown) {
+      setEmailError(e instanceof Error ? e.message : 'Неверный код');
+    } finally {
+      setEmailVerifying(false);
     }
   };
 
@@ -280,6 +331,18 @@ const CabinetDialogs = ({
               <dt className="text-muted-foreground">Телефон</dt>
               <dd className="font-semibold">{user.phone}</dd>
             </div>
+            <div className="flex items-center justify-between gap-2 border-b border-border pb-2">
+              <dt className="text-muted-foreground">Email</dt>
+              <dd className="flex items-center gap-2">
+                <span className="font-semibold">{user.email || '—'}</span>
+                <button
+                  onClick={() => { setProfileOpen(false); openEmailDialog(); }}
+                  className="shrink-0 text-accent hover:underline"
+                >
+                  <Icon name="Pencil" size={13} />
+                </button>
+              </dd>
+            </div>
             {user.birth_date && (
               <div className="flex justify-between border-b border-border pb-2">
                 <dt className="text-muted-foreground">Дата рождения</dt>
@@ -317,6 +380,68 @@ const CabinetDialogs = ({
             <Icon name="KeyRound" size={16} className="mr-2" />
             Сменить пароль
           </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Поп-ап Смена email */}
+      <Dialog open={emailOpen} onOpenChange={(v) => { setEmailOpen(v); if (!v) { setEmailSuccess(false); setEmailError(''); } }}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-primary">Смена email</DialogTitle>
+          </DialogHeader>
+          {emailSuccess ? (
+            <div className="flex flex-col items-center gap-3 py-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <Icon name="CheckCircle" size={32} />
+              </div>
+              <p className="text-center text-sm font-medium text-primary">Email успешно изменён</p>
+              <Button className="mt-2 w-full" onClick={() => setEmailOpen(false)}>Закрыть</Button>
+            </div>
+          ) : emailStep === 'enter' ? (
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs text-muted-foreground">Новый email</label>
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={e => setNewEmail(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="example@mail.ru"
+                />
+              </div>
+              {emailError && <p className="text-sm text-red-500">{emailError}</p>}
+              <Button className="w-full" onClick={handleSendEmailCode} disabled={emailSending}>
+                {emailSending ? 'Отправляем код...' : 'Отправить код подтверждения'}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Мы отправили код подтверждения на <span className="font-semibold text-primary">{newEmail}</span>
+              </p>
+              <div>
+                <label className="mb-1 block text-xs text-muted-foreground">Код из письма</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={emailCode}
+                  onChange={e => setEmailCode(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="6-значный код"
+                />
+              </div>
+              {emailError && <p className="text-sm text-red-500">{emailError}</p>}
+              <Button className="w-full" onClick={handleVerifyEmailCode} disabled={emailVerifying}>
+                {emailVerifying ? 'Проверяем...' : 'Подтвердить'}
+              </Button>
+              <button
+                onClick={() => { setEmailStep('enter'); setEmailError(''); }}
+                className="w-full text-center text-xs text-muted-foreground hover:text-primary"
+              >
+                Изменить email
+              </button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

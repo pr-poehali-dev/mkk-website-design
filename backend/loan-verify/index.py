@@ -22,6 +22,7 @@ DEFAULT_DESIGN = {
 DEFAULT_PURPOSE_TEXT = {
     'register': ('Код подтверждения регистрации', 'Ваш код подтверждения для оформления заявки на займ:'),
     'sign': ('Код подписи договора', 'Ваш код для подписания договора займа:'),
+    'email_change': ('Код подтверждения email', 'Ваш код для подтверждения нового email:'),
 }
 
 
@@ -127,7 +128,7 @@ def handler(event: dict, context) -> dict:
     email = (body.get('email') or '').strip().lower()
     purpose = body.get('purpose')
 
-    if purpose not in ('register', 'sign'):
+    if purpose not in ('register', 'sign', 'email_change'):
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неверное назначение кода'})}
     if not email:
         return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Email обязателен'})}

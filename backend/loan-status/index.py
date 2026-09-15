@@ -147,6 +147,35 @@ def handler(event: dict, context) -> dict:
 
     body = json.loads(event.get('body') or '{}')
 
+    # Клиент меняет email (без admin-токена, только с подтверждённым кодом)
+    if not is_admin and body.get('action') == 'client_update_email':
+        ref = body.get('ref_number')
+        new_email = (body.get('email') or '').strip().lower()
+        if not ref or not new_email:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number и email обязательны'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT id FROM {SCHEMA}.verification_codes
+                WHERE email = %s AND purpose = 'email_change' AND used = true
+                  AND created_at > NOW() - INTERVAL '30 minutes'
+                ORDER BY created_at DESC LIMIT 1""",
+            (new_email,)
+        )
+        if not cur.fetchone():
+            conn.close()
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Email не подтверждён кодом. Запросите и введите код из письма.'})}
+        cur.execute(
+            f"UPDATE {SCHEMA}.loan_requests SET email = %s, updated_at = NOW() WHERE ref_number = %s RETURNING id",
+            (new_email, ref)
+        )
+        updated = cur.fetchone()
+        conn.commit()
+        conn.close()
+        if not updated:
+            return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True, 'email': new_email})}
+
     # Клиент обновляет свои документы (без admin-токена)
     if not is_admin and body.get('action') == 'client_update_docs':
         ref = body.get('ref_number')
