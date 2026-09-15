@@ -120,9 +120,6 @@ const CabinetStatusCard = ({
   };
 
   const MAX_AMOUNT = 18000;
-  const rejectedAt = user.created_at ? new Date(user.created_at) : null;
-  const daysSinceRejected = rejectedAt ? Math.floor((Date.now() - rejectedAt.getTime()) / 86400000) : 0;
-  const canReapply = status === 'rejected' && daysSinceRejected >= 7;
 
   const [calcAmount, setCalcAmount] = useState(10000);
   const [calcDays, setCalcDays] = useState(14);
@@ -372,46 +369,7 @@ const CabinetStatusCard = ({
               </a>
             </div>
           </div>
-        ) : (
-          <div className="p-6 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              К сожалению, по заявке принято отрицательное решение.{' '}
-              {canReapply
-                ? 'Прошло 7 дней — вы можете подать новую заявку.'
-                : `Вы сможете подать новую заявку через ${7 - daysSinceRejected} дн.`}
-            </p>
-
-            {user.rejection_reason && (
-              <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5">
-                <Icon name="AlertTriangle" size={16} className="mt-0.5 shrink-0 text-red-500" />
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-red-500">Причина отказа</p>
-                  <p className="text-sm text-red-700">{user.rejection_reason}</p>
-                </div>
-              </div>
-            )}
-
-            {canReapply && (
-              <Button
-                className="w-full h-12 animate-pulse-scale bg-accent font-semibold text-accent-foreground shadow-lg shadow-accent/30 transition-transform hover:scale-[1.03] hover:bg-accent/90 active:scale-[0.98]"
-                onClick={() => setShowCalc(true)}
-              >
-                <Icon name="BadgeDollarSign" size={18} className="mr-2 shrink-0" />
-                <span className="text-xs sm:text-base">Оформить займ — вам доступно до {fmt(MAX_AMOUNT)} ₽</span>
-              </Button>
-            )}
-
-            <a
-              href="https://slds.pro/87ubi"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full rounded-xl border border-accent/40 bg-accent/5 px-4 py-3 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors"
-            >
-              <Icon name="ExternalLink" size={16} className="shrink-0" />
-              Наши партнёры — получить займ
-            </a>
-          </div>
-        )}
+        ) : null}
       </div>
 
       {/* Блок займа */}
