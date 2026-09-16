@@ -68,9 +68,9 @@ const Index = () => {
   ];
 
   const steps = [
-    { n: '01', title: 'Рассчитайте займ', text: 'Выберите сумму и срок на калькуляторе.' },
-    { n: '02', title: 'Заполните анкету', text: 'Укажите данные и загрузите фото паспорта.' },
-    { n: '03', title: 'Получите деньги', text: 'Средства поступят на вашу карту за минуты.' },
+    { n: '01', time: '~7 минут', title: 'Заполните короткую анкету', text: 'Укажите основные данные, чтобы мы смогли быстро обработать вашу заявку.' },
+    { n: '02', time: '~2 минуты', title: 'Получите решение по заявке', text: 'Мы проверим информацию и сообщим результат в кратчайшие сроки.' },
+    { n: '03', time: '~1 минута', title: 'Способ получения денег на ваш выбор', text: 'После одобрения выберите удобный способ получения, и деньги поступят максимально быстро.' },
   ];
 
   const plans = [
@@ -242,16 +242,25 @@ const Index = () => {
 
       {/* How it works */}
       <section id="how" className="container px-4 py-16 md:py-24">
-        <div className="mb-12 text-center">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-accent">Просто и быстро</p>
-          <h2 className="font-display text-3xl font-bold text-primary sm:text-4xl">Как получить займ</h2>
+        <div className="mb-12">
+          <h2 className="font-display text-3xl font-bold leading-tight text-primary sm:text-4xl">
+            <span className="relative inline-block">
+              <span className="absolute inset-x-0 bottom-1 h-3 -rotate-1 rounded bg-accent/30" />
+              <span className="relative">3 простых шага</span>
+            </span>
+            <br />
+            для получения займа
+          </h2>
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="space-y-5">
           {steps.map((s) => (
-            <div key={s.n} className="relative rounded-2xl border border-border bg-card p-7 transition-shadow hover:shadow-xl">
-              <span className="font-display text-5xl font-bold text-secondary">{s.n}</span>
-              <h3 className="mt-2 font-display text-xl font-semibold text-primary">{s.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{s.text}</p>
+            <div key={s.n} className="rounded-3xl bg-secondary/60 p-7 sm:p-8">
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary font-display text-base font-bold text-primary-foreground">{s.n}</span>
+                <span className="rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-accent-foreground">{s.time}</span>
+              </div>
+              <h3 className="mt-6 font-display text-xl font-semibold text-primary sm:text-2xl">{s.title}</h3>
+              <p className="mt-2 text-muted-foreground">{s.text}</p>
             </div>
           ))}
         </div>
