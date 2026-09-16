@@ -309,26 +309,77 @@ const Index = () => {
       </section>
 
       {/* CTA */}
-      <section className="relative mx-4 mb-8 overflow-hidden rounded-2xl bg-gradient-to-b from-sky-400 via-sky-300 to-primary text-primary-foreground md:mx-auto md:max-w-5xl">
-        <div className="absolute inset-0 hero-grid opacity-20" />
-        <img
-          src="/assets/hero-person-card.png"
-          alt="Человек с картой"
-          className="pointer-events-none absolute bottom-0 right-0 h-full w-auto max-w-[45%] object-contain object-bottom opacity-90 md:max-w-[38%]"
-        />
-        <div className="container relative px-4 py-16 text-center md:py-20">
-          <h2 className="font-display text-3xl font-bold sm:text-4xl">Готовы оформить займ?</h2>
-          <p className="mx-auto mt-3 max-w-md text-primary-foreground/90">Заполните анкету за 2 минуты — решение придёт мгновенно.</p>
-          {maintenance ? (
-            <Button size="lg" disabled className="mt-7 h-12 px-8 text-base font-bold cursor-not-allowed opacity-60">
-              <Icon name="Construction" size={18} className="mr-2" />
-              Временно недоступно
-            </Button>
-          ) : (
-            <Button asChild size="lg" className="mt-7 h-12 bg-accent px-8 text-base font-bold text-accent-foreground hover:bg-accent/90">
-              <Link to="/anketa">Заполнить анкету <Icon name="ArrowRight" size={18} className="ml-1" /></Link>
-            </Button>
-          )}
+      <section className="relative mx-4 mb-8 overflow-hidden rounded-[2.5rem] bg-gradient-to-b from-secondary to-secondary/40 md:mx-auto md:max-w-5xl">
+        <div className="absolute inset-0 hero-grid opacity-40" />
+
+        {/* Плавающие звёзды-декор */}
+        <Icon name="Sparkle" size={56} className="animate-float-coin pointer-events-none absolute right-[10%] top-[6%] fill-primary text-primary opacity-80 md:right-[16%] md:top-[8%]" />
+        <Icon name="Sparkle" size={40} className="animate-float-coin-2 pointer-events-none absolute bottom-[8%] left-[8%] fill-accent text-accent opacity-90 md:left-[12%]" />
+
+        <div className="container relative grid gap-6 px-6 pb-0 pt-14 md:grid-cols-2 md:items-center md:gap-6 md:pb-10 md:pt-16">
+          {/* Текст */}
+          <div className="text-center md:text-left">
+            <h2 className="font-display text-3xl font-bold leading-tight text-primary sm:text-4xl">
+              Первый займ до 30 000 ₽<br />
+              — <span className="relative inline-block">
+                <span className="absolute inset-x-0 bottom-1 h-3 -rotate-1 rounded bg-accent/40" />
+                <span className="relative">без переплаты</span>
+              </span>
+            </h2>
+            <p className="mx-auto mt-4 max-w-sm text-muted-foreground md:mx-0">
+              На важные покупки, срочные расходы и другие необходимые траты
+            </p>
+            {maintenance ? (
+              <Button size="lg" disabled className="mt-7 h-14 w-full rounded-full px-8 text-base font-bold cursor-not-allowed opacity-60 md:w-auto">
+                <Icon name="Construction" size={18} className="mr-2" />
+                Временно недоступно
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="mt-7 h-14 w-full rounded-full bg-primary px-10 text-base font-bold text-primary-foreground hover:bg-primary/90 md:w-auto">
+                <Link to="/anketa">Получить деньги</Link>
+              </Button>
+            )}
+          </div>
+
+          {/* Иллюстрация */}
+          <div className="relative mx-auto mt-4 w-full max-w-[240px] pt-6 sm:max-w-xs md:max-w-sm md:pt-0">
+            <img
+              src="/assets/hero-person-savings.png"
+              alt="Девушка с телефоном оформляет займ"
+              className="pointer-events-none relative z-10 mx-auto h-auto w-full max-w-[260px] object-contain md:max-w-full"
+            />
+
+            <div className="absolute -right-2 top-0 z-20 w-[68%] rounded-2xl bg-card p-3 shadow-lg sm:-right-4">
+              <div className="flex items-center gap-2 text-xs font-medium text-primary sm:text-sm">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent">
+                  <Icon name="Check" size={12} />
+                </span>
+                Оплатить счета
+              </div>
+              <div className="mt-2 flex items-center gap-2 text-xs font-medium text-primary sm:text-sm">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent">
+                  <Icon name="Check" size={12} />
+                </span>
+                Купить продукты
+              </div>
+              <div className="mt-2 flex items-center gap-2 text-xs font-medium text-primary sm:text-sm">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent">
+                  <Icon name="Check" size={12} />
+                </span>
+                Заказать подарок
+              </div>
+            </div>
+
+            <div className="absolute bottom-[6%] -left-2 z-20 flex items-center gap-2 rounded-2xl bg-card px-3 py-2.5 shadow-lg sm:-left-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <Icon name="Sparkles" size={18} />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">Зачисление от <span className="font-semibold text-primary">ЗП</span></p>
+                <p className="font-display text-base font-bold text-primary">+30 000 ₽</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
