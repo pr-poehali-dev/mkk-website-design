@@ -73,6 +73,21 @@ const Index = () => {
     { n: '03', title: 'Получите деньги', text: 'Средства поступят на вашу карту за минуты.' },
   ];
 
+  const plans = [
+    {
+      icon: 'Sparkles', name: 'Старт без переплаты', amount: 'до 30 000 ₽', term: 'до 31 дня',
+      note: 'для новых клиентов', highlighted: true, badge: 'Отличный выбор 🔥',
+    },
+    {
+      icon: 'ShoppingBag', name: 'На покупки', amount: 'до 50 000 ₽', term: 'до 30 дней',
+      note: 'для проверенных клиентов', highlighted: false,
+    },
+    {
+      icon: 'Wallet', name: 'До зарплаты', amount: 'до 100 000 ₽', term: 'до 30 дней',
+      note: 'для постоянных клиентов', highlighted: false,
+    },
+  ];
+
   const reviews = [
     { name: 'Марина К.', city: 'Казань', rating: 5, text: 'Оформила займ за 10 минут, деньги пришли почти сразу. Никаких скрытых комиссий, всё как в калькуляторе.' },
     { name: 'Дмитрий С.', city: 'Новосибирск', rating: 5, text: 'Пользуюсь уже третий раз. Одобряют быстро, служба поддержки всегда на связи и всё объясняет понятно.' },
@@ -99,6 +114,7 @@ const Index = () => {
           <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
             <a href="#calc" className="text-muted-foreground transition-colors hover:text-primary">Калькулятор</a>
             <a href="#how" className="text-muted-foreground transition-colors hover:text-primary">Как это работает</a>
+            <a href="#tariffs" className="text-muted-foreground transition-colors hover:text-primary">Тарифы</a>
             <a href="#why" className="text-muted-foreground transition-colors hover:text-primary">Преимущества</a>
             <a href="#faq" className="text-muted-foreground transition-colors hover:text-primary">FAQ</a>
             <Link to="/news" className="text-muted-foreground transition-colors hover:text-primary">Новости</Link>
@@ -123,6 +139,7 @@ const Index = () => {
                 <div className="mt-8 flex flex-col gap-1">
                   <a href="#calc" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Калькулятор</a>
                   <a href="#how" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Как это работает</a>
+                  <a href="#tariffs" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Тарифы</a>
                   <a href="#why" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Преимущества</a>
                   <a href="#faq" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">FAQ</a>
                   <Link to="/news" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Новости</Link>
@@ -235,6 +252,72 @@ const Index = () => {
               <span className="font-display text-5xl font-bold text-secondary">{s.n}</span>
               <h3 className="mt-2 font-display text-xl font-semibold text-primary">{s.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{s.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Tariffs */}
+      <section id="tariffs" className="container px-4 py-16 md:py-24">
+        <div className="mb-12 text-center">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-accent">Тарифы</p>
+          <h2 className="font-display text-3xl font-bold text-primary sm:text-4xl">
+            Выберите тариф{' '}
+            <span className="relative inline-block">
+              <span className="absolute inset-x-0 bottom-1 h-3 -rotate-1 rounded bg-accent/30" />
+              <span className="relative">под ваши цели</span>
+            </span>
+          </h2>
+        </div>
+
+        <div className="-mx-4 flex gap-5 overflow-x-auto px-4 pb-4 snap-x snap-mandatory sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
+          {plans.map((p) => (
+            <div
+              key={p.name}
+              className={`relative w-[85%] shrink-0 snap-center rounded-3xl border bg-card p-6 sm:w-auto ${
+                p.highlighted ? 'border-2 border-accent shadow-xl' : 'border-border'
+              }`}
+            >
+              {p.badge && (
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-accent/20 px-4 py-1.5 text-xs font-semibold text-accent">
+                  {p.badge}
+                </span>
+              )}
+              <div className="mt-2 flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Icon name={p.icon} size={22} />
+                </div>
+                <h3 className="font-display text-lg font-semibold text-primary">{p.name}</h3>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center justify-between rounded-xl bg-secondary px-4 py-3.5">
+                  <span className="text-sm text-muted-foreground">Сумма займа</span>
+                  <span className="font-display text-lg font-bold text-primary">{p.amount}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-xl bg-secondary px-4 py-3.5">
+                  <span className="text-sm text-muted-foreground">Срок</span>
+                  <span className="font-display text-lg font-bold text-primary">{p.term}</span>
+                </div>
+              </div>
+
+              {maintenance ? (
+                <Button disabled className="mt-6 h-12 w-full cursor-not-allowed rounded-full text-base font-bold opacity-60">
+                  Временно недоступно
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  className={`mt-6 h-12 w-full rounded-full text-base font-bold ${
+                    p.highlighted
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                      : 'bg-secondary text-primary hover:bg-secondary/80'
+                  }`}
+                >
+                  <Link to="/anketa">Получить {p.highlighted ? 'бесплатно' : 'деньги'}</Link>
+                </Button>
+              )}
+              <p className="mt-3 text-center text-xs text-muted-foreground">{p.note}</p>
             </div>
           ))}
         </div>
