@@ -398,6 +398,25 @@ export async function apiSaveEmailTemplates(templates: EmailTemplate[]): Promise
   await apiSaveSiteSettings({ email_templates: JSON.stringify(templates) });
 }
 
+export interface QuickPhrase {
+  id: string;
+  shortcut: string;
+  text: string;
+}
+
+export async function apiGetQuickPhrases(): Promise<QuickPhrase[]> {
+  const s = await apiGetSiteSettings();
+  try {
+    return s.chat_quick_phrases ? JSON.parse(s.chat_quick_phrases) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function apiSaveQuickPhrases(phrases: QuickPhrase[]): Promise<void> {
+  await apiSaveSiteSettings({ chat_quick_phrases: JSON.stringify(phrases) });
+}
+
 export async function apiSaveSiteSettings(settings: Record<string, string>): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',

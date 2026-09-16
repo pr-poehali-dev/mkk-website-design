@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import {
   apiChatAdminList, apiChatAdminGet, apiChatAdminSend, apiChatAdminAccept, apiChatAdminClose, apiUploadFile,
-  type ChatSession, type ChatMessage,
+  apiGetQuickPhrases, apiSaveQuickPhrases,
+  type ChatSession, type ChatMessage, type QuickPhrase,
 } from '@/lib/api';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 
@@ -33,7 +34,81 @@ const AdminChats = () => {
   const [accepting, setAccepting] = useState(false);
   const [closing, setClosing] = useState(false);
 
+  const [quickPhrases, setQuickPhrases] = useState<QuickPhrase[]>([]);
+  const [phrasesOpen, setPhrasesOpen] = useState(false);
+  const [phrasesLoaded, setPhrasesLoaded] = useState(false);
+  const [phraseSearch, setPhraseSearch] = useState('');
+  const [addingPhrase, setAddingPhrase] = useState(false);
+  const [newShortcut, setNewShortcut] = useState('');
+  const [newPhraseText, setNewPhraseText] = useState('');
+  const [savingPhrase, setSavingPhrase] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const loadQuickPhrases = useCallback(async () => {
+    try {
+      const data = await apiGetQuickPhrases();
+      setQuickPhrases(data);
+    } finally {
+      setPhrasesLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authed && !phrasesLoaded) loadQuickPhrases();
+  }, [authed, phrasesLoaded, loadQuickPhrases]);
+
+  const filteredPhrases = useMemo(() => {
+    const q = phraseSearch.trim().toLowerCase().replace(/^\//, '');
+    if (!q) return quickPhrases;
+    return quickPhrases.filter((p) =>
+      p.shortcut.toLowerCase().includes(q) || p.text.toLowerCase().includes(q)
+    );
+  }, [quickPhrases, phraseSearch]);
+
+  const applyPhrase = (text: string) => {
+    setDraft(text);
+    setPhrasesOpen(false);
+    setPhraseSearch('');
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  const handleAddPhrase = async () => {
+    const shortcut = newShortcut.trim().replace(/^\//, '');
+    const text = newPhraseText.trim();
+    if (!shortcut || !text) return;
+    setSavingPhrase(true);
+    try {
+      const next = [...quickPhrases, { id: crypto.randomUUID(), shortcut, text }];
+      await apiSaveQuickPhrases(next);
+      setQuickPhrases(next);
+      setNewShortcut('');
+      setNewPhraseText('');
+      setAddingPhrase(false);
+    } finally {
+      setSavingPhrase(false);
+    }
+  };
+
+  const handleDeletePhrase = async (id: string) => {
+    const next = quickPhrases.filter((p) => p.id !== id);
+    setQuickPhrases(next);
+    await apiSaveQuickPhrases(next);
+  };
+
+  const handleDraftChange = (value: string) => {
+    setDraft(value);
+    if (value.startsWith('/') && value.length > 1) {
+      setPhraseSearch(value);
+      setPhrasesOpen(true);
+    } else if (value === '/') {
+      setPhraseSearch('');
+      setPhrasesOpen(true);
+    } else {
+      setPhrasesOpen(false);
+    }
+  };
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -295,23 +370,94 @@ const AdminChats = () => {
                 </div>
 
                 {selected.status !== 'closed' ? (
-                  <div className="flex shrink-0 items-center gap-2 border-t border-border p-3">
-                    <label className={`flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border text-muted-foreground hover:text-accent ${uploading ? 'pointer-events-none opacity-50' : ''}`}>
-                      {uploading ? <Icon name="Loader2" size={16} className="animate-spin" /> : <Icon name="Paperclip" size={16} />}
-                      <input type="file" className="hidden" disabled={uploading}
-                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }} />
-                    </label>
-                    <input
-                      type="text"
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
-                      placeholder="Ответить клиенту..."
-                      className="flex-1 rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
-                    />
-                    <Button size="icon" disabled={!draft.trim() || sending} onClick={handleSend} className="h-10 w-10 shrink-0 rounded-full">
-                      {sending ? <Icon name="Loader2" size={16} className="animate-spin" /> : <Icon name="Send" size={16} />}
-                    </Button>
+                  <div className="relative shrink-0 border-t border-border">
+                    {phrasesOpen && (
+                      <div className="absolute bottom-full left-0 right-0 z-20 max-h-72 overflow-hidden rounded-t-xl border border-b-0 border-border bg-card shadow-lg">
+                        <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+                          <p className="text-sm font-medium text-muted-foreground">Быстрые фразы</p>
+                          <button
+                            onClick={() => setAddingPhrase((v) => !v)}
+                            className="text-xs font-medium text-accent hover:underline"
+                          >
+                            + Добавить фразу
+                          </button>
+                        </div>
+
+                        {addingPhrase && (
+                          <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5">
+                            <input
+                              type="text"
+                              value={newShortcut}
+                              onChange={(e) => setNewShortcut(e.target.value)}
+                              placeholder="/команда"
+                              className="w-28 shrink-0 rounded-lg border border-border bg-background px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-accent"
+                            />
+                            <input
+                              type="text"
+                              value={newPhraseText}
+                              onChange={(e) => setNewPhraseText(e.target.value)}
+                              placeholder="Текст фразы"
+                              className="flex-1 rounded-lg border border-border bg-background px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-accent"
+                            />
+                            <Button size="sm" disabled={savingPhrase || !newShortcut.trim() || !newPhraseText.trim()} onClick={handleAddPhrase} className="h-8 shrink-0 px-3 text-xs">
+                              {savingPhrase ? <Icon name="Loader2" size={13} className="animate-spin" /> : 'Сохранить'}
+                            </Button>
+                          </div>
+                        )}
+
+                        <div className="max-h-56 overflow-y-auto">
+                          {filteredPhrases.length === 0 ? (
+                            <p className="px-4 py-6 text-center text-xs text-muted-foreground">Фраз пока нет</p>
+                          ) : (
+                            filteredPhrases.map((p) => (
+                              <div key={p.id} className="group flex items-start gap-3 border-b border-border/60 px-4 py-2.5 last:border-0 hover:bg-secondary/50">
+                                <button onClick={() => applyPhrase(p.text)} className="flex flex-1 items-start gap-3 text-left">
+                                  <span className="w-24 shrink-0 pt-0.5 text-xs font-medium text-accent">/{p.shortcut}</span>
+                                  <span className="flex-1 text-xs leading-snug text-primary">{p.text}</span>
+                                </button>
+                                <button
+                                  onClick={() => handleDeletePhrase(p.id)}
+                                  className="shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
+                                >
+                                  <Icon name="Trash2" size={13} />
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 p-3">
+                      <label className={`flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border text-muted-foreground hover:text-accent ${uploading ? 'pointer-events-none opacity-50' : ''}`}>
+                        {uploading ? <Icon name="Loader2" size={16} className="animate-spin" /> : <Icon name="Paperclip" size={16} />}
+                        <input type="file" className="hidden" disabled={uploading}
+                          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }} />
+                      </label>
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        value={draft}
+                        onChange={(e) => handleDraftChange(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !phrasesOpen) handleSend();
+                          if (e.key === 'Escape') setPhrasesOpen(false);
+                        }}
+                        placeholder="Ответить клиенту... (/ — быстрые фразы)"
+                        className="flex-1 rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => { setPhrasesOpen((v) => !v); setPhraseSearch(''); }}
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors ${phrasesOpen ? 'border-accent bg-accent/10 text-accent' : 'border-border text-muted-foreground hover:text-accent'}`}
+                        title="Быстрые фразы"
+                      >
+                        <Icon name="Zap" size={16} />
+                      </button>
+                      <Button size="icon" disabled={!draft.trim() || sending} onClick={handleSend} className="h-10 w-10 shrink-0 rounded-full">
+                        {sending ? <Icon name="Loader2" size={16} className="animate-spin" /> : <Icon name="Send" size={16} />}
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="shrink-0 border-t border-border p-3 text-center text-xs text-muted-foreground">
