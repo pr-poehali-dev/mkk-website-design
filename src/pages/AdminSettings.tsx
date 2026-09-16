@@ -8,6 +8,7 @@ import {
   DEFAULT_COMPANY_PHONE, DEFAULT_COMPANY_EMAIL, DEFAULT_SOCIAL_TELEGRAM, DEFAULT_SOCIAL_VK, DEFAULT_SOCIAL_OK, DEFAULT_SOCIAL_MAX,
 } from '@/lib/maintenanceContext';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
+import AdminBotMenuEditor from '@/components/admin/AdminBotMenuEditor';
 
 const DEFAULT_DEBT_THRESHOLD = 120000;
 
@@ -545,6 +546,8 @@ const AdminSettings = () => {
                 </div>
               </div>
             </div>
+
+            <AdminBotMenuEditor />
 
             {/* Баннер технических работ */}
             <div className={`mt-5 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${maintenanceBanner ? 'border-yellow-300 bg-yellow-50' : 'border-border bg-card'}`}>

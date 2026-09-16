@@ -20,6 +20,25 @@ SESSION_COLS = ['id', 'session_key', 'client_name', 'client_phone', 'ref_number'
                 'operator_name', 'rating', 'rating_comment', 'created_at', 'updated_at',
                 'accepted_at', 'closed_at', 'bot_step', 'bot_phone']
 
+DEFAULT_GREETING = 'Здравствуйте! 👋'
+DEFAULT_MENU_ITEMS = [
+    {'id': 'status', 'emoji': '📋', 'label': 'Узнать статус заявки', 'type': 'status'},
+    {'id': 'operator', 'emoji': '🙋', 'label': 'Позвать оператора', 'type': 'operator'},
+    {'id': 'terms', 'emoji': '📄', 'label': 'Условия займа', 'type': 'text',
+     'text': 'Сумма займа: от 1 000 до 100 000 ₽\nСрок: от 7 до 30 дней\nСтавка: 0,8% в день\n'
+             'Первый займ до 30 000 ₽ доступен без переплаты для новых клиентов.\n'
+             'Никаких скрытых комиссий — итоговая сумма к возврату видна в калькуляторе ещё до подачи заявки.'},
+    {'id': 'change_phone', 'emoji': '📱', 'label': 'Как сменить номер', 'type': 'operator',
+     'prefix': 'По вопросу смены номера телефона подключаю оператора. '},
+    {'id': 'appeal', 'emoji': '📝', 'label': 'Оставить обращение', 'type': 'appeal',
+     'text': 'Вы можете оставить обращение через специальную форму на сайте.\n/appeal'},
+    {'id': 'insurance', 'emoji': '🛡', 'label': 'Вернуть страховку', 'type': 'text',
+     'text': 'Для возврата страховки по займу вам надо написать нам на почту 📩 мы ответим вам в рабочее '
+             'время до 12 рабочих дней с момента получения вашего обращения.'},
+    {'id': 'other', 'emoji': '❓', 'label': 'Другой вопрос', 'type': 'operator',
+     'prefix': 'Опишите ваш вопрос — '},
+]
+
 
 def msg_to_dict(row):
     d = dict(zip(MSG_COLS, row))
@@ -42,8 +61,32 @@ def only_digits(s: str) -> str:
 
 def get_settings(cur) -> dict:
     cur.execute(f"SELECT key, value FROM {SCHEMA}.site_settings WHERE key IN "
-                f"('operator_name','operator_avatar_url','operator_status','chat_working_hours')")
+                f"('operator_name','operator_avatar_url','operator_status','chat_working_hours',"
+                f"'chat_greeting_text','chat_menu_items')")
     return {r[0]: r[1] for r in cur.fetchall()}
+
+
+def get_menu_config(settings: dict):
+    greeting = settings.get('chat_greeting_text') or DEFAULT_GREETING
+    items = DEFAULT_MENU_ITEMS
+    raw = settings.get('chat_menu_items')
+    if raw:
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, list) and parsed:
+                items = parsed
+        except (ValueError, TypeError):
+            pass
+    return greeting, items
+
+
+def build_menu_text(items) -> str:
+    lines = ['Чем я могу помочь?']
+    for it in items:
+        emoji = (it.get('emoji') or '').strip()
+        label = (it.get('label') or '').strip()
+        lines.append(f'{emoji} {label}'.strip())
+    return '\n'.join(lines)
 
 
 def add_message(cur, session_id: int, sender: str, text: str = None, file_url: str = None):
@@ -72,9 +115,6 @@ def operator_greeting(settings: dict) -> str:
     if status == 'busy':
         return 'Оператор сейчас занят другим клиентом и ответит вам в течение нескольких минут.'
     return 'Обращение передано оператору — он ответит вам в течение 2 минут.'
-
-
-MENU_TEXT = 'Чем я могу помочь?\n📋 Узнать статус заявки\n🙋 Позвать оператора\n❓ Другой вопрос'
 
 
 def handler(event: dict, context) -> dict:
@@ -145,8 +185,13 @@ def handler(event: dict, context) -> dict:
             mrows = cur.fetchall()
             cur.execute(f"UPDATE {SCHEMA}.chat_messages SET is_read = true WHERE session_id = %s AND sender IN ('operator','bot','system')", (srow[0],))
             conn.commit()
+            settings = get_settings(cur)
+            _, items = get_menu_config(settings)
             return {'statusCode': 200, 'headers': headers, 'body': json.dumps({
                 'session': session_to_dict(srow), 'messages': [msg_to_dict(r) for r in mrows],
+                'operator_name': settings.get('operator_name') or 'Оператор',
+                'operator_avatar_url': settings.get('operator_avatar_url') or '',
+                'menu_items': items,
             })}
 
         body = json.loads(event.get('body') or '{}')
@@ -201,19 +246,21 @@ def handler(event: dict, context) -> dict:
             client_name = (body.get('name') or '').strip() or None
             client_phone = (body.get('phone') or '').strip() or None
             settings = get_settings(cur)
+            greeting, items = get_menu_config(settings)
             cur.execute(
                 f"""INSERT INTO {SCHEMA}.chat_sessions (session_key, client_name, client_phone, status, bot_step)
                     VALUES (%s, %s, %s, 'bot', 'menu') RETURNING {', '.join(SESSION_COLS)}""",
                 (session_key, client_name, client_phone)
             )
             srow = cur.fetchone()
-            greet = add_message(cur, srow[0], 'bot', f'Здравствуйте! 👋\n{MENU_TEXT}')
+            greet = add_message(cur, srow[0], 'bot', f'{greeting}\n{build_menu_text(items)}')
             conn.commit()
             return {'statusCode': 201, 'headers': headers, 'body': json.dumps({
                 'session': session_to_dict(srow), 'messages': [msg_to_dict(greet)],
                 'operator_name': settings.get('operator_name') or 'Оператор',
                 'operator_avatar_url': settings.get('operator_avatar_url') or '',
                 'working_hours': settings.get('chat_working_hours') or '',
+                'menu_items': items,
             })}
 
         session_key = body.get('session_key')
@@ -244,27 +291,36 @@ def handler(event: dict, context) -> dict:
         # ---- Клиент: выбор пункта меню бота ----
         if action == 'menu_select':
             option = body.get('option')
-            if option == 'status':
-                add_message(cur, session_id, 'client', '📋 Узнать статус заявки')
+            settings = get_settings(cur)
+            _, items = get_menu_config(settings)
+            item = next((it for it in items if it.get('id') == option), None)
+            if not item:
+                return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неизвестный пункт меню'})}
+
+            client_text = f"{(item.get('emoji') or '').strip()} {(item.get('label') or '').strip()}".strip()
+            add_message(cur, session_id, 'client', client_text)
+            item_type = item.get('type')
+
+            if item_type == 'status':
                 bump_session(cur, session_id, bot_step='ask_phone')
                 row = add_message(cur, session_id, 'bot', 'Назовите номер телефона, указанный в заявке.')
                 conn.commit()
                 return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'messages': [msg_to_dict(row)]})}
-            if option == 'operator':
-                add_message(cur, session_id, 'client', '🙋 Позвать оператора')
-                settings = get_settings(cur)
+
+            if item_type == 'operator':
+                prefix = item.get('prefix') or ''
                 bump_session(cur, session_id, status='waiting_operator', bot_step=None)
-                row = add_message(cur, session_id, 'bot', operator_greeting(settings))
+                row = add_message(cur, session_id, 'bot', f'{prefix}{operator_greeting(settings)}')
                 conn.commit()
                 return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'messages': [msg_to_dict(row)]})}
-            if option == 'other':
-                add_message(cur, session_id, 'client', '❓ Другой вопрос')
-                settings = get_settings(cur)
-                bump_session(cur, session_id, status='waiting_operator', bot_step=None)
-                row = add_message(cur, session_id, 'bot', f'Опишите ваш вопрос — {operator_greeting(settings)}')
+
+            if item_type in ('text', 'appeal'):
+                row = add_message(cur, session_id, 'bot', item.get('text') or '')
+                row2 = add_message(cur, session_id, 'bot', build_menu_text(items))
                 conn.commit()
-                return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'messages': [msg_to_dict(row)]})}
-            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неизвестный пункт меню'})}
+                return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'messages': [msg_to_dict(row), msg_to_dict(row2)]})}
+
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неизвестный тип пункта меню'})}
 
         # ---- Клиент: свободное сообщение ----
         if action == 'send':
@@ -277,6 +333,8 @@ def handler(event: dict, context) -> dict:
             bot_replies = []
             if s['status'] == 'bot':
                 step = s.get('bot_step')
+                settings = get_settings(cur)
+                _, items = get_menu_config(settings)
                 if step == 'ask_phone':
                     digits = only_digits(text)
                     if len(digits) < 10:
@@ -307,12 +365,12 @@ def handler(event: dict, context) -> dict:
                     else:
                         row = add_message(cur, session_id, 'bot', 'Не удалось найти заявку по указанным данным. Хотите позвать оператора?')
                         bot_replies.append(row)
-                    row2 = add_message(cur, session_id, 'bot', MENU_TEXT)
+                    row2 = add_message(cur, session_id, 'bot', build_menu_text(items))
                     bot_replies.append(row2)
                 else:
                     row = add_message(cur, session_id, 'bot', 'Пожалуйста, воспользуйтесь кнопками ниже, либо позовите оператора для остальных вопросов.')
                     bot_replies.append(row)
-                    row2 = add_message(cur, session_id, 'bot', MENU_TEXT)
+                    row2 = add_message(cur, session_id, 'bot', build_menu_text(items))
                     bot_replies.append(row2)
             conn.commit()
             return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'messages': [msg_to_dict(r) for r in bot_replies]})}

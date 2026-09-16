@@ -417,6 +417,37 @@ export async function apiSaveQuickPhrases(phrases: QuickPhrase[]): Promise<void>
   await apiSaveSiteSettings({ chat_quick_phrases: JSON.stringify(phrases) });
 }
 
+export interface BotMenuItem {
+  id: string;
+  emoji: string;
+  label: string;
+  type: 'status' | 'operator' | 'text' | 'appeal';
+  text?: string;
+  prefix?: string;
+}
+
+export interface BotMenuConfig {
+  greeting: string;
+  items: BotMenuItem[];
+}
+
+export async function apiGetBotMenuConfig(): Promise<BotMenuConfig | null> {
+  const s = await apiGetSiteSettings();
+  if (!s.chat_menu_items) return null;
+  try {
+    return { greeting: s.chat_greeting_text || 'Здравствуйте! 👋', items: JSON.parse(s.chat_menu_items) };
+  } catch {
+    return null;
+  }
+}
+
+export async function apiSaveBotMenuConfig(config: BotMenuConfig): Promise<void> {
+  await apiSaveSiteSettings({
+    chat_greeting_text: config.greeting,
+    chat_menu_items: JSON.stringify(config.items),
+  });
+}
+
 export async function apiSaveSiteSettings(settings: Record<string, string>): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',
@@ -662,12 +693,22 @@ export interface ChatSession {
   unread_count?: number;
 }
 
+export interface ChatMenuItem {
+  id: string;
+  emoji: string;
+  label: string;
+  type: 'status' | 'operator' | 'text' | 'appeal';
+  text?: string;
+  prefix?: string;
+}
+
 export interface ChatStartResult {
   session: ChatSession;
   messages: ChatMessage[];
   operator_name: string;
   operator_avatar_url: string;
   working_hours: string;
+  menu_items: ChatMenuItem[];
 }
 
 export async function apiChatStart(name?: string, phone?: string): Promise<ChatStartResult> {
@@ -692,7 +733,7 @@ export async function apiChatSend(session_key: string, text?: string, file_url?:
   return json as { messages: ChatMessage[] };
 }
 
-export async function apiChatMenuSelect(session_key: string, option: 'status' | 'operator' | 'other'): Promise<{ messages: ChatMessage[] }> {
+export async function apiChatMenuSelect(session_key: string, option: string): Promise<{ messages: ChatMessage[] }> {
   const res = await fetch(URLS.chat, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -703,11 +744,11 @@ export async function apiChatMenuSelect(session_key: string, option: 'status' | 
   return json as { messages: ChatMessage[] };
 }
 
-export async function apiChatPoll(session_key: string, after_id: number): Promise<{ session: ChatSession; messages: ChatMessage[] }> {
+export async function apiChatPoll(session_key: string, after_id: number): Promise<{ session: ChatSession; messages: ChatMessage[]; operator_name?: string; operator_avatar_url?: string; menu_items?: ChatMenuItem[] }> {
   const res = await fetch(`${URLS.chat}?session_key=${encodeURIComponent(session_key)}&after_id=${after_id}`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка');
-  return json as { session: ChatSession; messages: ChatMessage[] };
+  return json as { session: ChatSession; messages: ChatMessage[]; operator_name?: string; operator_avatar_url?: string; menu_items?: ChatMenuItem[] };
 }
 
 export async function apiChatRate(session_key: string, rating: number, comment?: string): Promise<void> {

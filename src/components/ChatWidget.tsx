@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import {
   apiChatStart, apiChatSend, apiChatMenuSelect, apiChatPoll, apiChatRate,
-  type ChatMessage, type ChatSession,
+  type ChatMessage, type ChatSession, type ChatMenuItem,
 } from '@/lib/api';
 
 const SESSION_KEY_STORAGE = 'zaimy_chat_session';
@@ -14,6 +15,7 @@ const ChatWidget = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [operatorName, setOperatorName] = useState('Оператор');
   const [operatorAvatarUrl, setOperatorAvatarUrl] = useState('');
+  const [menuItems, setMenuItems] = useState<ChatMenuItem[]>([]);
   const [starting, setStarting] = useState(false);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -41,6 +43,7 @@ const ChatWidget = () => {
       setMessages(res.messages);
       setOperatorName(res.operator_name || 'Оператор');
       setOperatorAvatarUrl(res.operator_avatar_url || '');
+      setMenuItems(res.menu_items || []);
       lastIdRef.current = res.messages.length ? res.messages[res.messages.length - 1].id : 0;
       sessionStorage.setItem(SESSION_KEY_STORAGE, res.session.session_key);
       scrollToBottom();
@@ -55,6 +58,9 @@ const ChatWidget = () => {
       const res = await apiChatPoll(sessionKey, 0);
       setSession(res.session);
       setMessages(res.messages);
+      if (res.operator_name) setOperatorName(res.operator_name);
+      if (res.operator_avatar_url) setOperatorAvatarUrl(res.operator_avatar_url);
+      if (res.menu_items) setMenuItems(res.menu_items);
       lastIdRef.current = res.messages.length ? res.messages[res.messages.length - 1].id : 0;
       scrollToBottom();
     } catch {
@@ -122,7 +128,7 @@ const ChatWidget = () => {
     }
   };
 
-  const handleMenuSelect = async (option: 'status' | 'operator' | 'other') => {
+  const handleMenuSelect = async (option: string) => {
     if (!session || sending) return;
     setSending(true);
     try {
@@ -174,6 +180,19 @@ const ChatWidget = () => {
   })();
 
   const canShowMenuButtons = session?.status === 'bot' && lastMenuIdx === messages.length - 1;
+
+  const renderMessageText = (text: string | null, isClient: boolean) => {
+    if (!text) return null;
+    const parts = text.split(/(\/appeal)/g);
+    return parts.map((part, idx) =>
+      part === '/appeal' ? (
+        <Link key={idx} to="/appeal" onClick={() => setOpen(false)}
+          className={`font-semibold underline ${isClient ? 'text-accent-foreground' : 'text-accent'}`}>
+          Оставить обращение
+        </Link>
+      ) : part
+    );
+  };
 
   return (
     <>
@@ -240,7 +259,7 @@ const ChatWidget = () => {
                         ? 'bg-accent text-accent-foreground rounded-br-sm'
                         : 'bg-card border border-border text-primary rounded-bl-sm'
                     }`}>
-                      {m.text}
+                      {renderMessageText(m.text, isClient)}
                       {m.file_url && (
                         <a href={m.file_url} target="_blank" rel="noopener noreferrer"
                           className={`mt-1.5 flex items-center gap-1.5 text-xs underline ${isClient ? 'text-accent-foreground/90' : 'text-accent'}`}>
@@ -252,20 +271,14 @@ const ChatWidget = () => {
                 );
               })}
 
-              {canShowMenuButtons && !sending && (
+              {canShowMenuButtons && !sending && menuItems.length > 0 && (
                 <div className="flex flex-col gap-2 pt-1">
-                  <button onClick={() => handleMenuSelect('status')}
-                    className="rounded-xl border border-accent/40 bg-accent/5 px-3 py-2 text-left text-sm font-medium text-accent hover:bg-accent/10">
-                    📋 Узнать статус заявки
-                  </button>
-                  <button onClick={() => handleMenuSelect('operator')}
-                    className="rounded-xl border border-accent/40 bg-accent/5 px-3 py-2 text-left text-sm font-medium text-accent hover:bg-accent/10">
-                    🙋 Позвать оператора
-                  </button>
-                  <button onClick={() => handleMenuSelect('other')}
-                    className="rounded-xl border border-accent/40 bg-accent/5 px-3 py-2 text-left text-sm font-medium text-accent hover:bg-accent/10">
-                    ❓ Другой вопрос
-                  </button>
+                  {menuItems.map((item) => (
+                    <button key={item.id} onClick={() => handleMenuSelect(item.id)}
+                      className="rounded-xl border border-accent/40 bg-accent/5 px-3 py-2 text-left text-sm font-medium text-accent hover:bg-accent/10">
+                      {item.emoji} {item.label}
+                    </button>
+                  ))}
                 </div>
               )}
 
