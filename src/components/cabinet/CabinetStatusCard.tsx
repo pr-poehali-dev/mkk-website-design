@@ -84,20 +84,24 @@ const CabinetStatusCard = ({
   const [declineOpen, setDeclineOpen] = useState(false);
   const [declining, setDeclining] = useState(false);
 
-  // Через 10 минут после подачи заявки показываем предупреждение о возможной задержке рассмотрения
-  const [showDelayNotice, setShowDelayNotice] = useState(false);
+  // Первые 10 минут после подачи заявки показываем обратный отсчёт, затем — предупреждение о возможной задержке
+  const REVIEW_TIMER_SEC = 10 * 60;
+  const [reviewSecondsLeft, setReviewSecondsLeft] = useState<number | null>(null);
+  const showDelayNotice = status === 'review' && reviewSecondsLeft === 0;
   useEffect(() => {
     if (status !== 'review' || !user.created_at) return;
-    const DELAY_MS = 10 * 60 * 1000;
     const createdMs = new Date(user.created_at).getTime();
-    const elapsedMs = Date.now() - createdMs;
-    if (elapsedMs >= DELAY_MS) {
-      setShowDelayNotice(true);
-      return;
-    }
-    const timer = setTimeout(() => setShowDelayNotice(true), DELAY_MS - elapsedMs);
-    return () => clearTimeout(timer);
+    const tick = () => {
+      const elapsedSec = Math.floor((Date.now() - createdMs) / 1000);
+      setReviewSecondsLeft(Math.max(0, REVIEW_TIMER_SEC - elapsedSec));
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
   }, [status, user.created_at]);
+  const reviewTimerLabel = reviewSecondsLeft !== null
+    ? `${String(Math.floor(reviewSecondsLeft / 60)).padStart(2, '0')}:${String(reviewSecondsLeft % 60).padStart(2, '0')}`
+    : '10:00';
 
   // Псевдо-детерминированный показатель долговой нагрузки (визуальный индикатор, стабильный для заявки)
   const debtLoadPct = (() => {
@@ -315,6 +319,15 @@ const CabinetStatusCard = ({
             })}
           </div>
         ) : null}
+
+        {status === 'review' && reviewSecondsLeft !== null && !showDelayNotice && (
+          <div className="mx-4 mb-4 flex items-center gap-2.5 rounded-xl border border-accent/30 bg-accent/5 p-3.5">
+            <Icon name="Clock" size={18} className="shrink-0 text-accent" />
+            <p className="text-sm text-primary">
+              Обычно решение принимается в течение <span className="font-mono font-semibold text-accent">{reviewTimerLabel}</span>
+            </p>
+          </div>
+        )}
 
         {status === 'review' && showDelayNotice && (
           <div className="mx-4 mb-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3.5">
