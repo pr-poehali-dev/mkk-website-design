@@ -29,9 +29,7 @@ const Logo = ({ variant = 'full', theme = 'light', linkTo = '/', className = '' 
           <p className={`text-[10px] italic ${theme === 'dark' ? 'text-white/75' : 'text-muted-foreground'}`}>займы онлайн</p>
         </div>
       ) : (
-        <p className={`font-display text-lg font-bold tracking-wide ${theme === 'dark' ? 'text-white' : 'text-[#1b1d3a]'}`}>
-          Финан<span className="text-[#8fce2b]">з</span>а<span className="text-[#8fce2b]">!</span>
-        </p>
+        <p className={`font-display text-lg font-bold tracking-wide ${theme === 'dark' ? 'text-white' : 'text-[#1b1d3a]'}`}>Займы плюс </p>
       )}
     </div>
   );
