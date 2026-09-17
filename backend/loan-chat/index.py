@@ -19,7 +19,7 @@ MSG_COLS = ['id', 'session_id', 'sender', 'text', 'file_url', 'is_read', 'create
 SESSION_COLS = ['id', 'session_key', 'client_name', 'client_phone', 'ref_number', 'status',
                 'operator_name', 'rating', 'rating_comment', 'created_at', 'updated_at',
                 'accepted_at', 'closed_at', 'bot_step', 'bot_phone',
-                'operator_requested_at', 'wait_notice_sent']
+                'operator_requested_at', 'wait_notice_sent', 'pending_operator_prefix']
 
 WAIT_NOTICE_AFTER_MINUTES = 3
 WAIT_NOTICE_TEXT = 'Оператор немного задерживается. Пожалуйста, подождите ещё немного — он обязательно ответит.'
@@ -338,6 +338,17 @@ def handler(event: dict, context) -> dict:
 
             if item_type == 'operator':
                 prefix = item.get('prefix') or ''
+                op_status = settings.get('operator_status', 'online')
+                if op_status in ('busy', 'offline') and not s.get('client_name'):
+                    bump_session(cur, session_id, bot_step='ask_operator_name', pending_operator_prefix=prefix)
+                    row = add_message(cur, session_id, 'bot', 'Прежде чем подключить оператора, назовите, пожалуйста, ваше имя.')
+                    conn.commit()
+                    return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'messages': [msg_to_dict(row)]})}
+                if op_status in ('busy', 'offline') and not s.get('client_phone'):
+                    bump_session(cur, session_id, bot_step='ask_operator_phone', pending_operator_prefix=prefix)
+                    row = add_message(cur, session_id, 'bot', 'Спасибо! Теперь укажите номер телефона для связи.')
+                    conn.commit()
+                    return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'messages': [msg_to_dict(row)]})}
                 bump_session(cur, session_id, status='waiting_operator', bot_step=None,
                              operator_requested_at=datetime.now(timezone.utc), wait_notice_sent=False)
                 row = add_message(cur, session_id, 'bot', f'{prefix}{operator_greeting(settings)}')
@@ -373,6 +384,27 @@ def handler(event: dict, context) -> dict:
                     else:
                         bump_session(cur, session_id, bot_phone=digits, bot_step='ask_passport')
                         row = add_message(cur, session_id, 'bot', 'Спасибо. Теперь укажите серию и номер паспорта (только цифры).')
+                        bot_replies.append(row)
+                elif step == 'ask_operator_name':
+                    name = text.strip()
+                    if len(name) < 2:
+                        row = add_message(cur, session_id, 'bot', 'Пожалуйста, укажите ваше имя.')
+                        bot_replies.append(row)
+                    else:
+                        bump_session(cur, session_id, client_name=name, bot_step='ask_operator_phone')
+                        row = add_message(cur, session_id, 'bot', 'Спасибо! Теперь укажите номер телефона для связи.')
+                        bot_replies.append(row)
+                elif step == 'ask_operator_phone':
+                    digits = only_digits(text)
+                    if len(digits) < 10:
+                        row = add_message(cur, session_id, 'bot', 'Не похоже на номер телефона. Введите номер в формате +7XXXXXXXXXX.')
+                        bot_replies.append(row)
+                    else:
+                        prefix = s.get('pending_operator_prefix') or ''
+                        bump_session(cur, session_id, client_phone=digits, status='waiting_operator', bot_step=None,
+                                     pending_operator_prefix=None,
+                                     operator_requested_at=datetime.now(timezone.utc), wait_notice_sent=False)
+                        row = add_message(cur, session_id, 'bot', f'{prefix}{operator_greeting(settings)}')
                         bot_replies.append(row)
                 elif step == 'ask_passport':
                     passport_digits = only_digits(text)
