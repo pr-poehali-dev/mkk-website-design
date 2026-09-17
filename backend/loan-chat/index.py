@@ -285,6 +285,9 @@ def handler(event: dict, context) -> dict:
 
         # ---- Клиент: выбор пункта меню бота ----
         if action == 'menu_select':
+            if s['status'] != 'bot':
+                # Диалог уже передан оператору — не дублируем автоответы бота
+                return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'messages': []})}
             option = body.get('option')
             settings = get_settings(cur)
             _, items = get_menu_config(settings)
