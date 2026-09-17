@@ -97,18 +97,24 @@ const Index = () => {
     { name: 'Сергей М.', city: 'Самара', rating: 4, text: 'Удобное приложение и личный кабинет — видно все платежи и остаток долга. Рекомендую тем, кто ценит прозрачность.' },
   ];
 
+  const plannedDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toLocaleDateString('ru-RU');
+  const promoActive = amount <= 30000;
+  const promoTotal = promoActive ? amount : total;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
-        <div className="container flex h-16 items-center justify-between px-4 rounded-2xl">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/30 ring-1 ring-white/10">
-              <Icon name="Landmark" size={19} />
+      <header className="sticky top-0 z-50 border-b border-[#e3e5f7] bg-[#f4f5fc]/90 backdrop-blur-md">
+        <div className="container flex h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#2f3277] to-[#4a4fb0] text-white shadow-md shadow-[#2f3277]/30">
+              <Icon name="Sparkles" size={18} />
             </div>
             <div className="leading-none">
-              <p className="font-display text-lg font-bold tracking-wide text-primary">ЗП </p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Займы онлайн 24/7</p>
+              <p className="font-display text-lg font-bold tracking-wide text-[#1b1d3a]">
+                Финан<span className="text-[#8fce2b]">з</span>а<span className="text-[#8fce2b]">!</span>
+              </p>
+              <p className="text-[10px] italic text-muted-foreground">займы онлайн</p>
             </div>
           </div>
           <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
@@ -118,20 +124,19 @@ const Index = () => {
             <a href="#why" className="text-muted-foreground transition-colors hover:text-primary">Преимущества</a>
             <a href="#faq" className="text-muted-foreground transition-colors hover:text-primary">FAQ</a>
             <Link to="/news" className="text-muted-foreground transition-colors hover:text-primary">Новости</Link>
-            <Link to="/payment" className="text-muted-foreground transition-colors hover:text-primary">Способы оплаты</Link>
             <Link to="/appeal" className="text-muted-foreground transition-colors hover:text-primary">Задать вопрос</Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Button asChild size="sm" className="hidden rounded-full bg-primary px-4 text-primary-foreground hover:bg-primary/90 sm:inline-flex">
-              <a href="#calc"><Icon name="Zap" size={15} className="mr-1" /> Оформить займ</a>
+            <Button asChild size="sm" variant="outline" className="rounded-full border-[#d8dbf3] bg-white text-[#1b1d3a] hover:bg-[#eceefb]">
+              <Link to="/payment">Оплатить</Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="rounded-full border-border text-primary hover:bg-secondary">
-              <Link to="/login"><Icon name="User" size={16} className="mr-1" /> Войти</Link>
+            <Button asChild size="sm" className="rounded-full bg-[#2f3277] text-white hover:bg-[#252863]">
+              <Link to="/login"><Icon name="User" size={15} className="mr-1" /> Войти</Link>
             </Button>
 
             <Sheet>
               <SheetTrigger asChild>
-                <button className="ml-1 flex h-9 w-9 items-center justify-center rounded-xl border border-border text-primary hover:bg-secondary md:hidden">
+                <button className="ml-1 flex h-9 w-9 items-center justify-center rounded-xl border border-[#d8dbf3] bg-white text-[#1b1d3a] hover:bg-[#eceefb] md:hidden">
                   <Icon name="Menu" size={20} />
                 </button>
               </SheetTrigger>
@@ -158,84 +163,124 @@ const Index = () => {
       </header>
 
       {/* Hero + Calculator */}
-      <section id="calc" className="relative overflow-hidden bg-primary text-primary-foreground">
-        <div className="absolute inset-0 hero-grid opacity-60" />
-        <div className="container relative grid items-center gap-10 px-4 py-14 md:grid-cols-2 md:py-20">
+      <section id="calc" className="relative overflow-hidden bg-gradient-to-b from-[#eef0fb] to-[#f7f8fd]">
+        <img
+          src="/assets/hero-coins.png"
+          alt=""
+          className="pointer-events-none absolute -left-14 top-[420px] h-40 w-40 opacity-90 sm:hidden"
+        />
+        <img
+          src="/assets/hero-coins.png"
+          alt=""
+          className="pointer-events-none absolute -right-16 bottom-10 h-52 w-52 opacity-90 sm:hidden"
+        />
+        <div className="container relative grid items-center gap-10 px-4 py-10 lg:grid-cols-2 lg:py-20">
           {/* Left */}
-          <div className="animate-fade-up relative">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/5 px-4 py-1.5 text-xs font-medium"><span className="animate-flame">🔥</span> Одобрение 96% заявок · работаем 24/7</div>
-            <h1 className="font-display font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl text-3xl md:pr-28 lg:pr-36">
-              Оформите заявку онлайн и получите{' '}
-              <span className="inline-block rounded-full bg-accent px-4 py-1 text-primary">до 30 000 ₽</span>{' '}
-              на любые цели
+          <div className="animate-fade-up relative text-center lg:text-left">
+            <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#1b1d3a] shadow-sm lg:mx-0">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2f3277] text-white">
+                <Icon name="Clock" size={13} />
+              </span>
+              Деньги на карте к <span className="text-[#4a4fb0]">{arrivalTime}</span>
+            </div>
+            <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-[#1b1d3a] sm:text-5xl lg:text-6xl">
+              Получите <span className="text-[#4a4fb0]">{fmt(amount)} ₽</span>
+              <br className="hidden lg:block" />{' '}
+              без % на{' '}
+              <span className="relative inline-block">
+                <span className="absolute inset-x-0 bottom-1 h-3 -rotate-1 rounded bg-[#c8ea6a]" />
+                <span className="relative">любые цели</span>
+              </span>
             </h1>
             <img
-              src="/assets/hero-person-phone.png"
-              alt="Человек с телефоном"
-              className="pointer-events-none hidden md:absolute md:right-0 md:top-1/2 md:block md:h-56 md:w-auto md:-translate-y-1/2 md:object-contain lg:h-64"
+              src="/assets/hero-coins.png"
+              alt="Монеты"
+              className="pointer-events-none mx-auto mt-8 hidden h-64 w-64 object-contain lg:mx-0 lg:block"
             />
           </div>
 
           {/* Right — Calculator card */}
-          <div className="animate-fade-up overflow-hidden rounded-2xl border border-primary-foreground/10 bg-background text-foreground shadow-2xl" style={{ animationDelay: '0.15s' }}>
-            <div className="flex items-center gap-2.5 border-b border-border bg-secondary/60 px-6 py-3.5 sm:px-8">
-              <Icon name="AlarmClock" size={18} className="shrink-0 text-accent" />
-              <p className="text-sm font-medium text-primary">
-                Деньги у вас уже в <span className="font-display font-bold text-accent">{arrivalTime}</span>
-              </p>
+          <div className="animate-fade-up relative overflow-hidden rounded-3xl border border-[#e3e5f7] bg-white p-6 shadow-xl shadow-[#2f3277]/5 sm:p-8" style={{ animationDelay: '0.15s' }}>
+            <div className="mb-2 text-base font-medium text-[#5a5d84]">Какая сумма вас интересует?</div>
+            <div className="mb-3 font-display text-4xl font-bold text-[#1b1d3a]">{fmt(amount)} ₽</div>
+            <Slider value={[amount]} min={1000} max={100000} step={1000} onValueChange={(v) => setAmount(v[0])}
+              className="[&_[role=slider]]:h-6 [&_[role=slider]]:w-6 [&_[role=slider]]:border-[#2f3277] [&_.bg-primary]:bg-[#2f3277]" />
+            <div className="mt-1.5 flex justify-between text-sm text-muted-foreground">
+              <span>1 000 ₽</span><span>100 000 ₽</span>
             </div>
 
-            <div className="p-6 sm:p-8">
-            <div className="mb-6">
-              <div className="mb-2 flex items-baseline justify-between">
-                <span className="text-sm font-medium text-muted-foreground">Сумма займа</span>
-                <span className="font-display text-2xl font-bold text-primary">{fmt(amount)} ₽</span>
+            <div className="mt-5 mb-2">
+              <div className="mb-1.5 flex items-baseline justify-between">
+                <span className="text-sm font-medium text-[#5a5d84]">Срок</span>
+                <span className="font-display text-lg font-bold text-[#1b1d3a]">{days} дн.</span>
               </div>
-              <Slider value={[amount]} min={1000} max={100000} step={1000} onValueChange={(v) => setAmount(v[0])} />
-              <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                <span>1 000 ₽</span><span>100 000 ₽</span>
-              </div>
+              <Slider value={[days]} min={7} max={30} step={1} onValueChange={(v) => setDays(v[0])}
+                className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:border-[#2f3277] [&_.bg-primary]:bg-[#2f3277]" />
             </div>
 
-            <div className="mb-6">
-              <div className="mb-2 flex items-baseline justify-between">
-                <span className="text-sm font-medium text-muted-foreground">Срок</span>
-                <span className="font-display text-2xl font-bold text-primary">{days} дн.</span>
+            <div className="mt-5 grid grid-cols-2 gap-4 rounded-2xl bg-[#f4f5fc] p-4">
+              <div>
+                <p className="text-sm text-[#5a5d84]">До (включительно)</p>
+                <p className="mt-1 text-lg font-semibold text-[#1b1d3a]">{plannedDate}</p>
               </div>
-              <Slider value={[days]} min={7} max={30} step={1} onValueChange={(v) => setDays(v[0])} />
-              <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                <span>7 дней</span><span>30 дней</span>
-              </div>
-            </div>
-
-            <div className="mb-6 rounded-xl bg-secondary p-4">
-              <div className="flex justify-between border-b border-border pb-2 text-sm">
-                <span className="text-muted-foreground">Переплата</span>
-                <span className="font-semibold text-foreground">{fmt(overpay)} ₽</span>
-              </div>
-              <div className="flex items-baseline justify-between pt-3">
-                <span className="text-sm text-muted-foreground">К возврату</span>
-                <span className="font-display text-3xl font-bold text-accent">{fmt(total)} ₽</span>
+              <div className="border-l border-[#e3e5f7] pl-4">
+                <p className="text-sm text-[#5a5d84]">К возврату</p>
+                <p className="mt-1 text-lg font-semibold text-[#1b1d3a]">
+                  {promoActive && <span className="mr-1.5 text-muted-foreground line-through">{fmt(total)} ₽</span>}
+                  {fmt(promoTotal)} ₽
+                </p>
               </div>
             </div>
 
             {maintenance ? (
-              <Button size="lg" disabled className="h-12 w-full text-base font-bold cursor-not-allowed opacity-60">
+              <Button size="lg" disabled className="mt-5 h-12 w-full text-base font-bold cursor-not-allowed opacity-60">
                 <Icon name="Construction" size={18} className="mr-2" />
                 Временно недоступно
               </Button>
             ) : (
-              <Button asChild size="lg" className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
-                <Link to="/anketa">
-                  Получить {fmt(amount)} ₽
-                  <Icon name="ArrowRight" size={18} className="ml-1" />
-                </Link>
-              </Button>
+              <div className="mt-5 rounded-2xl bg-[#eef0fb] p-4">
+                <p className="mb-3 text-sm font-medium text-[#4a4fb0]">
+                  <span className="animate-flame mr-1 inline-block">🔥</span>
+                  Быстрая регистрация с <span className="font-bold">98% одобрения</span>:
+                </p>
+                <Button asChild size="lg" className="h-12 w-full rounded-full bg-[#2f3277] text-base font-bold text-white shadow-lg shadow-[#2f3277]/30 hover:bg-[#252863]">
+                  <Link to="/anketa" className="flex items-center justify-center gap-2">
+                    Получить {fmt(amount)} ₽ с
+                    <span className="flex items-center gap-1 rounded-md bg-[#ffdd2d] px-1.5 py-0.5 text-xs font-extrabold text-[#1b1d3a]">
+                      <Icon name="ShieldCheck" size={12} /> ID
+                    </span>
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" className="mt-2 h-auto w-full flex-col gap-0.5 rounded-2xl bg-white py-3 text-base font-bold text-[#2f3277] hover:bg-[#f4f5fc]">
+                  <Link to="/anketa">
+                    Получить деньги
+                    <span className="text-xs font-normal text-muted-foreground">ниже шанс одобрения через анкету</span>
+                  </Link>
+                </Button>
+              </div>
             )}
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              {maintenance ? 'Приём заявок временно приостановлен' : 'Решение приходит за 5 минут'}
-            </p>
-            </div>
+          </div>
+        </div>
+
+        {/* Feature rows */}
+        <div className="container relative px-4 pb-14 lg:pb-20">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: 'CirclePlus', title: '93% одобрения', text: 'Чаще одобряем' },
+              { icon: 'CreditCard', title: 'Без комиссии', text: 'Перевод бесплатно' },
+              { icon: 'ShieldCheck', title: 'Мгновенное решение', text: 'Ответ по заявке сразу' },
+              { icon: 'Hourglass', title: 'Зачисление за 1 мин.', text: 'Почти мгновенно' },
+            ].map((f) => (
+              <div key={f.title} className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#2f3277] text-white">
+                  <Icon name={f.icon} size={19} />
+                </span>
+                <div>
+                  <p className="font-semibold leading-tight text-[#1b1d3a]">{f.title}</p>
+                  <p className="text-sm text-muted-foreground">{f.text}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
