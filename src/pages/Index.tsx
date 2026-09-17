@@ -321,7 +321,7 @@ const Index = () => {
               }`}
             >
               {p.badge && (
-                <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-accent/20 px-4 py-1.5 font-semibold text-accent text-sm">
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-accent/20 px-4 font-semibold text-accent text-sm py-[7px]">
                   {p.badge}
                 </span>
               )}
