@@ -217,15 +217,23 @@ const ChatWidget = () => {
             {/* Шапка */}
             <div className="flex shrink-0 items-center justify-between gap-3 bg-primary px-4 py-3 text-primary-foreground sm:rounded-t-2xl">
               <div className="flex items-center gap-2.5 min-w-0">
-                {operatorAvatarUrl ? (
-                  <img src={operatorAvatarUrl} alt={operatorName} className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                {session?.status === 'active' ? (
+                  operatorAvatarUrl ? (
+                    <img src={operatorAvatarUrl} alt={operatorName} className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                  ) : (
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
+                      <Icon name="Headset" size={18} />
+                    </div>
+                  )
                 ) : (
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
-                    <Icon name="Headset" size={18} />
+                    <Icon name="Bot" size={18} />
                   </div>
                 )}
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{operatorName}</p>
+                  <p className="truncate text-sm font-semibold">
+                    {session?.status === 'active' ? operatorName : 'Бот+'}
+                  </p>
                   <p className="text-xs text-primary-foreground/70">
                     {session?.status === 'active' ? 'В диалоге' : session?.status === 'waiting_operator' ? 'Ожидание оператора' : 'Чат-бот'}
                   </p>
