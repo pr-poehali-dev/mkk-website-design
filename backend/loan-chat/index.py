@@ -81,12 +81,7 @@ def get_menu_config(settings: dict):
 
 
 def build_menu_text(items) -> str:
-    lines = ['Чем я могу помочь?']
-    for it in items:
-        emoji = (it.get('emoji') or '').strip()
-        label = (it.get('label') or '').strip()
-        lines.append(f'{emoji} {label}'.strip())
-    return '\n'.join(lines)
+    return 'Чем я могу помочь?'
 
 
 def add_message(cur, session_id: int, sender: str, text: str = None, file_url: str = None):
