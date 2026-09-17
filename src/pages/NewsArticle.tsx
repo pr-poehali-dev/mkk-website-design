@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import Logo from '@/components/Logo';
 import { apiGetNewsItem, type NewsItem } from '@/lib/api';
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -25,15 +26,7 @@ const NewsArticle = () => {
     <div className="min-h-screen bg-secondary/40">
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
         <div className="container flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/30 ring-1 ring-white/10">
-              <Icon name="Landmark" size={19} />
-            </div>
-            <div className="leading-none">
-              <p className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Займы онлайн 24/7</p>
-            </div>
-          </Link>
+          <Logo />
           <Button asChild variant="outline" size="sm" className="rounded-full border-border text-primary hover:bg-secondary">
             <Link to="/"><Icon name="ArrowLeft" size={16} className="mr-1" /> На главную</Link>
           </Button>

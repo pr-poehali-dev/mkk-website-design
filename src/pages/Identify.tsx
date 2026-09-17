@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
+import Logo from '@/components/Logo';
 import CameraCapture from '@/components/anketa/CameraCapture';
 import { apiGetIdentifyByToken, apiSubmitIdentify, apiUploadFile, type IdentifyState } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
@@ -228,12 +229,7 @@ const Identify = () => {
     <div className="min-h-screen bg-secondary/40">
       <header className="border-b border-border bg-background">
         <div className="container flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Icon name="Landmark" size={20} />
-            </div>
-            <span className="font-display text-lg font-bold tracking-wide text-primary">{companyName}</span>
-          </Link>
+          <Logo variant="compact" />
         </div>
       </header>
 

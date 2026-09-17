@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import Logo from '@/components/Logo';
 import CameraCapture from '@/components/anketa/CameraCapture';
 import { apiRegister, apiUploadFile, apiSendVerificationCode, apiVerifyCode } from '@/lib/api';
 import { formatPhone } from '@/lib/phone';
@@ -286,12 +287,7 @@ const Anketa = () => {
       <div className="min-h-screen bg-secondary/40">
         <header className="border-b border-border bg-background">
           <div className="container flex h-16 items-center justify-between px-4">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Icon name="Landmark" size={20} />
-              </div>
-              <span className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</span>
-            </Link>
+            <Logo variant="compact" />
             <button onClick={() => setStep(5)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
               <Icon name="ArrowLeft" size={16} /> Назад
             </button>
@@ -349,12 +345,7 @@ const Anketa = () => {
     <div className="min-h-screen bg-secondary/40">
       <header className="border-b border-border bg-background">
         <div className="container flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Icon name="Landmark" size={20} />
-            </div>
-            <span className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</span>
-          </Link>
+          <Logo variant="compact" />
           {step > 1 ? (
             <button onClick={prev} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
               <Icon name="ArrowLeft" size={16} /> Назад

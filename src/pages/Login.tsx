@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import Logo from '@/components/Logo';
 import { apiLogin, saveSession } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { formatPhone } from '@/lib/phone';
@@ -35,12 +36,9 @@ const Login = () => {
     <div className="relative flex min-h-screen items-center justify-center bg-primary px-4 text-primary-foreground">
       <div className="hero-grid absolute inset-0 opacity-40" />
       <div className="animate-fade-up relative w-full max-w-md">
-        <Link to="/" className="mb-6 flex items-center justify-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-            <Icon name="Landmark" size={20} />
-          </div>
-          <span className="font-display text-xl font-bold tracking-wide">ЗП</span>
-        </Link>
+        <div className="mb-6 flex items-center justify-center">
+          <Logo theme="dark" />
+        </div>
 
         <div className="rounded-2xl bg-background p-8 text-foreground shadow-2xl">
           <h1 className="font-display text-2xl font-bold text-primary">Вход в кабинет</h1>

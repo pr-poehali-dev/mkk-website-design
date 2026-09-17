@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
+import Logo from '@/components/Logo';
 import NotificationsBell from '@/components/cabinet/NotificationsBell';
 
 interface Props {
@@ -12,12 +12,7 @@ interface Props {
 const CabinetHeader = ({ initials, firstName, phone, onMenuOpen }: Props) => (
   <header className="border-b border-border bg-background">
     <div className="container flex h-16 items-center justify-between px-4">
-      <Link to="/" className="flex items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Icon name="Landmark" size={20} />
-        </div>
-        <span className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</span>
-      </Link>
+      <Logo variant="compact" />
 
       <div className="flex items-center gap-2">
         <NotificationsBell phone={phone} />

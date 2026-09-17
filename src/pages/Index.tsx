@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import Icon from '@/components/ui/icon';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import SocialLinks from '@/components/SocialLinks';
+import Logo from '@/components/Logo';
 
 const FaqItem = ({ q, a }: { q: string; a: string }) => {
   const [open, setOpen] = useState(false);
@@ -33,7 +34,7 @@ const Index = () => {
   const [days, setDays] = useState(14);
   const [modal, setModal] = useState<'privacy' | 'about' | null>(null);
 
-  const { total, overpay } = useMemo(() => {
+  const { total } = useMemo(() => {
     const op = Math.round(amount * RATE * days);
     return { total: amount + op, overpay: op };
   }, [amount, days]);
@@ -106,17 +107,7 @@ const Index = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-[#e3e5f7] bg-[#f4f5fc]/90 backdrop-blur-md">
         <div className="container flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#2f3277] to-[#4a4fb0] text-white shadow-md shadow-[#2f3277]/30">
-              <Icon name="Sparkles" size={18} />
-            </div>
-            <div className="leading-none">
-              <p className="font-display text-lg font-bold tracking-wide text-[#1b1d3a]">
-                Финан<span className="text-[#8fce2b]">з</span>а<span className="text-[#8fce2b]">!</span>
-              </p>
-              <p className="text-[10px] italic text-muted-foreground">займы онлайн</p>
-            </div>
-          </div>
+          <Logo linkTo={null} />
           <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
             <a href="#calc" className="text-muted-foreground transition-colors hover:text-primary">Калькулятор</a>
             <a href="#how" className="text-muted-foreground transition-colors hover:text-primary">Как это работает</a>

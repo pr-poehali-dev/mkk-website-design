@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import Logo from '@/components/Logo';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import SocialLinks from '@/components/SocialLinks';
 
@@ -16,15 +17,7 @@ const PaymentMethods = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
         <div className="container flex h-16 items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/30 ring-1 ring-white/10">
-              <Icon name="Landmark" size={19} />
-            </div>
-            <div className="leading-none">
-              <p className="font-display text-lg font-bold tracking-wide text-primary">ЗАЙМЫ ПЛЮС</p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Займы онлайн 24/7</p>
-            </div>
-          </Link>
+          <Logo />
           <Button asChild variant="outline" size="sm" className="rounded-full border-border text-primary hover:bg-secondary">
             <Link to="/"><Icon name="ArrowLeft" size={16} className="mr-1" /> На главную</Link>
           </Button>
@@ -117,7 +110,7 @@ const PaymentMethods = () => {
       <footer className="rounded-t-2xl bg-primary text-primary-foreground/70">
         <div className="container border-t border-primary-foreground/10 px-4 py-10 text-sm">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <p className="font-display text-lg font-bold tracking-wide text-primary-foreground text-center">ЧАСТНЫЕ ЗАЙМЫ ПЛЮС</p>
+            <Logo theme="dark" linkTo={null} className="justify-center md:justify-start" />
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/40">Служба поддержки</p>
               <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
