@@ -118,9 +118,6 @@ const Index = () => {
             <Link to="/appeal" className="text-muted-foreground transition-colors hover:text-primary">Задать вопрос</Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Button asChild size="sm" variant="outline" className="rounded-full border-[#d8dbf3] bg-white text-[#1b1d3a] hover:bg-[#eceefb]">
-              <Link to="/payment">Оплатить</Link>
-            </Button>
             <Button asChild size="sm" className="rounded-full bg-[#2f3277] text-white hover:bg-[#252863]">
               <Link to="/login"><Icon name="User" size={15} className="mr-1" /> Войти</Link>
             </Button>
