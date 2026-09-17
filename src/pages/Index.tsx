@@ -184,7 +184,7 @@ const Index = () => {
               Деньги на карте к <span className="text-[#4a4fb0]">{arrivalTime}</span>
             </div>
             <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-[#1b1d3a] sm:text-5xl lg:text-6xl">
-              Получите <span className="text-[#4a4fb0]">{fmt(amount)} ₽</span>
+              Получите <span className="text-[#4a4fb0]">100 000 ₽</span>
               <br className="hidden lg:block" />{' '}
               без % на{' '}
               <span className="relative inline-block">
