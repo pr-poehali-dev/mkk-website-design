@@ -16,6 +16,7 @@ import NewsArticle from "./pages/NewsArticle";
 import PaymentMethods from "./pages/PaymentMethods";
 import Appeal from "./pages/Appeal";
 import Admin from "./pages/Admin";
+import AdminRequestDetail from "./pages/AdminRequestDetail";
 import AdminSettings from "./pages/AdminSettings";
 import AdminEmails from "./pages/AdminEmails";
 import AdminSupport from "./pages/AdminSupport";
@@ -34,8 +35,8 @@ const queryClient = new QueryClient();
 const SiteGuard = ({ children }: { children: React.ReactNode }) => {
   const { siteClosed } = useMaintenance();
   const location = useLocation();
-  const adminPaths = ['/admin', '/admin/settings', '/admin/emails', '/admin/support', '/admin/news', '/admin/documents', '/admin/chats'];
-  if (siteClosed && !adminPaths.includes(location.pathname)) {
+  const isAdminPath = location.pathname.startsWith('/admin');
+  if (siteClosed && !isAdminPath) {
     return <SiteClosed />;
   }
   return <>{children}</>;
@@ -68,6 +69,7 @@ const App = () => {
               <Route path="/payment" element={<PaymentMethods />} />
               <Route path="/appeal" element={<Appeal />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/request/:ref" element={<AdminRequestDetail />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/admin/emails" element={<AdminEmails />} />
               <Route path="/admin/support" element={<AdminSupport />} />

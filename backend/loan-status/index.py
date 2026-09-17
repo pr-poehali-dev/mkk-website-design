@@ -211,6 +211,55 @@ def handler(event: dict, context) -> dict:
     if not is_admin:
         return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
 
+    # Список платежей по заявке
+    if body.get('action') == 'list_payments':
+        ref = body.get('ref_number')
+        if not ref:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT id, ref_number, amount, payment_method, transaction_id, status, created_at
+                FROM {SCHEMA}.loan_payments WHERE ref_number = %s ORDER BY created_at DESC""",
+            (ref,)
+        )
+        rows = cur.fetchall()
+        conn.close()
+        payments = [{
+            'id': r[0], 'ref_number': r[1], 'amount': float(r[2]), 'payment_method': r[3],
+            'transaction_id': r[4], 'status': r[5], 'created_at': r[6].isoformat() if r[6] else None,
+        } for r in rows]
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps(payments)}
+
+    # Добавить платёж в историю
+    if body.get('action') == 'add_payment':
+        ref = body.get('ref_number')
+        amount = body.get('amount')
+        if not ref or amount is None:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number и amount обязательны'})}
+        payment_method = body.get('payment_method') or 'card'
+        transaction_id = body.get('transaction_id') or None
+        status = body.get('status') or 'success'
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(f"SELECT id FROM {SCHEMA}.loan_requests WHERE ref_number = %s", (ref,))
+        if not cur.fetchone():
+            conn.close()
+            return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.loan_payments (ref_number, amount, payment_method, transaction_id, status)
+                VALUES (%s, %s, %s, %s, %s) RETURNING id, ref_number, amount, payment_method, transaction_id, status, created_at""",
+            (ref, amount, payment_method, transaction_id, status)
+        )
+        row = cur.fetchone()
+        conn.commit()
+        conn.close()
+        payment = {
+            'id': row[0], 'ref_number': row[1], 'amount': float(row[2]), 'payment_method': row[3],
+            'transaction_id': row[4], 'status': row[5], 'created_at': row[6].isoformat() if row[6] else None,
+        }
+        return {'statusCode': 201, 'headers': headers, 'body': json.dumps(payment)}
+
     # Сохранение настроек сайта
     if body.get('action') == 'save_settings':
         settings = body.get('settings', {})

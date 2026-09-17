@@ -252,6 +252,40 @@ export async function apiDeleteRequests(ref_numbers: string[]): Promise<void> {
   if (!res.ok) throw new Error(json.error || 'Ошибка удаления');
 }
 
+export interface LoanPayment {
+  id: number;
+  ref_number: string;
+  amount: number;
+  payment_method: string;
+  transaction_id: string | null;
+  status: string;
+  created_at: string;
+}
+
+export async function apiListPayments(ref_number: string): Promise<LoanPayment[]> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'list_payments', ref_number }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки платежей');
+  return json as LoanPayment[];
+}
+
+export async function apiAddPayment(data: {
+  ref_number: string; amount: number; payment_method?: string; transaction_id?: string; status?: string;
+}): Promise<LoanPayment> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'add_payment', ...data }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка добавления платежа');
+  return json as LoanPayment;
+}
+
 export async function apiAdminSetPassword(phone: string, new_password: string): Promise<void> {
   const res = await fetch(URLS.login, {
     method: 'POST',

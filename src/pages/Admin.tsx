@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
@@ -7,12 +7,16 @@ import { apiGetAll, apiDeleteRequests, apiGetSupportMessages, apiChatAdminList, 
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 import AdminClientGroup from '@/components/admin/AdminClientGroup';
+import AdminRequestsTable from '@/components/admin/AdminRequestsTable';
 import AdminEditModal, { type EditForm } from '@/components/admin/AdminEditModal';
 import AdminIdentifyLinkModal from '@/components/admin/AdminIdentifyLinkModal';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
+const isDesktop = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 640px)').matches;
+
 const Admin = () => {
+  const navigate = useNavigate();
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('zaimy_admin') === '1');
   const [requests, setRequests] = useState<UserSession[]>([]);
   const [loadingList, setLoadingList] = useState(false);
@@ -54,6 +58,10 @@ const Admin = () => {
   }, [authed, fetchAll]);
 
   const openModal = (r: UserSession) => {
+    if (isDesktop()) {
+      navigate(`/admin/request/${r.ref_number}`);
+      return;
+    }
     setSelected(r);
     setEditForm({
       status: r.status,
@@ -243,7 +251,7 @@ const Admin = () => {
         </div>
 
         {/* Список заявок */}
-        <div className="mt-4 space-y-3">
+        <div className="mt-4">
           {loadingList && requests.length === 0 && (
             <div className="flex items-center justify-center py-12">
               <Icon name="Loader2" size={28} className="animate-spin text-muted-foreground" />
@@ -266,7 +274,9 @@ const Admin = () => {
               );
             });
 
-            // Группируем по телефону, сохраняя порядок первого появления
+            if (filtered.length === 0 && !loadingList) return null;
+
+            // Группируем по телефону, сохраняя порядок первого появления (для мобильных карточек)
             const groupMap = new Map<string, UserSession[]>();
             filtered.forEach((r) => {
               const key = r.phone;
@@ -274,17 +284,31 @@ const Admin = () => {
               groupMap.get(key)!.push(r);
             });
 
-            return Array.from(groupMap.values()).map((group) => (
-              <AdminClientGroup
-                key={group[0].phone}
-                requests={group}
-                checkedRefs={checkedRefs}
-                onCheck={handleCheck}
-                onEdit={openModal}
-                onIdentify={setIdentifyTarget}
-                fmt={fmt}
-              />
-            ));
+            return (
+              <>
+                <AdminRequestsTable
+                  requests={filtered}
+                  checkedRefs={checkedRefs}
+                  onCheck={handleCheck}
+                  onEdit={openModal}
+                  onIdentify={setIdentifyTarget}
+                  fmt={fmt}
+                />
+                <div className="space-y-3 sm:hidden">
+                  {Array.from(groupMap.values()).map((group) => (
+                    <AdminClientGroup
+                      key={group[0].phone}
+                      requests={group}
+                      checkedRefs={checkedRefs}
+                      onCheck={handleCheck}
+                      onEdit={openModal}
+                      onIdentify={setIdentifyTarget}
+                      fmt={fmt}
+                    />
+                  ))}
+                </div>
+              </>
+            );
           })()}
         </div>
 
