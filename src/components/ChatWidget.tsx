@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import {
-  apiChatStart, apiChatSend, apiChatMenuSelect, apiChatPoll, apiChatRate, apiUploadFile,
+  apiChatStart, apiChatSend, apiChatMenuSelect, apiChatPoll, apiChatRate, apiUploadFile, apiChatReturnToBot,
   type ChatMessage, type ChatSession, type ChatMenuItem,
 } from '@/lib/api';
 
@@ -15,6 +15,7 @@ const ChatWidget = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [operatorName, setOperatorName] = useState('Оператор');
   const [operatorAvatarUrl, setOperatorAvatarUrl] = useState('');
+  const [operatorStatus, setOperatorStatus] = useState<'online' | 'busy' | 'offline'>('online');
   const [menuItems, setMenuItems] = useState<ChatMenuItem[]>([]);
   const [starting, setStarting] = useState(false);
   const [input, setInput] = useState('');
@@ -25,6 +26,7 @@ const ChatWidget = () => {
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const [unread, setUnread] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [returningToBot, setReturningToBot] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,6 +47,7 @@ const ChatWidget = () => {
       setMessages(res.messages);
       setOperatorName(res.operator_name || 'Оператор');
       setOperatorAvatarUrl(res.operator_avatar_url || '');
+      if (res.operator_status) setOperatorStatus(res.operator_status);
       setMenuItems(res.menu_items || []);
       lastIdRef.current = res.messages.length ? res.messages[res.messages.length - 1].id : 0;
       sessionStorage.setItem(SESSION_KEY_STORAGE, res.session.session_key);
@@ -62,6 +65,7 @@ const ChatWidget = () => {
       setMessages(res.messages);
       if (res.operator_name) setOperatorName(res.operator_name);
       if (res.operator_avatar_url) setOperatorAvatarUrl(res.operator_avatar_url);
+      if (res.operator_status) setOperatorStatus(res.operator_status);
       if (res.menu_items) setMenuItems(res.menu_items);
       lastIdRef.current = res.messages.length ? res.messages[res.messages.length - 1].id : 0;
       scrollToBottom();
@@ -98,6 +102,7 @@ const ChatWidget = () => {
           else scrollToBottom();
         }
         setSession(res.session);
+        if (res.operator_status) setOperatorStatus(res.operator_status);
       } catch {
         // ignore transient errors
       }
@@ -166,6 +171,21 @@ const ChatWidget = () => {
       setSession(poll.session);
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleReturnToBot = async () => {
+    if (!session || returningToBot) return;
+    setReturningToBot(true);
+    try {
+      const res = await apiChatReturnToBot(session.session_key);
+      if (res.messages.length) {
+        setMessages((prev) => [...prev, ...res.messages]);
+        lastIdRef.current = Math.max(lastIdRef.current, ...res.messages.map((m) => m.id));
+      }
+      setSession((prev) => (prev ? { ...prev, status: 'bot' } : prev));
+    } finally {
+      setReturningToBot(false);
     }
   };
 
@@ -314,6 +334,18 @@ const ChatWidget = () => {
                       {item.emoji} {item.label}
                     </button>
                   ))}
+                </div>
+              )}
+
+              {session?.status === 'waiting_operator' && operatorStatus !== 'online' && (
+                <div className="pt-1">
+                  <button onClick={handleReturnToBot} disabled={returningToBot}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary disabled:opacity-60">
+                    {returningToBot
+                      ? <Icon name="Loader2" size={14} className="animate-spin" />
+                      : <Icon name="Bot" size={14} />}
+                    Вернуться в главное меню
+                  </button>
                 </div>
               )}
 

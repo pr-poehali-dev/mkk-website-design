@@ -3,7 +3,7 @@ import json
 import os
 import re
 import secrets
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import psycopg2
 
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
@@ -18,7 +18,11 @@ STATUS_LABELS = {
 MSG_COLS = ['id', 'session_id', 'sender', 'text', 'file_url', 'is_read', 'created_at']
 SESSION_COLS = ['id', 'session_key', 'client_name', 'client_phone', 'ref_number', 'status',
                 'operator_name', 'rating', 'rating_comment', 'created_at', 'updated_at',
-                'accepted_at', 'closed_at', 'bot_step', 'bot_phone']
+                'accepted_at', 'closed_at', 'bot_step', 'bot_phone',
+                'operator_requested_at', 'wait_notice_sent']
+
+WAIT_NOTICE_AFTER_MINUTES = 3
+WAIT_NOTICE_TEXT = 'Оператор немного задерживается. Пожалуйста, подождите ещё немного — он обязательно ответит.'
 
 DEFAULT_GREETING = 'Здравствуйте! 👋'
 DEFAULT_MENU_ITEMS = [
@@ -49,7 +53,7 @@ def msg_to_dict(row):
 
 def session_to_dict(row):
     d = dict(zip(SESSION_COLS, row))
-    for k in ('created_at', 'updated_at', 'accepted_at', 'closed_at'):
+    for k in ('created_at', 'updated_at', 'accepted_at', 'closed_at', 'operator_requested_at'):
         if d.get(k):
             d[k] = d[k].isoformat()
     return d
@@ -109,7 +113,7 @@ def operator_greeting(settings: dict) -> str:
         return f'Оператор сейчас не работает. Время работы: {hours}. Ваше сообщение обязательно увидят и ответят в рабочее время.'
     if status == 'busy':
         return 'Оператор сейчас занят другим клиентом и ответит вам в течение нескольких минут.'
-    return 'Обращение передано оператору — он ответит вам в течение 2 минут.'
+    return 'Обращение передано оператору — он ответит вам в течение 3 минут.'
 
 
 def handler(event: dict, context) -> dict:
@@ -172,20 +176,35 @@ def handler(event: dict, context) -> dict:
             srow = cur.fetchone()
             if not srow:
                 return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Диалог не найден'})}
+            s = session_to_dict(srow)
+            session_id = s['id']
+
+            # Если оператор задерживается — один раз мягко предупреждаем клиента
+            if (s['status'] == 'waiting_operator' and not s['wait_notice_sent'] and s['operator_requested_at']):
+                requested_at = datetime.fromisoformat(s['operator_requested_at'])
+                if datetime.now(timezone.utc) - requested_at > timedelta(minutes=WAIT_NOTICE_AFTER_MINUTES):
+                    add_message(cur, session_id, 'bot', WAIT_NOTICE_TEXT)
+                    bump_session(cur, session_id, wait_notice_sent=True)
+                    conn.commit()
+
             after_id = int(params.get('after_id') or 0)
             cur.execute(
                 f"SELECT {', '.join(MSG_COLS)} FROM {SCHEMA}.chat_messages WHERE session_id = %s AND id > %s ORDER BY created_at ASC",
-                (srow[0], after_id)
+                (session_id, after_id)
             )
             mrows = cur.fetchall()
-            cur.execute(f"UPDATE {SCHEMA}.chat_messages SET is_read = true WHERE session_id = %s AND sender IN ('operator','bot','system')", (srow[0],))
+            cur.execute(f"UPDATE {SCHEMA}.chat_messages SET is_read = true WHERE session_id = %s AND sender IN ('operator','bot','system')", (session_id,))
             conn.commit()
+
+            cur.execute(f"SELECT {', '.join(SESSION_COLS)} FROM {SCHEMA}.chat_sessions WHERE id = %s", (session_id,))
+            srow = cur.fetchone()
             settings = get_settings(cur)
             _, items = get_menu_config(settings)
             return {'statusCode': 200, 'headers': headers, 'body': json.dumps({
                 'session': session_to_dict(srow), 'messages': [msg_to_dict(r) for r in mrows],
                 'operator_name': settings.get('operator_name') or 'Оператор',
                 'operator_avatar_url': settings.get('operator_avatar_url') or '',
+                'operator_status': settings.get('operator_status') or 'online',
                 'menu_items': items,
             })}
 
@@ -254,6 +273,7 @@ def handler(event: dict, context) -> dict:
                 'session': session_to_dict(srow), 'messages': [msg_to_dict(greet)],
                 'operator_name': settings.get('operator_name') or 'Оператор',
                 'operator_avatar_url': settings.get('operator_avatar_url') or '',
+                'operator_status': settings.get('operator_status') or 'online',
                 'working_hours': settings.get('chat_working_hours') or '',
                 'menu_items': items,
             })}
@@ -283,6 +303,17 @@ def handler(event: dict, context) -> dict:
         if s['status'] == 'closed':
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Диалог закрыт'})}
 
+        # ---- Клиент: вернуться в меню бота (только пока оператор не подключился) ----
+        if action == 'return_to_bot':
+            if s['status'] != 'waiting_operator':
+                return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Недоступно в текущем статусе'})}
+            settings = get_settings(cur)
+            greeting, items = get_menu_config(settings)
+            bump_session(cur, session_id, status='bot', bot_step='menu', operator_requested_at=None, wait_notice_sent=False)
+            row = add_message(cur, session_id, 'bot', build_menu_text(items))
+            conn.commit()
+            return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'messages': [msg_to_dict(row)]})}
+
         # ---- Клиент: выбор пункта меню бота ----
         if action == 'menu_select':
             if s['status'] != 'bot':
@@ -307,7 +338,8 @@ def handler(event: dict, context) -> dict:
 
             if item_type == 'operator':
                 prefix = item.get('prefix') or ''
-                bump_session(cur, session_id, status='waiting_operator', bot_step=None)
+                bump_session(cur, session_id, status='waiting_operator', bot_step=None,
+                             operator_requested_at=datetime.now(timezone.utc), wait_notice_sent=False)
                 row = add_message(cur, session_id, 'bot', f'{prefix}{operator_greeting(settings)}')
                 conn.commit()
                 return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'messages': [msg_to_dict(row)]})}
