@@ -191,50 +191,50 @@ const Index = () => {
           </div>
 
           {/* Right — Calculator card */}
-          <div className="animate-fade-up relative overflow-hidden rounded-3xl border border-[#e3e5f7] bg-white p-6 shadow-xl shadow-[#2f3277]/5 sm:p-8" style={{ animationDelay: '0.15s' }}>
-            <div className="mb-2 text-base font-medium text-[#5a5d84]">Какая сумма вас интересует?</div>
-            <div className="mb-3 font-display text-4xl font-bold text-[#1b1d3a]">{fmt(amount)} ₽</div>
+          <div className="animate-fade-up relative overflow-hidden rounded-2xl border border-[#e3e5f7] bg-white p-4 shadow-xl shadow-[#2f3277]/5 sm:rounded-3xl sm:p-8" style={{ animationDelay: '0.15s' }}>
+            <div className="mb-1.5 text-sm font-medium text-[#5a5d84] sm:mb-2 sm:text-base">Какая сумма вас интересует?</div>
+            <div className="mb-2 font-display text-2xl font-bold text-[#1b1d3a] sm:mb-3 sm:text-4xl">{fmt(amount)} ₽</div>
             <Slider value={[amount]} min={1000} max={100000} step={1000} onValueChange={(v) => setAmount(v[0])}
-              className="[&_[role=slider]]:h-6 [&_[role=slider]]:w-6 [&_[role=slider]]:border-[#2f3277] [&_.bg-primary]:bg-[#2f3277]" />
-            <div className="mt-1.5 flex justify-between text-sm text-muted-foreground">
+              className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:border-[#2f3277] [&_.bg-primary]:bg-[#2f3277] sm:[&_[role=slider]]:h-6 sm:[&_[role=slider]]:w-6" />
+            <div className="mt-1 flex justify-between text-xs text-muted-foreground sm:mt-1.5 sm:text-sm">
               <span>1 000 ₽</span><span>100 000 ₽</span>
             </div>
 
-            <div className="mt-5 mb-2">
-              <div className="mb-1.5 flex items-baseline justify-between">
-                <span className="text-sm font-medium text-[#5a5d84]">Срок</span>
-                <span className="font-display text-lg font-bold text-[#1b1d3a]">{days} дн.</span>
+            <div className="mt-3 mb-1.5 sm:mt-5 sm:mb-2">
+              <div className="mb-1 flex items-baseline justify-between sm:mb-1.5">
+                <span className="text-xs font-medium text-[#5a5d84] sm:text-sm">Срок</span>
+                <span className="font-display text-base font-bold text-[#1b1d3a] sm:text-lg">{days} дн.</span>
               </div>
               <Slider value={[days]} min={7} max={30} step={1} onValueChange={(v) => setDays(v[0])}
-                className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:border-[#2f3277] [&_.bg-primary]:bg-[#2f3277]" />
+                className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4 [&_[role=slider]]:border-[#2f3277] [&_.bg-primary]:bg-[#2f3277] sm:[&_[role=slider]]:h-5 sm:[&_[role=slider]]:w-5" />
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-4 rounded-2xl bg-[#f4f5fc] p-4">
+            <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-[#f4f5fc] p-3 sm:mt-5 sm:gap-4 sm:rounded-2xl sm:p-4">
               <div>
-                <p className="text-sm text-[#5a5d84]">До (включительно)</p>
-                <p className="mt-1 text-lg font-semibold text-[#1b1d3a]">{plannedDate}</p>
+                <p className="text-xs text-[#5a5d84] sm:text-sm">До (включительно)</p>
+                <p className="mt-0.5 text-sm font-semibold text-[#1b1d3a] sm:mt-1 sm:text-lg">{plannedDate}</p>
               </div>
-              <div className="border-l border-[#e3e5f7] pl-4">
-                <p className="text-sm text-[#5a5d84]">К возврату</p>
-                <p className="mt-1 text-lg font-semibold text-[#1b1d3a]">
-                  {promoActive && <span className="mr-1.5 text-muted-foreground line-through">{fmt(total)} ₽</span>}
+              <div className="border-l border-[#e3e5f7] pl-3 sm:pl-4">
+                <p className="text-xs text-[#5a5d84] sm:text-sm">К возврату</p>
+                <p className="mt-0.5 text-sm font-semibold text-[#1b1d3a] sm:mt-1 sm:text-lg">
+                  {promoActive && <span className="mr-1 text-muted-foreground line-through sm:mr-1.5">{fmt(total)} ₽</span>}
                   {fmt(promoTotal)} ₽
                 </p>
               </div>
             </div>
 
             {maintenance ? (
-              <Button size="lg" disabled className="mt-5 h-12 w-full text-base font-bold cursor-not-allowed opacity-60">
+              <Button size="lg" disabled className="mt-3 h-10 w-full text-sm font-bold cursor-not-allowed opacity-60 sm:mt-5 sm:h-12 sm:text-base">
                 <Icon name="Construction" size={18} className="mr-2" />
                 Временно недоступно
               </Button>
             ) : (
-              <div className="mt-5 rounded-2xl bg-[#eef0fb] p-4">
-                <p className="mb-3 text-sm font-medium text-[#4a4fb0]">
+              <div className="mt-3 rounded-xl bg-[#eef0fb] p-3 sm:mt-5 sm:rounded-2xl sm:p-4">
+                <p className="mb-2 text-xs font-medium text-[#4a4fb0] sm:mb-3 sm:text-sm">
                   <span className="animate-flame mr-1 inline-block">🔥</span>
                   Быстрая регистрация с <span className="font-bold">98% одобрения</span>:
                 </p>
-                <Button asChild size="lg" className="h-12 w-full rounded-full bg-[#2f3277] text-base font-bold text-white shadow-lg shadow-[#2f3277]/30 hover:bg-[#252863]">
+                <Button asChild size="lg" className="h-10 w-full rounded-full bg-[#2f3277] text-sm font-bold text-white shadow-lg shadow-[#2f3277]/30 hover:bg-[#252863] sm:h-12 sm:text-base">
                   <Link to="/anketa" className="flex items-center justify-center gap-2">
                     Получить {fmt(amount)} ₽ с
                     <span className="flex items-center gap-1 rounded-md bg-[#ffdd2d] px-1.5 py-0.5 text-xs font-extrabold text-[#1b1d3a]">
@@ -242,7 +242,7 @@ const Index = () => {
                     </span>
                   </Link>
                 </Button>
-                <Button asChild variant="ghost" className="mt-2 h-auto w-full flex-col gap-0.5 rounded-2xl bg-white py-3 text-base font-bold text-[#2f3277] hover:bg-[#f4f5fc]">
+                <Button asChild variant="ghost" className="mt-1.5 h-auto w-full flex-col gap-0.5 rounded-xl bg-white py-2 text-sm font-bold text-[#2f3277] hover:bg-[#f4f5fc] sm:mt-2 sm:rounded-2xl sm:py-3 sm:text-base">
                   <Link to="/anketa">
                     Получить деньги
                     <span className="text-xs font-normal text-muted-foreground">ниже шанс одобрения через анкету</span>
