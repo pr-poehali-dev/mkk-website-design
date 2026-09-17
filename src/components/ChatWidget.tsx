@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import {
-  apiChatStart, apiChatSend, apiChatMenuSelect, apiChatPoll, apiChatRate,
+  apiChatStart, apiChatSend, apiChatMenuSelect, apiChatPoll, apiChatRate, apiUploadFile,
   type ChatMessage, type ChatSession, type ChatMenuItem,
 } from '@/lib/api';
 
@@ -24,8 +24,10 @@ const ChatWidget = () => {
   const [ratingComment, setRatingComment] = useState('');
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const lastIdRef = useRef(0);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -125,6 +127,25 @@ const ChatWidget = () => {
       }
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!session || uploading) return;
+    setUploading(true);
+    try {
+      const url = await apiUploadFile(file, 'chat-files');
+      setMessages((prev) => [...prev, {
+        id: -Date.now(), session_id: session.id, sender: 'client', text: null, file_url: url, is_read: true, created_at: new Date().toISOString(),
+      }]);
+      scrollToBottom();
+      const res = await apiChatSend(session.session_key, undefined, url);
+      if (res.messages.length) {
+        setMessages((prev) => [...prev.filter((m) => m.id > 0 || m.file_url !== url), ...res.messages]);
+        lastIdRef.current = Math.max(lastIdRef.current, ...res.messages.map((m) => m.id));
+      }
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -269,10 +290,16 @@ const ChatWidget = () => {
                     }`}>
                       {renderMessageText(m.text, isClient)}
                       {m.file_url && (
-                        <a href={m.file_url} target="_blank" rel="noopener noreferrer"
-                          className={`mt-1.5 flex items-center gap-1.5 text-xs underline ${isClient ? 'text-accent-foreground/90' : 'text-accent'}`}>
-                          <Icon name="Paperclip" size={12} /> Файл
-                        </a>
+                        /\.(png|jpe?g|gif|webp)$/i.test(m.file_url) ? (
+                          <a href={m.file_url} target="_blank" rel="noopener noreferrer" className={m.text ? 'mt-1.5 block' : 'block'}>
+                            <img src={m.file_url} alt="Фото" className="max-h-48 w-full rounded-lg object-cover" />
+                          </a>
+                        ) : (
+                          <a href={m.file_url} target="_blank" rel="noopener noreferrer"
+                            className={`flex items-center gap-1.5 text-xs underline ${m.text ? 'mt-1.5' : ''} ${isClient ? 'text-accent-foreground/90' : 'text-accent'}`}>
+                            <Icon name="Paperclip" size={12} /> Файл
+                          </a>
+                        )
                       )}
                     </div>
                   </div>
@@ -332,6 +359,25 @@ const ChatWidget = () => {
             {/* Поле ввода */}
             {session?.status !== 'closed' && (
               <div className="flex shrink-0 items-center gap-2 border-t border-border bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.pdf,.doc,.docx"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleFileUpload(f);
+                    e.target.value = '';
+                  }}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading || sending || starting}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary disabled:opacity-40"
+                  title="Прикрепить файл"
+                >
+                  {uploading ? <Icon name="Loader2" size={18} className="animate-spin" /> : <Icon name="Paperclip" size={18} />}
+                </button>
                 <input
                   type="text"
                   value={input}
