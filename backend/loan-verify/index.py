@@ -37,6 +37,17 @@ def get_system_email_settings(cur) -> dict:
         return {}
 
 
+def render_attachment_html(attachment_url: str, attachment_name: str) -> str:
+    if not attachment_url:
+        return ''
+    label = attachment_name or 'Скачать файл'
+    return (
+        f'<p style="margin:16px 0 0;"><a href="{attachment_url}" target="_blank" rel="noopener noreferrer" '
+        f'style="display:inline-flex;align-items:center;gap:6px;color:#1a2b4c;text-decoration:none;font-size:13px;'
+        f'border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;">📎 {label}</a></p>'
+    )
+
+
 def send_code_email(to_email: str, code: str, purpose: str, settings: dict) -> None:
     login = os.environ['SMTP_LOGIN']
     password = os.environ['SMTP_PASSWORD']
@@ -64,15 +75,17 @@ def send_code_email(to_email: str, code: str, purpose: str, settings: dict) -> N
         f'background:{design["accent_color"]};border-radius:10px;padding:16px;">{code}</p>'
     )
     ttl_note = f'<p style="color:#888;font-size:12px;">Код действителен {CODE_TTL_MINUTES} минут. Никому не сообщайте его.</p>'
+    attachment_html = render_attachment_html(tpl.get('attachment_url', ''), tpl.get('attachment_name', ''))
     if layout == 'card':
         html_body = f"""
         <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 28px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;text-align:center;">
           {logo_html}
           <h2 style="color:{design['primary_color']};margin:0 0 16px;">{design['brand_name']}</h2>
           <div style="border-top:1px solid #eee;margin:0 0 16px;"></div>
-          <p style="color:#333;font-size:14px;line-height:1.6;">{intro}</p>
+          <div style="color:#333;font-size:14px;line-height:1.6;">{intro}</div>
           {code_block}
           {ttl_note}
+          {attachment_html}
           {signature_html}
         </div>
         """
@@ -84,9 +97,10 @@ def send_code_email(to_email: str, code: str, purpose: str, settings: dict) -> N
             <h2 style="color:#fff;margin:0;font-size:18px;">{design['brand_name']}</h2>
           </div>
           <div style="padding:24px;background:#ffffff;">
-            <p style="color:#333;font-size:14px;line-height:1.6;">{intro}</p>
+            <div style="color:#333;font-size:14px;line-height:1.6;">{intro}</div>
             {code_block}
             {ttl_note}
+            {attachment_html}
             {signature_html}
           </div>
         </div>
@@ -96,9 +110,10 @@ def send_code_email(to_email: str, code: str, purpose: str, settings: dict) -> N
         <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
           {logo_html}
           <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
-          <p style="color:#333;font-size:14px;line-height:1.6;">{intro}</p>
+          <div style="color:#333;font-size:14px;line-height:1.6;">{intro}</div>
           {code_block}
           {ttl_note}
+          {attachment_html}
           {signature_html}
         </div>
         """

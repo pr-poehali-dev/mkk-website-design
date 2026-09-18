@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import RichTextEditor from '@/components/ui/rich-text-editor';
 import Icon from '@/components/ui/icon';
 import {
   apiGetSystemEmailTemplates, apiSaveSystemEmailTemplates, apiUploadFile,
@@ -11,6 +12,7 @@ import {
 } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
+import EmailAttachmentField from '@/components/admin/EmailAttachmentField';
 
 const CODE_PURPOSES: { key: 'register' | 'sign'; label: string; icon: string }[] = [
   { key: 'register', label: 'Код подтверждения регистрации', icon: 'UserPlus' },
@@ -77,10 +79,13 @@ const AdminEmails = () => {
     }
   };
 
-  const previewHtml = (body: string, isCode?: boolean) => {
+  const previewHtml = (body: string, isCode?: boolean, attachment?: { url?: string; name?: string }) => {
     const layout = tpl.design.layout || 'classic';
     const codeBlock = isCode ? `<p style="font-size:18px;font-weight:bold;letter-spacing:4px;color:${tpl.design.primary_color};text-align:center;background:${tpl.design.accent_color};border-radius:6px;padding:8px;margin:0 0 8px;">123456</p>` : '';
     const bodyText = body.replace('{ref}', 'ZP-1234');
+    const attachmentBlock = attachment?.url
+      ? `<p style="margin:10px 0 0;"><a href="#" style="display:inline-flex;align-items:center;gap:4px;color:${tpl.design.primary_color};text-decoration:none;font-size:11px;border:1px solid #e5e7eb;border-radius:6px;padding:5px 8px;">📎 ${attachment.name || 'Файл'}</a></p>`
+      : '';
 
     if (layout === 'card') {
       return `
@@ -88,8 +93,9 @@ const AdminEmails = () => {
           ${tpl.design.logo_url ? `<img src="${tpl.design.logo_url}" alt="${tpl.design.brand_name}" style="max-height:30px;margin:0 auto 8px;display:block;" />` : ''}
           <h3 style="color:${tpl.design.primary_color};margin:0 0 10px;font-size:15px;">${tpl.design.brand_name}</h3>
           <div style="border-top:1px solid #eee;margin:0 0 10px;"></div>
-          <p style="color:#333;font-size:12px;line-height:1.5;margin:0 0 8px;">${bodyText}</p>
+          <div style="color:#333;font-size:12px;line-height:1.5;margin:0 0 8px;">${bodyText}</div>
           ${codeBlock}
+          ${attachmentBlock}
           ${tpl.design.signature ? `<p style="color:#888;font-size:10px;white-space:pre-line;margin:10px 0 0;border-top:1px solid #eee;padding-top:8px;">${tpl.design.signature}</p>` : ''}
         </div>
       `;
@@ -102,8 +108,9 @@ const AdminEmails = () => {
             <h3 style="color:#fff;margin:0;font-size:14px;">${tpl.design.brand_name}</h3>
           </div>
           <div style="padding:14px;background:#fff;">
-            <p style="color:#333;font-size:12px;line-height:1.5;margin:0 0 8px;">${bodyText}</p>
+            <div style="color:#333;font-size:12px;line-height:1.5;margin:0 0 8px;">${bodyText}</div>
             ${codeBlock}
+            ${attachmentBlock}
             ${tpl.design.signature ? `<p style="color:#888;font-size:10px;white-space:pre-line;margin:10px 0 0;border-top:1px solid #eee;padding-top:8px;">${tpl.design.signature}</p>` : ''}
           </div>
         </div>
@@ -113,8 +120,9 @@ const AdminEmails = () => {
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:14px;border:1px solid #eee;border-radius:10px;">
         ${tpl.design.logo_url ? `<img src="${tpl.design.logo_url}" alt="${tpl.design.brand_name}" style="max-height:34px;margin:0 0 8px;display:block;" />` : ''}
         <h3 style="color:${tpl.design.primary_color};margin:0 0 8px;font-size:15px;">${tpl.design.brand_name}</h3>
-        <p style="color:#333;font-size:12px;line-height:1.5;margin:0 0 8px;">${bodyText}</p>
+        <div style="color:#333;font-size:12px;line-height:1.5;margin:0 0 8px;">${bodyText}</div>
         ${codeBlock}
+        ${attachmentBlock}
         ${tpl.design.signature ? `<p style="color:#888;font-size:10px;white-space:pre-line;margin:10px 0 0;border-top:1px solid #eee;padding-top:8px;">${tpl.design.signature}</p>` : ''}
       </div>
     `;
@@ -283,13 +291,19 @@ const AdminEmails = () => {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Текст письма</Label>
-                    <Textarea className="min-h-[90px] text-sm" value={tpl.register_email.body}
-                      onChange={(e) => setTpl({ ...tpl, register_email: { ...tpl.register_email, body: e.target.value } })} />
+                    <RichTextEditor value={tpl.register_email.body} quickIcons
+                      onChange={(html) => setTpl({ ...tpl, register_email: { ...tpl.register_email, body: html } })} />
                   </div>
+                  <EmailAttachmentField
+                    url={tpl.register_email.attachment_url}
+                    name={tpl.register_email.attachment_name}
+                    onChange={(url, name) => setTpl({ ...tpl, register_email: { ...tpl.register_email, attachment_url: url, attachment_name: name } })}
+                    onRemove={() => setTpl({ ...tpl, register_email: { ...tpl.register_email, attachment_url: '', attachment_name: '' } })}
+                  />
                 </div>
                 <div>
                   <Label className="mb-1 block text-xs text-muted-foreground">Предпросмотр</Label>
-                  <div dangerouslySetInnerHTML={{ __html: previewHtml(tpl.register_email.body) }} />
+                  <div dangerouslySetInnerHTML={{ __html: previewHtml(tpl.register_email.body, false, { url: tpl.register_email.attachment_url, name: tpl.register_email.attachment_name }) }} />
                 </div>
               </div>
             </section>
@@ -323,16 +337,28 @@ const AdminEmails = () => {
                           </div>
                           <div className="space-y-1">
                             <Label className="text-xs">Текст письма</Label>
-                            <Textarea className="min-h-[70px] text-sm" value={value.body}
-                              onChange={(e) => setTpl({
+                            <RichTextEditor value={value.body} quickIcons
+                              onChange={(html) => setTpl({
                                 ...tpl,
-                                status_emails: { ...tpl.status_emails, [key]: { ...value, body: e.target.value } },
+                                status_emails: { ...tpl.status_emails, [key]: { ...value, body: html } },
                               })} />
                           </div>
+                          <EmailAttachmentField
+                            url={value.attachment_url}
+                            name={value.attachment_name}
+                            onChange={(url, name) => setTpl({
+                              ...tpl,
+                              status_emails: { ...tpl.status_emails, [key]: { ...value, attachment_url: url, attachment_name: name } },
+                            })}
+                            onRemove={() => setTpl({
+                              ...tpl,
+                              status_emails: { ...tpl.status_emails, [key]: { ...value, attachment_url: '', attachment_name: '' } },
+                            })}
+                          />
                         </div>
                         <div>
                           <Label className="mb-1 block text-xs text-muted-foreground">Предпросмотр</Label>
-                          <div dangerouslySetInnerHTML={{ __html: previewHtml(value.body) }} />
+                          <div dangerouslySetInnerHTML={{ __html: previewHtml(value.body, false, { url: value.attachment_url, name: value.attachment_name }) }} />
                         </div>
                       </div>
                     </div>
@@ -361,13 +387,19 @@ const AdminEmails = () => {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Текст письма</Label>
-                    <Textarea className="min-h-[90px] text-sm" value={tpl.reminder_email.body}
-                      onChange={(e) => setTpl({ ...tpl, reminder_email: { ...tpl.reminder_email, body: e.target.value } })} />
+                    <RichTextEditor value={tpl.reminder_email.body} quickIcons
+                      onChange={(html) => setTpl({ ...tpl, reminder_email: { ...tpl.reminder_email, body: html } })} />
                   </div>
+                  <EmailAttachmentField
+                    url={tpl.reminder_email.attachment_url}
+                    name={tpl.reminder_email.attachment_name}
+                    onChange={(url, name) => setTpl({ ...tpl, reminder_email: { ...tpl.reminder_email, attachment_url: url, attachment_name: name } })}
+                    onRemove={() => setTpl({ ...tpl, reminder_email: { ...tpl.reminder_email, attachment_url: '', attachment_name: '' } })}
+                  />
                 </div>
                 <div>
                   <Label className="mb-1 block text-xs text-muted-foreground">Предпросмотр</Label>
-                  <div dangerouslySetInnerHTML={{ __html: previewHtml(tpl.reminder_email.body.replace('{return_date}', '25.08.2026').replace('{total}', '16 800')) }} />
+                  <div dangerouslySetInnerHTML={{ __html: previewHtml(tpl.reminder_email.body.replace('{return_date}', '25.08.2026').replace('{total}', '16 800'), false, { url: tpl.reminder_email.attachment_url, name: tpl.reminder_email.attachment_name }) }} />
                 </div>
               </div>
             </section>
@@ -398,16 +430,28 @@ const AdminEmails = () => {
                           </div>
                           <div className="space-y-1">
                             <Label className="text-xs">Вступительный текст (перед кодом)</Label>
-                            <Textarea className="min-h-[60px] text-sm" value={value.intro}
-                              onChange={(e) => setTpl({
+                            <RichTextEditor value={value.intro} quickIcons
+                              onChange={(html) => setTpl({
                                 ...tpl,
-                                code_emails: { ...tpl.code_emails, [key]: { ...value, intro: e.target.value } },
+                                code_emails: { ...tpl.code_emails, [key]: { ...value, intro: html } },
                               })} />
                           </div>
+                          <EmailAttachmentField
+                            url={value.attachment_url}
+                            name={value.attachment_name}
+                            onChange={(url, name) => setTpl({
+                              ...tpl,
+                              code_emails: { ...tpl.code_emails, [key]: { ...value, attachment_url: url, attachment_name: name } },
+                            })}
+                            onRemove={() => setTpl({
+                              ...tpl,
+                              code_emails: { ...tpl.code_emails, [key]: { ...value, attachment_url: '', attachment_name: '' } },
+                            })}
+                          />
                         </div>
                         <div>
                           <Label className="mb-1 block text-xs text-muted-foreground">Предпросмотр</Label>
-                          <div dangerouslySetInnerHTML={{ __html: previewHtml(value.intro, true) }} />
+                          <div dangerouslySetInnerHTML={{ __html: previewHtml(value.intro, true, { url: value.attachment_url, name: value.attachment_name }) }} />
                         </div>
                       </div>
                     </div>

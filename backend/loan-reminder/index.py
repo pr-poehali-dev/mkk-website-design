@@ -48,7 +48,7 @@ def render_email_html(design: dict, body_html: str) -> str:
           {logo_html}
           <h2 style="color:{design['primary_color']};margin:0 0 16px;">{design['brand_name']}</h2>
           <div style="border-top:1px solid #eee;margin:0 0 16px;"></div>
-          <p style="color:#333;font-size:14px;line-height:1.6;text-align:center;">{body_html}</p>
+          <div style="color:#333;font-size:14px;line-height:1.6;text-align:center;">{body_html}</div>
           {signature_html}
         </div>
         """
@@ -60,7 +60,7 @@ def render_email_html(design: dict, body_html: str) -> str:
             <h2 style="color:#fff;margin:0;font-size:18px;">{design['brand_name']}</h2>
           </div>
           <div style="padding:24px;background:#ffffff;">
-            <p style="color:#333;font-size:14px;line-height:1.6;">{body_html}</p>
+            <div style="color:#333;font-size:14px;line-height:1.6;">{body_html}</div>
             {signature_html}
           </div>
         </div>
@@ -69,10 +69,21 @@ def render_email_html(design: dict, body_html: str) -> str:
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
       {logo_html}
       <h2 style="color:{design['primary_color']};">{design['brand_name']}</h2>
-      <p style="color:#333;font-size:14px;line-height:1.6;">{body_html}</p>
+      <div style="color:#333;font-size:14px;line-height:1.6;">{body_html}</div>
       {signature_html}
     </div>
     """
+
+
+def render_attachment_html(attachment_url: str, attachment_name: str) -> str:
+    if not attachment_url:
+        return ''
+    label = attachment_name or 'Скачать файл'
+    return (
+        f'<p style="margin:16px 0 0;"><a href="{attachment_url}" target="_blank" rel="noopener noreferrer" '
+        f'style="display:inline-flex;align-items:center;gap:6px;color:#1a2b4c;text-decoration:none;font-size:13px;'
+        f'border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;">📎 {label}</a></p>'
+    )
 
 
 def get_setting(cur, key: str) -> Optional[str]:
@@ -113,6 +124,7 @@ def send_reminder_email(to_email: str, ref_number: str, return_date: str, total:
         .replace('{return_date}', return_date)
         .replace('{total}', f'{total:,}'.replace(',', ' '))
     )
+    text += render_attachment_html(tpl.get('attachment_url', ''), tpl.get('attachment_name', ''))
     html_body = render_email_html(design, text)
     msg = MIMEMultipart('alternative')
     msg['Subject'] = tpl['subject']

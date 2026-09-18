@@ -324,11 +324,15 @@ export interface SystemEmailDesign {
 export interface SystemEmailTemplate {
   subject: string;
   body: string;
+  attachment_url?: string;
+  attachment_name?: string;
 }
 
 export interface SystemCodeEmailTemplate {
   subject: string;
   intro: string;
+  attachment_url?: string;
+  attachment_name?: string;
 }
 
 export interface SystemEmailTemplates {

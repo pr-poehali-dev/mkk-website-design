@@ -105,6 +105,17 @@ def send_html_email(to_email: str, subject: str, body_html: str, design: dict) -
         server.sendmail(login, [to_email], msg.as_string())
 
 
+def render_attachment_html(attachment_url: str, attachment_name: str) -> str:
+    if not attachment_url:
+        return ''
+    label = attachment_name or 'Скачать файл'
+    return (
+        f'<p style="margin:16px 0 0;"><a href="{attachment_url}" target="_blank" rel="noopener noreferrer" '
+        f'style="display:inline-flex;align-items:center;gap:6px;color:#1a2b4c;text-decoration:none;font-size:13px;'
+        f'border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;">📎 {label}</a></p>'
+    )
+
+
 def handler(event: dict, context) -> dict:
     """Приём обращения клиента в поддержку (создаёт запись, шлёт письмо клиенту и уведомление в поддержку),
     и обработка администратором: просмотр списка обращений и отправка ответа клиенту на email."""
@@ -240,6 +251,7 @@ def handler(event: dict, context) -> dict:
         try:
             tpl = {**DEFAULT_REGISTER_EMAIL, **(settings.get('register_email') or {})}
             body_html = f'Здравствуйте, {name}!<br><br>{tpl["body"]}'
+            body_html += render_attachment_html(tpl.get('attachment_url', ''), tpl.get('attachment_name', ''))
             send_html_email(email, tpl['subject'], body_html, design)
         except Exception:
             pass
