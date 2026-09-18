@@ -149,7 +149,7 @@ const Cabinet = () => {
         onLogout={handleLogout}
       />
 
-      <footer className="mt-10 border-t border-border bg-card">
+      <footer className="mt-10 rounded-t-2xl border-t border-border bg-card">
         <div className="container max-w-3xl px-4 py-8">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div>
