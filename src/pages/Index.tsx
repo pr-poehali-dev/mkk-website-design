@@ -523,7 +523,16 @@ const Index = () => {
               </a>
               <SocialLinks className="mt-1" />
             </div>
-            <p className="text-primary-foreground/60 text-center">© 2026 {companyName}. Все права защищены.</p>
+            <div className="flex flex-col items-center gap-2 md:items-end">
+              <p className="text-primary-foreground/60 text-center">© 2026 {companyName}. Все права защищены.</p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/02ae49d0-28e6-4601-bc30-44156d9858ef.webp" alt="Сбербанк" className="h-8 rounded-md bg-white p-1 object-contain" />
+                <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/bc16f1dd-bfa0-4555-87a7-2a4c88d3121b.webp" alt="ПСБ" className="h-8 rounded-md bg-white p-1 object-contain" />
+                <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/78cd5d2c-72d6-4bff-8445-33351d454099.webp" alt="СБП" className="h-8 rounded-md bg-white p-1 object-contain" />
+                <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/fd612c84-66c0-4bd4-870f-56ba422a8532.webp" alt="Visa" className="h-8 rounded-md bg-white p-1 object-contain" />
+                <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/6b47247e-6785-40ee-9ca9-04710b824fa9.webp" alt="ЮMoney" className="h-8 rounded-md bg-white p-1 object-contain" />
+              </div>
+            </div>
           </div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button onClick={() => setModal('privacy')}
