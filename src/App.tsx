@@ -22,13 +22,12 @@ import AdminEmails from "./pages/AdminEmails";
 import AdminSupport from "./pages/AdminSupport";
 import AdminNews from "./pages/AdminNews";
 import AdminDocuments from "./pages/AdminDocuments";
-import AdminChats from "./pages/AdminChats";
 import SiteClosed from "./pages/SiteClosed";
 import NotFound from "./pages/NotFound";
 import MaintenanceBanner from "./components/MaintenanceBanner";
 import { MaintenanceProvider, useMaintenance } from "./lib/maintenanceContext";
 import CookieBanner from "./components/CookieBanner";
-import ChatWidget from "./components/ChatWidget";
+import CustomCodeInjector from "./components/CustomCodeInjector";
 
 const queryClient = new QueryClient();
 
@@ -57,7 +56,7 @@ const App = () => {
           <SiteGuard>
             <MaintenanceBanner />
             <CookieBanner />
-            <ChatWidget />
+            <CustomCodeInjector />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/anketa" element={<Anketa />} />
@@ -75,7 +74,6 @@ const App = () => {
               <Route path="/admin/support" element={<AdminSupport />} />
               <Route path="/admin/news" element={<AdminNews />} />
               <Route path="/admin/documents" element={<AdminDocuments />} />
-              <Route path="/admin/chats" element={<AdminChats />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

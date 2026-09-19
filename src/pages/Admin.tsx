@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiGetAll, apiDeleteRequests, apiGetSupportMessages, apiChatAdminList, type UserSession } from '@/lib/api';
+import { apiGetAll, apiDeleteRequests, apiGetSupportMessages, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 import AdminClientGroup from '@/components/admin/AdminClientGroup';
@@ -31,7 +31,6 @@ const Admin = () => {
   const [tab, setTab] = useState<'active' | 'rejected' | 'closed' | 'all'>('active');
   const [menuOpen, setMenuOpen] = useState(false);
   const [newSupportCount, setNewSupportCount] = useState(0);
-  const [waitingChatsCount, setWaitingChatsCount] = useState(0);
 
   const fetchAll = useCallback(async () => {
     setLoadingList(true);
@@ -50,9 +49,6 @@ const Admin = () => {
       fetchAll();
       apiGetSupportMessages().then((items) => {
         setNewSupportCount(items.filter((m) => m.status === 'new').length);
-      }).catch(() => {});
-      apiChatAdminList().then((items) => {
-        setWaitingChatsCount(items.filter((s) => s.status === 'waiting_operator').length);
       }).catch(() => {});
     }
   }, [authed, fetchAll]);
@@ -137,13 +133,6 @@ const Admin = () => {
             <Link to="/admin/documents" onClick={() => setMenuOpen(false)}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="FileStack" size={18} className="text-accent" /> Документы
-            </Link>
-            <Link to="/admin/chats" onClick={() => setMenuOpen(false)}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
-              <Icon name="MessageCircle" size={18} className="text-accent" /> Чаты
-              {waitingChatsCount > 0 && (
-                <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">{waitingChatsCount}</span>
-              )}
             </Link>
             <button onClick={() => { sessionStorage.removeItem('zaimy_admin'); setAuthed(false); setMenuOpen(false); }}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
