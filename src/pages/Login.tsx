@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import Logo from '@/components/Logo';
+import CaptchaField from '@/components/ui/captcha-field';
 import { apiLogin, saveSession } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { formatPhone } from '@/lib/phone';
@@ -16,9 +17,15 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaValue, setCaptchaValue] = useState('');
+  const [captchaValid, setCaptchaValid] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaValid) {
+      setError('Введите правильный код с картинки');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -57,6 +64,13 @@ const Login = () => {
               <Input id="password" type="password" placeholder="••••" value={password}
                 onChange={(e) => { setPassword(e.target.value); setError(''); }} required />
             </div>
+
+            <CaptchaField
+              value={captchaValue}
+              onChange={(v) => { setCaptchaValue(v); setError(''); }}
+              onValidChange={setCaptchaValid}
+            />
+
             {error && (
               <p className="flex items-center gap-1.5 text-sm text-red-600">
                 <Icon name="AlertCircle" size={15} /> {error}
