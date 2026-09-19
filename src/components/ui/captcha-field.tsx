@@ -8,8 +8,8 @@ interface Props {
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
 const LENGTH = 5;
-const WIDTH = 220;
-const HEIGHT = 74;
+const WIDTH = 180;
+const HEIGHT = 60;
 
 const generateCode = () => {
   let code = '';
@@ -59,7 +59,7 @@ const drawCaptcha = (canvas: HTMLCanvasElement, code: string) => {
     const ch = code[i];
     const x = gap * (i + 1) + (Math.random() * 6 - 3);
     const y = HEIGHT / 2 + (Math.random() * 14 - 7);
-    const size = 26 + Math.random() * 10;
+    const size = 21 + Math.random() * 8;
     const angle = (Math.random() * 36 - 18) * (Math.PI / 180);
 
     ctx.save();
