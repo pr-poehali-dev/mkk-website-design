@@ -366,7 +366,7 @@ const CabinetStatusCard = ({
           </div>
         )}
 
-        {status !== 'rejected' && status !== 'repaid' && identifyRequested && (
+        {identifyRequested && (
           <div className={`mx-4 mb-4 rounded-xl border p-3.5 ${
             identifyApproved ? 'border-green-300 bg-green-50' :
             identifyRejected ? 'border-red-300 bg-red-50' :
