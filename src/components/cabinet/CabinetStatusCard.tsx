@@ -143,7 +143,7 @@ const CabinetStatusCard = ({
   const [showReapplyLoading, setShowReapplyLoading] = useState(false);
 
   // Запрос фото документов (статус photo_request) — клиент загружает 4 фото прямо в кабинете
-  const PHOTO_CHECK_SECONDS = 180;
+  const PHOTO_CHECK_SECONDS = 60;
   const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
   const [passportFile, setPassportFile] = useState<File | null>(null);
   const [selfiePhoto, setSelfiePhoto] = useState<string | null>(null);
