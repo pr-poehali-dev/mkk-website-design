@@ -247,16 +247,11 @@ def handler(event: dict, context) -> dict:
         if not updated:
             conn.close()
             return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена или не находится в статусе запроса фото'})}
-        client_email, client_phone = updated[1], updated[2]
-        email_settings = get_system_email_settings(cur) if client_email else {}
-        default_subject, default_body = DEFAULT_STATUS_EMAIL_TEXT['review']
-        tpl = (email_settings.get('status_emails') or {}).get('review') or {}
-        notif_text = (tpl.get('body') or default_body).format(ref=ref)
-        create_notification(cur, client_phone, ref, 'status', f'Статус заявки {ref}: {STATUS_LABELS["review"]}', notif_text)
+        client_phone = updated[2]
+        # Письмо "заявка принята" не отправляем повторно — клиент уже получал его при первой подаче заявки
+        create_notification(cur, client_phone, ref, 'status', f'Статус заявки {ref}: {STATUS_LABELS["review"]}', 'Фото документов успешно загружены и приняты. Заявка возвращена на рассмотрение.')
         conn.commit()
         conn.close()
-        if client_email:
-            send_status_email(client_email, ref, 'review', email_settings)
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
 
     if not is_admin:
