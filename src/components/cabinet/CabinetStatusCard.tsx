@@ -796,6 +796,7 @@ const CabinetStatusCard = ({
                   days={user.days}
                   startDate={user.money_sent_at || user.created_at}
                   overpay={Math.round(user.amount * 0.008 * user.days)}
+                  statusOverdue={status === 'overdue'}
                 />
               )}
             </div>
