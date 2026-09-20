@@ -141,7 +141,7 @@ const CabinetStatusCard = ({
   const [showCalc, setShowCalc] = useState(false);
   const [showReapplyLoading, setShowReapplyLoading] = useState(false);
 
-  const CALC_RATE = 0.003;
+  const CALC_RATE = 0.0006;
   const calcOverpay = Math.round(calcAmount * CALC_RATE * calcDays);
   const calcTotal = calcAmount + calcOverpay;
 
@@ -702,8 +702,8 @@ const CabinetStatusCard = ({
         <DialogContent className="max-w-sm max-h-[85vh] overflow-hidden p-0 gap-0 flex flex-col [&>button]:text-white [&>button]:opacity-90 [&>button]:hover:opacity-100 rounded-2xl">
           {reapplyDone ? (
             <div className="flex flex-col items-center gap-4 p-6 py-8 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                <Icon name="CheckCircle2" size={32} className="text-emerald-600" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <Icon name="CheckCircle2" size={32} className="text-primary" />
               </div>
               <p className="font-display font-bold text-primary text-lg">Заявка отправлена!</p>
               <p className="text-sm text-muted-foreground">Мы рассмотрим вашу заявку в ближайшее время. Ожидайте звонка.</p>
@@ -713,17 +713,17 @@ const CabinetStatusCard = ({
             </div>
           ) : (
             <div className="flex min-h-0 flex-1 flex-col">
-              {/* Зелёная шапка */}
-              <div className="shrink-0 bg-gradient-to-br from-emerald-500 to-teal-600 px-4 pb-4 pt-4 text-white sm:px-6 sm:pb-6 sm:pt-5">
+              {/* Синяя шапка */}
+              <div className="shrink-0 bg-gradient-to-br from-primary to-primary/80 px-4 pb-4 pt-4 text-primary-foreground sm:px-6 sm:pb-6 sm:pt-5">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2 font-display text-base text-white sm:text-xl">
-                    <Icon name="CircleDollarSign" size={20} className="shrink-0 text-white sm:size-[22px]" />
-                    Получить займ
+                  <DialogTitle className="flex items-center gap-2 font-display text-base text-primary-foreground sm:text-xl">
+                    <Icon name="CircleDollarSign" size={20} className="shrink-0 text-primary-foreground sm:size-[22px]" />
+                    Повторный займ Мини
                   </DialogTitle>
                 </DialogHeader>
                 <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
                   <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-medium sm:px-3 sm:py-1 sm:text-xs">
-                    Акционный PDL · {(CALC_RATE * 100).toFixed(2).replace(/\.?0+$/, '')}% в день
+                    Акционная ставка · {(CALC_RATE * 100).toFixed(2).replace(/\.?0+$/, '')}% в день
                   </span>
                   <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-medium sm:px-3 sm:py-1 sm:text-xs">Повторный займ</span>
                 </div>
@@ -733,13 +733,13 @@ const CabinetStatusCard = ({
                 <div>
                   <div className="mb-1.5 flex items-baseline justify-between sm:mb-2">
                     <span className="text-xs font-medium text-muted-foreground sm:text-sm">Сумма займа</span>
-                    <span className="rounded-lg bg-emerald-50 px-2 py-0.5 font-display text-sm font-bold text-emerald-700 sm:px-3 sm:py-1 sm:text-lg">{fmt(calcAmount)} ₽</span>
+                    <span className="rounded-lg bg-primary/10 px-2 py-0.5 font-display text-sm font-bold text-primary sm:px-3 sm:py-1 sm:text-lg">{fmt(calcAmount)} ₽</span>
                   </div>
                   <input
                     type="range" min={1000} max={MAX_AMOUNT} step={500}
                     value={calcAmount}
                     onChange={(e) => setCalcAmount(Number(e.target.value))}
-                    className="w-full accent-emerald-600"
+                    className="w-full accent-primary"
                   />
                   <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5 sm:text-xs">
                     <span>1 000 ₽</span><span>{fmt(MAX_AMOUNT)} ₽</span>
@@ -749,13 +749,13 @@ const CabinetStatusCard = ({
                 <div>
                   <div className="mb-1.5 flex items-baseline justify-between sm:mb-2">
                     <span className="text-xs font-medium text-muted-foreground sm:text-sm">Срок займа</span>
-                    <span className="rounded-lg bg-emerald-50 px-2 py-0.5 font-display text-sm font-bold text-emerald-700 sm:px-3 sm:py-1 sm:text-lg">{calcDays} дней</span>
+                    <span className="rounded-lg bg-primary/10 px-2 py-0.5 font-display text-sm font-bold text-primary sm:px-3 sm:py-1 sm:text-lg">{calcDays} дней</span>
                   </div>
                   <input
                     type="range" min={7} max={30} step={1}
                     value={calcDays}
                     onChange={(e) => setCalcDays(Number(e.target.value))}
-                    className="w-full accent-emerald-600"
+                    className="w-full accent-primary"
                   />
                   <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5 sm:text-xs">
                     <span>7 дней</span><span>30 дней</span>
@@ -763,8 +763,8 @@ const CabinetStatusCard = ({
                 </div>
 
                 <div className="flex justify-center">
-                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-medium text-emerald-700 sm:px-3 sm:py-1 sm:text-xs">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Краткосрочный займ
+                  <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-medium text-primary sm:px-3 sm:py-1 sm:text-xs">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Краткосрочный займ
                   </span>
                 </div>
 
@@ -783,7 +783,7 @@ const CabinetStatusCard = ({
                   </div>
                   <div className="flex justify-between border-t border-border pt-1.5 sm:pt-2">
                     <span className="font-semibold text-primary">К возврату</span>
-                    <span className="font-display text-base font-bold text-emerald-600 sm:text-xl">{fmt(calcTotal)} ₽</span>
+                    <span className="font-display text-base font-bold text-primary sm:text-xl">{fmt(calcTotal)} ₽</span>
                   </div>
                 </div>
 
@@ -792,7 +792,7 @@ const CabinetStatusCard = ({
                     <input
                       type="checkbox" checked={reapplyConsent1}
                       onChange={(e) => setReapplyConsent1(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
                     />
                     <span className="text-xs text-primary sm:text-sm">Я даю согласие на обработку персональных данных (152-ФЗ)</span>
                   </label>
@@ -800,7 +800,7 @@ const CabinetStatusCard = ({
                     <input
                       type="checkbox" checked={reapplyConsent2}
                       onChange={(e) => setReapplyConsent2(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
                     />
                     <span className="text-xs text-primary sm:text-sm">Я подтверждаю достоверность указанных данных и согласен с условиями займа</span>
                   </label>
@@ -811,7 +811,7 @@ const CabinetStatusCard = ({
                 )}
 
                 <Button
-                  className="w-full h-10 font-bold text-sm bg-gradient-to-br from-emerald-500 to-teal-600 text-white hover:opacity-90 sm:h-12 sm:text-base disabled:opacity-50"
+                  className="w-full h-10 font-bold text-sm bg-gradient-to-br from-primary to-primary/80 text-primary-foreground hover:opacity-90 sm:h-12 sm:text-base disabled:opacity-50"
                   disabled={!reapplyConsent1 || !reapplyConsent2 || reapplyLoading}
                   onClick={handleReapply}
                 >
