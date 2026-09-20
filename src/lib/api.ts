@@ -10,7 +10,6 @@ const URLS = {
   reminder: 'https://functions.poehali.dev/ab5dcdf0-79b1-4f59-b478-6620609cee50',
   news:     'https://functions.poehali.dev/15f735f2-8919-476c-a802-0903e3c80c85',
   notifications: 'https://functions.poehali.dev/12de820d-b0b0-429a-8e74-07540c902a56',
-  identify: 'https://functions.poehali.dev/abb4d64c-4032-45bd-b046-71c260456257',
 };
 
 const ADMIN_TOKEN = 'admin_zaimy_plus';
@@ -52,8 +51,6 @@ export interface UserSession {
   existing_loans_count?: number | null;
   existing_debt_amount?: number | null;
   rejection_reason?: string | null;
-  identify_token_expires_at?: string | null;
-  identify_submitted_at?: string | null;
   card_photo_url?: string | null;
   card_photo_status?: string | null;
   snils_photo_url?: string | null;
@@ -610,61 +607,18 @@ export async function apiMarkNotificationsRead(phone: string, ids?: number[]): P
   if (!res.ok) throw new Error(json.error || 'Ошибка');
 }
 
-export interface IdentifyLink {
-  token: string;
-  expires_at: string;
-  ttl_minutes: number;
-}
-
-export async function apiGenerateIdentifyLink(ref_number: string): Promise<IdentifyLink> {
-  const res = await fetch(URLS.identify, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
-    body: JSON.stringify({ action: 'generate', ref_number, origin: window.location.origin }),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'Не удалось создать ссылку');
-  return json as IdentifyLink;
-}
-
-// Клиент сам генерирует себе ссылку идентификации из личного кабинета (без admin-токена)
-export async function apiGenerateOwnIdentifyLink(ref_number: string): Promise<IdentifyLink> {
-  const res = await fetch(URLS.identify, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'generate', ref_number, origin: window.location.origin }),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'Не удалось создать ссылку');
-  return json as IdentifyLink;
-}
-
-export type IdentifyState =
-  | { state: 'valid'; ref_number: string; full_name: string; expires_at: string }
-  | { state: 'expired' }
-  | { state: 'submitted'; ref_number: string; full_name: string; passport_photo_status: string | null; selfie_photo_status: string | null; card_photo_status: string | null; snils_photo_status: string | null; status: string; status_label: string };
-
-export async function apiGetIdentifyByToken(token: string): Promise<IdentifyState> {
-  const res = await fetch(`${URLS.identify}?token=${encodeURIComponent(token)}`);
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'Ссылка не найдена');
-  return json as IdentifyState;
-}
-
-export async function apiSubmitIdentify(data: {
-  token: string;
+// Клиент отправляет все 4 фото идентификации разом из личного кабинета (после статуса "Запрос фото")
+export async function apiSubmitIdentifyPhotos(data: {
+  ref_number: string;
   passport_photo_url: string;
   selfie_photo_url: string;
   card_photo_url: string;
   snils_photo_url: string;
-  consent_pd: boolean;
-  consent_transfer: boolean;
-  consent_sms: boolean;
 }): Promise<void> {
-  const res = await fetch(URLS.identify, {
+  const res = await fetch(URLS.status, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'submit', ...data }),
+    body: JSON.stringify({ action: 'client_submit_identify_photos', ...data }),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Не удалось отправить данные');

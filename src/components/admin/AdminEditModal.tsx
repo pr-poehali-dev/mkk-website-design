@@ -25,7 +25,6 @@ interface Props {
   onSaved: (updated: Partial<UserSession> & { ref_number: string }) => void;
   onBlockToggled: (ref_number: string, is_blocked: boolean) => void;
   onDocStatusChanged?: (ref_number: string, patch: Partial<UserSession>) => void;
-  onIdentifyRequested?: (ref_number: string, expires_at: string) => void;
 }
 
 const AdminEditModal = ({
@@ -38,7 +37,6 @@ const AdminEditModal = ({
   onSaved,
   onBlockToggled,
   onDocStatusChanged,
-  onIdentifyRequested,
 }: Props) => {
   const { companyName, companyInn, companyOgrn } = useMaintenance();
   const [newPassword, setNewPassword] = useState('');
@@ -351,7 +349,6 @@ const AdminEditModal = ({
               onClose={onClose}
               onBlockToggled={onBlockToggled}
               setSaving={setSaving}
-              onIdentifyRequested={onIdentifyRequested}
             />
 
           </div>

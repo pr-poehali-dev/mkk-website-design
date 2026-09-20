@@ -6,11 +6,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, apiGenerateOwnIdentifyLink, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, apiUploadFile, apiSubmitIdentifyPhotos, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
+import CameraCapture from '@/components/anketa/CameraCapture';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const BANKS = [
   { name: 'Сбербанк', icon: '🟢' },
@@ -142,31 +142,77 @@ const CabinetStatusCard = ({
   const [showCalc, setShowCalc] = useState(false);
   const [showReapplyLoading, setShowReapplyLoading] = useState(false);
 
-  const nav = useNavigate();
-  const [identifyLoading, setIdentifyLoading] = useState(false);
-  const [identifyError, setIdentifyError] = useState('');
-  const identifySubmitted = !!user.identify_submitted_at;
-  const identifyExpiresAt = user.identify_token_expires_at ? new Date(user.identify_token_expires_at) : null;
-  // Блок показываем только после того, как админ (или сам клиент ранее) запросил идентификацию
-  const identifyRequested = identifySubmitted || !!identifyExpiresAt;
-  const identifyPending = !identifySubmitted && !!identifyExpiresAt && identifyExpiresAt.getTime() > Date.now();
-  const identifyExpired = !identifySubmitted && !!identifyExpiresAt && identifyExpiresAt.getTime() <= Date.now();
-  const identifyStatuses = [user.passport_photo_status, user.selfie_photo_status, user.card_photo_status, user.snils_photo_status];
-  const identifyReviewing = identifySubmitted && identifyStatuses.some((s) => !s || s === 'pending');
-  const identifyRejected = identifySubmitted && identifyStatuses.some((s) => s === 'rejected');
-  const identifyApproved = identifySubmitted && identifyStatuses.every((s) => s === 'approved');
+  // Запрос фото документов (статус photo_request) — клиент загружает 4 фото прямо в кабинете
+  const PHOTO_CHECK_SECONDS = 180;
+  const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
+  const [passportFile, setPassportFile] = useState<File | null>(null);
+  const [selfiePhoto, setSelfiePhoto] = useState<string | null>(null);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [cardPhoto, setCardPhoto] = useState<string | null>(null);
+  const [cardFile, setCardFile] = useState<File | null>(null);
+  const [snilsPhoto, setSnilsPhoto] = useState<string | null>(null);
+  const [snilsFile, setSnilsFile] = useState<File | null>(null);
+  const [photosUploading, setPhotosUploading] = useState(false);
+  const [photosChecking, setPhotosChecking] = useState(false);
+  const [photosSecondsLeft, setPhotosSecondsLeft] = useState(PHOTO_CHECK_SECONDS);
+  const [photosError, setPhotosError] = useState('');
+  const canSubmitPhotos = !!(passportFile && selfieFile && cardFile && snilsFile);
 
-  const handleGenerateIdentifyLink = async () => {
-    setIdentifyLoading(true);
-    setIdentifyError('');
+  const handleSubmitPhotos = async () => {
+    if (!canSubmitPhotos || !passportFile || !selfieFile || !cardFile || !snilsFile) return;
+    setPhotosUploading(true);
+    setPhotosError('');
     try {
-      const link = await apiGenerateOwnIdentifyLink(user.ref_number);
-      nav(`/verify/${link.token}`);
+      const [passport_photo_url, selfie_photo_url, card_photo_url, snils_photo_url] = await Promise.all([
+        apiUploadFile(passportFile),
+        apiUploadFile(selfieFile),
+        apiUploadFile(cardFile),
+        apiUploadFile(snilsFile),
+      ]);
+      setPhotosUploading(false);
+      setPhotosChecking(true);
+      setPhotosSecondsLeft(PHOTO_CHECK_SECONDS);
+      const timer = setInterval(() => {
+        setPhotosSecondsLeft((s) => {
+          if (s <= 1) {
+            clearInterval(timer);
+            (async () => {
+              try {
+                await apiSubmitIdentifyPhotos({
+                  ref_number: user.ref_number,
+                  passport_photo_url, selfie_photo_url, card_photo_url, snils_photo_url,
+                });
+                const fresh = await apiGetRequest(user.ref_number);
+                saveSession(fresh);
+                setUser(fresh);
+              } catch (e: unknown) {
+                setPhotosError(e instanceof Error ? e.message : 'Не удалось отправить фото');
+              } finally {
+                setPhotosChecking(false);
+              }
+            })();
+            return 0;
+          }
+          return s - 1;
+        });
+      }, 1000);
     } catch (e: unknown) {
-      setIdentifyError(e instanceof Error ? e.message : 'Не удалось создать ссылку');
-    } finally {
-      setIdentifyLoading(false);
+      setPhotosUploading(false);
+      setPhotosError(e instanceof Error ? e.message : 'Не удалось загрузить фото');
     }
+  };
+
+  const photosTimerLabel = `${String(Math.floor(photosSecondsLeft / 60)).padStart(2, '0')}:${String(photosSecondsLeft % 60).padStart(2, '0')}`;
+
+  const MAX_PHOTO_MB = 5;
+  const handlePickPhoto = (setFile: (f: File) => void, setPreview: (u: string) => void) => (file: File) => {
+    if (file.size > MAX_PHOTO_MB * 1024 * 1024) {
+      setPhotosError(`Фото слишком большое. Максимум ${MAX_PHOTO_MB} МБ.`);
+      return;
+    }
+    setPhotosError('');
+    setFile(file);
+    setPreview(URL.createObjectURL(file));
   };
 
   const CALC_RATE = 0.0006;
@@ -325,7 +371,7 @@ const CabinetStatusCard = ({
           </div>
         )}
 
-        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' ? (
+        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' && status !== 'photo_request' ? (
           <div className="flex items-start p-4 gap-0">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
@@ -366,62 +412,65 @@ const CabinetStatusCard = ({
           </div>
         )}
 
-        {identifyRequested && (
-          <div className={`mx-4 mb-4 rounded-xl border p-3.5 ${
-            identifyApproved ? 'border-green-300 bg-green-50' :
-            identifyRejected ? 'border-red-300 bg-red-50' :
-            identifyReviewing ? 'border-blue-200 bg-blue-50' :
-            identifyPending ? 'border-orange-200 bg-orange-50' :
-            'border-accent/30 bg-accent/5'
-          }`}>
-            <div className="flex items-start gap-2.5">
-              <Icon
-                name={identifyApproved ? 'ShieldCheck' : identifyRejected ? 'AlertTriangle' : identifyReviewing ? 'Clock' : 'IdCard'}
-                size={18}
-                className={`mt-0.5 shrink-0 ${
-                  identifyApproved ? 'text-green-600' :
-                  identifyRejected ? 'text-red-600' :
-                  identifyReviewing ? 'text-blue-600' :
-                  identifyPending ? 'text-orange-600' : 'text-accent'
-                }`}
-              />
-              <div className="flex-1">
-                {identifyApproved ? (
-                  <p className="text-sm font-semibold text-green-700">Документы проверены и приняты</p>
-                ) : identifyRejected ? (
-                  <>
-                    <p className="text-sm font-semibold text-red-700">Часть документов отклонена</p>
-                    <p className="mt-0.5 text-xs text-red-600">Загрузите фото документов заново по новой ссылке</p>
-                  </>
-                ) : identifyReviewing ? (
-                  <p className="text-sm font-semibold text-blue-700">Идёт проверка загруженных фото</p>
-                ) : (
-                  <>
-                    <p className="text-sm font-semibold text-primary">Оператор запросил идентификацию</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {identifyExpired
-                        ? 'Прошлая ссылка истекла — нажмите кнопку, чтобы получить новую'
-                        : 'Загрузите фото паспорта, селфи, банковской карты и СНИЛС'}
-                    </p>
-                  </>
-                )}
-                {(!identifySubmitted || identifyRejected) && (
-                  <Button
-                    size="sm"
-                    disabled={identifyLoading}
-                    onClick={handleGenerateIdentifyLink}
-                    className="mt-2.5 h-8 bg-accent text-xs font-semibold text-accent-foreground hover:bg-accent/90"
-                  >
-                    {identifyLoading ? (
-                      <span className="flex items-center gap-1.5"><Icon name="Loader2" size={13} className="animate-spin" /> Создаём ссылку...</span>
-                    ) : (
-                      <span className="flex items-center gap-1.5"><Icon name="Camera" size={13} /> Загрузить фото документов</span>
-                    )}
-                  </Button>
-                )}
-                {identifyError && <p className="mt-1.5 text-xs text-red-600">{identifyError}</p>}
+        {status === 'photo_request' && (
+          <div className="p-6 space-y-5">
+            {photosChecking ? (
+              <div className="flex flex-col items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 p-6 text-center">
+                <Icon name="Loader2" size={32} className="animate-spin text-blue-600" />
+                <p className="text-sm font-semibold text-blue-700">Идёт проверка документов</p>
+                <p className="font-mono text-lg font-bold text-blue-600">{photosTimerLabel}</p>
+                <p className="flex items-center gap-1.5 text-xs text-blue-600">
+                  <Icon name="AlertTriangle" size={13} className="shrink-0" /> Подождите пожалуйста
+                </p>
               </div>
-            </div>
+            ) : (
+              <>
+                <div>
+                  <p className="text-sm font-semibold text-primary">Оператор запросил идентификацию</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Загрузите фото паспорта, селфи, банковской карты и СНИЛС</p>
+                </div>
+
+                <CameraCapture
+                  label="Фото паспорта (разворот с фото)"
+                  hint="Наведите камеру на разворот с фотографией"
+                  preview={passportPhoto}
+                  onCapture={handlePickPhoto(setPassportFile, setPassportPhoto)}
+                />
+                <CameraCapture
+                  label="Селфи с паспортом у лица"
+                  hint="Держите открытый паспорт рядом с лицом"
+                  preview={selfiePhoto}
+                  onCapture={handlePickPhoto(setSelfieFile, setSelfiePhoto)}
+                  aspect="square"
+                />
+                <CameraCapture
+                  label="Фото банковской карты"
+                  hint="Лицевая сторона карты, на которую получите займ"
+                  preview={cardPhoto}
+                  onCapture={handlePickPhoto(setCardFile, setCardPhoto)}
+                />
+                <CameraCapture
+                  label="Фото СНИЛС"
+                  hint="Наведите камеру на СНИЛС"
+                  preview={snilsPhoto}
+                  onCapture={handlePickPhoto(setSnilsFile, setSnilsPhoto)}
+                />
+
+                {photosError && <p className="text-xs text-red-600">{photosError}</p>}
+
+                <Button
+                  disabled={!canSubmitPhotos || photosUploading}
+                  onClick={handleSubmitPhotos}
+                  className="h-11 w-full bg-accent text-sm font-semibold text-accent-foreground hover:bg-accent/90"
+                >
+                  {photosUploading ? (
+                    <span className="flex items-center gap-1.5"><Icon name="Loader2" size={15} className="animate-spin" /> Загружаем...</span>
+                  ) : (
+                    <span className="flex items-center gap-1.5"><Icon name="Send" size={15} /> Отправить на проверку</span>
+                  )}
+                </Button>
+              </>
+            )}
           </div>
         )}
 

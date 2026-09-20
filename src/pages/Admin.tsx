@@ -322,11 +322,6 @@ const Admin = () => {
           setRequests((prev) => prev.map((r) => r.ref_number === ref_number ? { ...r, ...patch } : r));
           setSelected((prev) => prev ? { ...prev, ...patch } : null);
         }}
-        onIdentifyRequested={(ref_number, expires_at) => {
-          const patch = { identify_token_expires_at: expires_at, identify_submitted_at: null };
-          setRequests((prev) => prev.map((r) => r.ref_number === ref_number ? { ...r, ...patch } : r));
-          setSelected((prev) => prev ? { ...prev, ...patch } : null);
-        }}
       />
     </div>
   );

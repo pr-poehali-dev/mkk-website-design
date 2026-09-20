@@ -13,7 +13,6 @@ COLS = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'passport_by',
         'passport_photo_status', 'registration_photo_status', 'income_doc_status', 'password_plain',
         'insurance_enabled', 'money_sent_at', 'selfie_photo_url', 'selfie_photo_status',
         'existing_loans_count', 'existing_debt_amount', 'rejection_reason', 'updated_at',
-        'identify_token_expires_at', 'identify_submitted_at',
         'card_photo_url', 'card_photo_status', 'snils_photo_url', 'snils_photo_status']
 
 SELECT_COLS = """id, ref_number, full_name, phone, passport, passport_by,
@@ -23,7 +22,6 @@ SELECT_COLS = """id, ref_number, full_name, phone, passport, passport_by,
                        passport_photo_status, registration_photo_status, income_doc_status, password_plain,
                        insurance_enabled, money_sent_at, selfie_photo_url, selfie_photo_status,
                        existing_loans_count, existing_debt_amount, rejection_reason, updated_at,
-                       identify_token_expires_at, identify_submitted_at,
                        card_photo_url, card_photo_status, snils_photo_url, snils_photo_status"""
 
 def row_to_dict(row):
@@ -36,10 +34,6 @@ def row_to_dict(row):
         d['money_sent_at'] = d['money_sent_at'].isoformat()
     if d.get('updated_at'):
         d['updated_at'] = d['updated_at'].isoformat()
-    if d.get('identify_token_expires_at'):
-        d['identify_token_expires_at'] = d['identify_token_expires_at'].isoformat()
-    if d.get('identify_submitted_at'):
-        d['identify_submitted_at'] = d['identify_submitted_at'].isoformat()
     return d
 
 def handler(event: dict, context) -> dict:

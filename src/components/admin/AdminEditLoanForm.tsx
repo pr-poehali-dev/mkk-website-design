@@ -1,11 +1,10 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGenerateIdentifyLink, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { type EditForm } from './adminEditTypes';
 
@@ -44,7 +43,6 @@ interface Props {
   onClose: () => void;
   onBlockToggled: (ref_number: string, is_blocked: boolean) => void;
   setSaving: (v: boolean) => void;
-  onIdentifyRequested?: (ref_number: string, expires_at: string) => void;
 }
 
 const AdminEditLoanForm = ({
@@ -57,25 +55,7 @@ const AdminEditLoanForm = ({
   onClose,
   onBlockToggled,
   setSaving,
-  onIdentifyRequested,
 }: Props) => {
-  const [identifyLoading, setIdentifyLoading] = useState(false);
-  const [identifyMsg, setIdentifyMsg] = useState<{ ok: boolean; text: string } | null>(null);
-
-  const handleRequestIdentify = async () => {
-    setIdentifyLoading(true);
-    setIdentifyMsg(null);
-    try {
-      const link = await apiGenerateIdentifyLink(selected.ref_number);
-      onIdentifyRequested?.(selected.ref_number, link.expires_at);
-      setIdentifyMsg({ ok: true, text: 'Запрос отправлен клиенту — ссылка появится в его личном кабинете и придёт на почту' });
-    } catch (e: unknown) {
-      setIdentifyMsg({ ok: false, text: e instanceof Error ? e.message : 'Не удалось отправить запрос' });
-    } finally {
-      setIdentifyLoading(false);
-    }
-  };
-
   return (
     <>
       {/* Статус */}
@@ -89,29 +69,6 @@ const AdminEditLoanForm = ({
             ))}
           </SelectContent>
         </Select>
-      </div>
-
-      {/* Запрос идентификации */}
-      <div className="rounded-xl border border-border bg-card p-3">
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={identifyLoading}
-          onClick={handleRequestIdentify}
-          className="w-full gap-1.5"
-        >
-          {identifyLoading ? (
-            <><Icon name="Loader2" size={14} className="animate-spin" /> Отправляем запрос...</>
-          ) : (
-            <><Icon name="IdCard" size={14} /> Идентификация — запросить фото документов</>
-          )}
-        </Button>
-        <p className="mt-1.5 text-xs text-muted-foreground">
-          Клиенту в личном кабинете появится кнопка загрузки фото паспорта, селфи, карты и СНИЛС. Ссылка также придёт на email.
-        </p>
-        {identifyMsg && (
-          <p className={`mt-1.5 text-xs ${identifyMsg.ok ? 'text-green-600' : 'text-red-600'}`}>{identifyMsg.text}</p>
-        )}
       </div>
 
       {/* Сумма и срок */}
