@@ -330,6 +330,7 @@ const CabinetStatusCard = ({
   };
 
   const [payInfoOpen, setPayInfoOpen] = useState(false);
+  const isActiveLoan = status === 'money_sent' || status === 'overdue';
 
   const moneySentKey = `money_sent_seen_${user.ref_number}`;
   const [showMoneySent, setShowMoneySent] = useState(() =>
@@ -376,7 +377,7 @@ const CabinetStatusCard = ({
           </div>
         )}
 
-        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' && status !== 'photo_request' ? (
+        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' && status !== 'photo_request' && status !== 'overdue' ? (
           <div className="flex items-start p-4 gap-0">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
@@ -739,6 +740,17 @@ const CabinetStatusCard = ({
               </div>
             </div>
           )}
+          {status === 'overdue' && (
+            <div className="mt-6 space-y-3">
+              <div className="flex items-start gap-3 rounded-xl border-2 border-red-300 bg-red-50 p-4">
+                <Icon name="AlertCircle" size={22} className="mt-0.5 shrink-0 text-red-600" />
+                <div>
+                  <p className="font-display font-bold text-red-700">Образовалась просрочка</p>
+                  <p className="text-sm text-red-600 mt-1">Пожалуйста, погасите задолженность как можно скорее, чтобы избежать дополнительных штрафов.</p>
+                </div>
+              </div>
+            </div>
+          )}
           {status === 'money_sent' && showMoneySent && (
             <div className="mt-6 space-y-3">
               <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50 p-5 text-center">
@@ -759,15 +771,15 @@ const CabinetStatusCard = ({
             </div>
           )}
           {status !== 'issued' && (
-            <div className={`rounded-2xl border p-6 ${status === 'money_sent' ? 'mt-4 border-accent/40 bg-accent/5' : 'border-border bg-card'}`}>
+            <div className={`rounded-2xl border p-6 ${isActiveLoan ? 'mt-4 border-accent/40 bg-accent/5' : 'border-border bg-card'}`}>
               <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-primary">
-                <Icon name={status === 'money_sent' ? 'BadgeDollarSign' : 'Wallet'} size={18} className="text-accent" />
-                {status === 'money_sent' ? 'Активный займ' : 'Параметры займа'}
+                <Icon name={isActiveLoan ? 'BadgeDollarSign' : 'Wallet'} size={18} className="text-accent" />
+                {isActiveLoan ? 'Активный займ' : 'Параметры займа'}
               </h2>
               <dl className="space-y-3 text-sm">
                 <div className="flex justify-between"><dt className="text-muted-foreground">Сумма займа</dt><dd className="font-semibold">{fmt(user.amount)} ₽</dd></div>
                 <div className="flex justify-between"><dt className="text-muted-foreground">Срок</dt><dd className="font-semibold">{user.days} дн.</dd></div>
-                {status === 'money_sent' && (
+                {isActiveLoan && (
                   <>
                     <div className="flex justify-between"><dt className="text-muted-foreground">Переплата (0.8%/день)</dt><dd className="font-semibold">{fmt(Math.round(user.amount * 0.008 * user.days))} ₽</dd></div>
                     <div className="flex justify-between border-t border-accent/20 pt-2">
@@ -778,7 +790,7 @@ const CabinetStatusCard = ({
                 )}
                 <div className="flex justify-between"><dt className="text-muted-foreground">Дата заявки</dt><dd className="font-semibold">{user.created_at?.slice(0, 10)}</dd></div>
               </dl>
-              {status === 'money_sent' && (
+              {isActiveLoan && (
                 <LoanRepaymentProgress
                   amount={user.amount}
                   days={user.days}
@@ -792,7 +804,7 @@ const CabinetStatusCard = ({
         )}
       </div>
 
-      {status === 'money_sent' && (
+      {isActiveLoan && (
         <Button size="lg" className="mt-6 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
           onClick={() => setPayInfoOpen(true)}>
           Погасить займ <Icon name="ArrowRight" size={18} className="ml-1" />

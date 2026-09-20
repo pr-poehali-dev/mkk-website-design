@@ -1,4 +1,6 @@
 {
+  "yookassa-yookassa": "https://functions.poehali.dev/425ebb9e-935c-42a6-a11c-d0dced9dc3dc",
+  "yookassa-yookassa-webhook": "https://functions.poehali.dev/c2a3d779-fb60-44af-9d27-9cb8270f8997",
   "loan-notifications": "https://functions.poehali.dev/12de820d-b0b0-429a-8e74-07540c902a56",
   "loan-news": "https://functions.poehali.dev/15f735f2-8919-476c-a802-0903e3c80c85",
   "loan-reminder": "https://functions.poehali.dev/ab5dcdf0-79b1-4f59-b478-6620609cee50",

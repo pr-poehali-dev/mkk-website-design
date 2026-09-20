@@ -8,11 +8,11 @@ import psycopg2
 
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
 ADMIN_TOKEN = 'admin_zaimy_plus'
-VALID_STATUSES = ('review', 'approved', 'issued', 'money_sent', 'rejected', 'transfer_error', 'repaid', 'photo_request')
+VALID_STATUSES = ('review', 'approved', 'issued', 'money_sent', 'rejected', 'transfer_error', 'repaid', 'photo_request', 'overdue')
 STATUS_LABELS = {
     'review': 'На скоринге', 'approved': 'Одобрено', 'issued': 'Договор подписан',
     'money_sent': 'Деньги выданы', 'rejected': 'Отказано', 'transfer_error': 'Ошибка перевода',
-    'repaid': 'Займ погашен', 'photo_request': 'Запрос фото',
+    'repaid': 'Займ погашен', 'photo_request': 'Запрос фото', 'overdue': 'Просрочка',
 }
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
@@ -90,6 +90,7 @@ DEFAULT_STATUS_EMAIL_TEXT = {
     'transfer_error': ('Ошибка перевода', 'При переводе средств по заявке {ref} произошла ошибка. Наш оператор свяжется с вами.'),
     'repaid': ('Займ погашен', 'Займ по заявке {ref} успешно погашен. Спасибо, что выбираете нас!'),
     'photo_request': ('Требуется идентификация', 'По заявке {ref} требуется идентификация. Зайдите в личный кабинет и загрузите фото паспорта, селфи, банковской карты и СНИЛС.'),
+    'overdue': ('Просрочка платежа', 'По вашему займу {ref} образовалась просрочка. Пожалуйста, погасите задолженность как можно скорее, чтобы избежать штрафов.'),
 }
 
 
