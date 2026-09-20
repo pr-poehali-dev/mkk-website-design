@@ -26,8 +26,9 @@ const LoanRepaymentProgress = ({ amount, days, startDate, overpay, statusOverdue
   const isOverdue = statusOverdue || daysLeft < 0;
   const isUrgent = !isOverdue && daysLeft >= 0 && daysLeft <= 2;
   const daysOverdue = isOverdue ? Math.max(1, Math.ceil((now.getTime() - due.getTime()) / msPerDay)) : 0;
+  const penaltyTotal = Math.round(amount * 0.01) * daysOverdue;
 
-  const total = amount + overpay;
+  const total = amount + overpay + penaltyTotal;
   const dueLabel = due.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
 
   const barColor = isOverdue ? 'bg-red-500' : isUrgent ? 'bg-orange-500' : 'bg-accent';
@@ -62,7 +63,7 @@ const LoanRepaymentProgress = ({ amount, days, startDate, overpay, statusOverdue
       </div>
 
       <div className={`mt-4 flex items-center justify-between rounded-lg px-3 py-2.5 ${isOverdue ? 'bg-red-100' : 'bg-secondary'}`}>
-        <span className={`text-sm ${isOverdue ? 'text-red-700' : 'text-muted-foreground'}`}>Сумма к возврату</span>
+        <span className={`text-sm ${isOverdue ? 'text-red-700' : 'text-muted-foreground'}`}>{isOverdue ? 'Сумма к возврату с пеней' : 'Сумма к возврату'}</span>
         <span className={`font-display text-lg font-bold ${isOverdue ? 'text-red-700' : 'text-primary'}`}>{fmt(total)} ₽</span>
       </div>
     </div>
