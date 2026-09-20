@@ -107,37 +107,63 @@ const AdminEditLoanForm = ({
       </div>
 
       {/* Расчёт займа */}
-      {contract && (
-        <div className="rounded-xl bg-accent/5 border border-accent/20 p-4 text-sm space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent">Расчёт займа</p>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Сумма займа</span>
-            <span className="font-medium">{fmt(contract.amt)} ₽</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Срок</span>
-            <span className="font-medium">{contract.dys} дн.</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Ставка</span>
-            <span className="font-medium">0.8% / день</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Переплата</span>
-            <span className="font-medium">{fmt(contract.overpay)} ₽</span>
-          </div>
-          {editForm.insurance_enabled && (
-            <div className="flex justify-between text-blue-700">
-              <span>Страховка</span>
-              <span className="font-medium">{fmt(Math.round(356 + contract.amt * 0.005))} ₽</span>
+      {contract && (() => {
+        const isOverdue = editForm.status === 'overdue';
+        const insuranceSum = editForm.insurance_enabled ? Math.round(356 + contract.amt * 0.005) : 0;
+        let daysOverdue = 0;
+        let penaltyTotal = 0;
+        if (isOverdue) {
+          const start = new Date(selected.money_sent_at || selected.created_at);
+          const due = new Date(start);
+          due.setDate(due.getDate() + contract.dys);
+          daysOverdue = Math.max(1, Math.ceil((Date.now() - due.getTime()) / 86400000));
+          penaltyTotal = Math.round(contract.amt * 0.01) * daysOverdue;
+        }
+        const totalWithPenalty = contract.total + insuranceSum + penaltyTotal;
+        return (
+          <div className={`rounded-xl border p-4 text-sm space-y-2 ${isOverdue ? 'bg-red-50 border-red-200' : 'bg-accent/5 border-accent/20'}`}>
+            <p className={`text-xs font-semibold uppercase tracking-widest ${isOverdue ? 'text-red-600' : 'text-accent'}`}>Расчёт займа</p>
+            <div className="flex justify-between">
+              <span className={isOverdue ? 'text-red-600' : 'text-muted-foreground'}>Сумма займа</span>
+              <span className={`font-medium ${isOverdue ? 'text-red-700' : ''}`}>{fmt(contract.amt)} ₽</span>
             </div>
-          )}
-          <div className="flex justify-between border-t border-accent/20 pt-2">
-            <span className="font-semibold text-primary">К возврату</span>
-            <span className="font-bold text-primary text-base">{fmt(contract.total + (editForm.insurance_enabled ? Math.round(356 + contract.amt * 0.005) : 0))} ₽</span>
+            <div className="flex justify-between">
+              <span className={isOverdue ? 'text-red-600' : 'text-muted-foreground'}>Срок</span>
+              <span className={`font-medium ${isOverdue ? 'text-red-700' : ''}`}>{contract.dys} дн.</span>
+            </div>
+            <div className="flex justify-between">
+              <span className={isOverdue ? 'text-red-600' : 'text-muted-foreground'}>Ставка</span>
+              <span className={`font-medium ${isOverdue ? 'text-red-700' : ''}`}>0.8% / день</span>
+            </div>
+            <div className="flex justify-between">
+              <span className={isOverdue ? 'text-red-600' : 'text-muted-foreground'}>Переплата</span>
+              <span className={`font-medium ${isOverdue ? 'text-red-700' : ''}`}>{fmt(contract.overpay)} ₽</span>
+            </div>
+            {editForm.insurance_enabled && (
+              <div className={`flex justify-between ${isOverdue ? 'text-red-600' : 'text-blue-700'}`}>
+                <span>Страховка</span>
+                <span className="font-medium">{fmt(insuranceSum)} ₽</span>
+              </div>
+            )}
+            {isOverdue && (
+              <>
+                <div className="flex justify-between border-t border-red-200 pt-2 text-red-600">
+                  <span>Дней просрочки</span>
+                  <span className="font-semibold text-red-700">{daysOverdue} дн.</span>
+                </div>
+                <div className="flex justify-between text-red-600">
+                  <span>Пеня (1% / день)</span>
+                  <span className="font-semibold text-red-700">{fmt(penaltyTotal)} ₽</span>
+                </div>
+              </>
+            )}
+            <div className={`flex justify-between border-t pt-2 ${isOverdue ? 'border-red-200' : 'border-accent/20'}`}>
+              <span className={`font-semibold ${isOverdue ? 'text-red-700' : 'text-primary'}`}>{isOverdue ? 'К возврату с пеней' : 'К возврату'}</span>
+              <span className={`font-bold text-base ${isOverdue ? 'text-red-700' : 'text-primary'}`}>{fmt(totalWithPenalty)} ₽</span>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Договор займа */}
       {contract && (
