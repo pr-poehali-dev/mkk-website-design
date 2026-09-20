@@ -332,6 +332,16 @@ const CabinetStatusCard = ({
   const [payInfoOpen, setPayInfoOpen] = useState(false);
   const isActiveLoan = status === 'money_sent' || status === 'overdue';
 
+  const dueDate = (() => {
+    const start = new Date(user.money_sent_at || user.created_at);
+    const due = new Date(start);
+    due.setDate(due.getDate() + user.days);
+    return due;
+  })();
+  const daysOverdue = Math.max(1, Math.ceil((Date.now() - dueDate.getTime()) / 86400000));
+  const overdueDailyPenalty = Math.round(user.amount * 0.01);
+  const overduePenaltyTotal = overdueDailyPenalty * daysOverdue;
+
   const moneySentKey = `money_sent_seen_${user.ref_number}`;
   const [showMoneySent, setShowMoneySent] = useState(() =>
     status === 'money_sent' ? !localStorage.getItem(moneySentKey) : false
@@ -785,6 +795,20 @@ const CabinetStatusCard = ({
                     <div className="flex justify-between border-t border-accent/20 pt-2">
                       <dt className="font-semibold text-primary">К возврату</dt>
                       <dd className="font-bold text-accent text-base">{fmt(user.amount + Math.round(user.amount * 0.008 * user.days))} ₽</dd>
+                    </div>
+                  </>
+                )}
+                {status === 'overdue' && (
+                  <>
+                    <div className="flex justify-between border-t border-red-200 pt-2">
+                      <dt className="text-red-600">Дней просрочки</dt>
+                      <dd className="font-semibold text-red-700">{daysOverdue} дн.</dd>
+                    </div>
+                    <div className="flex justify-between"><dt className="text-red-600">Пеня за просрочку (1%/день)</dt><dd className="font-semibold text-red-700">{fmt(overdueDailyPenalty)} ₽/дн.</dd></div>
+                    <div className="flex justify-between"><dt className="text-red-600">Начислено пени</dt><dd className="font-semibold text-red-700">{fmt(overduePenaltyTotal)} ₽</dd></div>
+                    <div className="flex justify-between border-t border-red-200 pt-2">
+                      <dt className="font-semibold text-red-700">Итого к возврату с пеней</dt>
+                      <dd className="font-bold text-red-700 text-base">{fmt(user.amount + Math.round(user.amount * 0.008 * user.days) + overduePenaltyTotal)} ₽</dd>
                     </div>
                   </>
                 )}

@@ -23,9 +23,9 @@ const LoanRepaymentProgress = ({ amount, days, startDate, overpay, statusOverdue
 
   const msPerDay = 86400000;
   const daysLeft = Math.ceil((due.getTime() - now.getTime()) / msPerDay);
-  const daysOverdue = Math.max(0, Math.ceil((now.getTime() - due.getTime()) / msPerDay));
   const isOverdue = statusOverdue || daysLeft < 0;
   const isUrgent = !isOverdue && daysLeft >= 0 && daysLeft <= 2;
+  const daysOverdue = isOverdue ? Math.max(1, Math.ceil((now.getTime() - due.getTime()) / msPerDay)) : 0;
 
   const total = amount + overpay;
   const dueLabel = due.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
