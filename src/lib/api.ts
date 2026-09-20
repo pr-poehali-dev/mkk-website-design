@@ -52,6 +52,8 @@ export interface UserSession {
   existing_loans_count?: number | null;
   existing_debt_amount?: number | null;
   rejection_reason?: string | null;
+  identify_token_expires_at?: string | null;
+  identify_submitted_at?: string | null;
 }
 
 export function getSession(): UserSession | null {

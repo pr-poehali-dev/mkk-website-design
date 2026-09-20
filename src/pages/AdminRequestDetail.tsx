@@ -10,6 +10,7 @@ import AdminEditDocumentsPassword from '@/components/admin/AdminEditDocumentsPas
 import AdminEditEmailForm from '@/components/admin/AdminEditEmailForm';
 import AdminEditLoanForm from '@/components/admin/AdminEditLoanForm';
 import AdminPaymentHistory from '@/components/admin/AdminPaymentHistory';
+import AdminIdentifyStatus from '@/components/admin/AdminIdentifyStatus';
 import { type EditForm } from '@/components/admin/adminEditTypes';
 import {
   apiAdminSetPassword, apiUploadFile, apiAdminSetDocStatus, apiSendEmail,
@@ -419,6 +420,11 @@ const AdminRequestDetail = () => {
               />
             </div>
           </div>
+        </div>
+
+        {/* Статус идентификации по ссылке */}
+        <div className="mt-5">
+          <AdminIdentifyStatus selected={selected} />
         </div>
 
         {/* История платежей */}
