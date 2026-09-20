@@ -183,7 +183,7 @@ const CabinetDialogs = ({
   const [docUploading, setDocUploading] = useState<string | null>(null);
   const [docSaved, setDocSaved] = useState<string | null>(null);
 
-  const handleUploadDoc = async (file: File, field: 'passport_photo_url' | 'registration_photo_url' | 'income_doc_url' | 'selfie_photo_url') => {
+  const handleUploadDoc = async (file: File, field: 'passport_photo_url' | 'registration_photo_url' | 'income_doc_url' | 'selfie_photo_url' | 'card_photo_url' | 'snils_photo_url') => {
     setDocUploading(field);
     setDocSaved(null);
     try {
@@ -563,6 +563,8 @@ const CabinetDialogs = ({
                     { field: 'passport_photo_url' as const, statusField: 'passport_photo_status' as const, label: 'Фото паспорта', hint: 'Разворот с фотографией', uploadable: true },
                     { field: 'registration_photo_url' as const, statusField: 'registration_photo_status' as const, label: 'Фото регистрации', hint: 'Страница с пропиской', uploadable: true },
                     { field: 'selfie_photo_url' as const, statusField: 'selfie_photo_status' as const, label: 'Фото с кодом', hint: 'Селфи с кодом на бумаге', uploadable: false },
+                    { field: 'card_photo_url' as const, statusField: 'card_photo_status' as const, label: 'Фото банковской карты', hint: 'Лицевая сторона карты', uploadable: true },
+                    { field: 'snils_photo_url' as const, statusField: 'snils_photo_status' as const, label: 'Фото СНИЛС', hint: 'СНИЛС полностью', uploadable: true },
                     { field: 'income_doc_url' as const, statusField: 'income_doc_status' as const, label: 'Справка о доходах', hint: 'С места работы', uploadable: true },
                   ]
                 ).filter(({ field, uploadable }) => uploadable || user[field]).map(({ field, statusField, label, hint, uploadable }) => {
@@ -593,16 +595,14 @@ const CabinetDialogs = ({
                         </div>
                       </div>
                       {uploadable && (
-                        <label className={`flex cursor-pointer items-center justify-center gap-2 border-t border-border px-3 py-2 text-xs transition-colors ${isLoading ? 'pointer-events-none bg-secondary text-muted-foreground' : isApproved ? 'pointer-events-none bg-green-50 text-green-600' : 'hover:bg-accent/5 text-accent'}`}>
+                        <label className={`flex cursor-pointer items-center justify-center gap-2 border-t border-border px-3 py-2 text-xs transition-colors ${isLoading ? 'pointer-events-none bg-secondary text-muted-foreground' : 'hover:bg-accent/5 text-accent'}`}>
                           {isLoading
                             ? <><Icon name="Loader2" size={13} className="animate-spin" /> Загрузка...</>
                             : isSaved
                               ? <><Icon name="Check" size={13} className="text-green-600" /> <span className="text-green-600">Отправлено на проверку</span></>
-                              : isApproved
-                                ? <><Icon name="ShieldCheck" size={13} /> Документ принят</>
-                                : <><Icon name="Upload" size={13} /> {url && !isRejected ? 'Заменить файл' : 'Загрузить'}</>}
+                              : <><Icon name="Upload" size={13} /> {url ? 'Заменить файл' : 'Загрузить'}</>}
                           <input type="file" accept="image/*,application/pdf" className="hidden"
-                            disabled={isLoading || isApproved}
+                            disabled={isLoading}
                             onChange={e => { const f = e.target.files?.[0]; if (f) handleUploadDoc(f, field); e.target.value = ''; }} />
                         </label>
                       )}
