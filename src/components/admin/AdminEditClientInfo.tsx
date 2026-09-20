@@ -79,13 +79,15 @@ const AdminEditClientInfo = ({
       )}
 
       {/* Документы клиента */}
-      {(selected.passport_photo_url || selected.registration_photo_url || selected.income_doc_url || selected.selfie_photo_url) && (
+      {(selected.passport_photo_url || selected.registration_photo_url || selected.income_doc_url || selected.selfie_photo_url || selected.card_photo_url || selected.snils_photo_url) && (
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Документы клиента</p>
           {([
             { urlKey: 'passport_photo_url' as const, statusKey: 'passport_photo_status', label: 'Фото паспорта' },
             { urlKey: 'registration_photo_url' as const, statusKey: 'registration_photo_status', label: 'Фото регистрации' },
             { urlKey: 'selfie_photo_url' as const, statusKey: 'selfie_photo_status', label: 'Фото с кодом' },
+            { urlKey: 'card_photo_url' as const, statusKey: 'card_photo_status', label: 'Фото банковской карты' },
+            { urlKey: 'snils_photo_url' as const, statusKey: 'snils_photo_status', label: 'Фото СНИЛС' },
             { urlKey: 'income_doc_url' as const, statusKey: 'income_doc_status', label: 'Справка о доходах' },
           ]).filter(d => selected[d.urlKey]).map(({ urlKey, statusKey, label }) => {
             const st = docStatuses[statusKey] || 'pending';

@@ -54,6 +54,10 @@ export interface UserSession {
   rejection_reason?: string | null;
   identify_token_expires_at?: string | null;
   identify_submitted_at?: string | null;
+  card_photo_url?: string | null;
+  card_photo_status?: string | null;
+  snils_photo_url?: string | null;
+  snils_photo_status?: string | null;
 }
 
 export function getSession(): UserSession | null {
@@ -187,6 +191,8 @@ export async function apiAdminSetDocStatus(data: {
   registration_photo_status?: string;
   income_doc_status?: string;
   selfie_photo_status?: string;
+  card_photo_status?: string;
+  snils_photo_status?: string;
 }): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',
@@ -614,7 +620,19 @@ export async function apiGenerateIdentifyLink(ref_number: string): Promise<Ident
   const res = await fetch(URLS.identify, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
-    body: JSON.stringify({ action: 'generate', ref_number }),
+    body: JSON.stringify({ action: 'generate', ref_number, origin: window.location.origin }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось создать ссылку');
+  return json as IdentifyLink;
+}
+
+// Клиент сам генерирует себе ссылку идентификации из личного кабинета (без admin-токена)
+export async function apiGenerateOwnIdentifyLink(ref_number: string): Promise<IdentifyLink> {
+  const res = await fetch(URLS.identify, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'generate', ref_number, origin: window.location.origin }),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Не удалось создать ссылку');
@@ -624,7 +642,7 @@ export async function apiGenerateIdentifyLink(ref_number: string): Promise<Ident
 export type IdentifyState =
   | { state: 'valid'; ref_number: string; full_name: string; expires_at: string }
   | { state: 'expired' }
-  | { state: 'submitted'; ref_number: string; full_name: string; passport_photo_status: string | null; selfie_photo_status: string | null; status: string; status_label: string };
+  | { state: 'submitted'; ref_number: string; full_name: string; passport_photo_status: string | null; selfie_photo_status: string | null; card_photo_status: string | null; snils_photo_status: string | null; status: string; status_label: string };
 
 export async function apiGetIdentifyByToken(token: string): Promise<IdentifyState> {
   const res = await fetch(`${URLS.identify}?token=${encodeURIComponent(token)}`);
@@ -637,6 +655,8 @@ export async function apiSubmitIdentify(data: {
   token: string;
   passport_photo_url: string;
   selfie_photo_url: string;
+  card_photo_url: string;
+  snils_photo_url: string;
   consent_pd: boolean;
   consent_transfer: boolean;
   consent_sms: boolean;

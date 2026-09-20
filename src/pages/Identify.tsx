@@ -38,6 +38,18 @@ const Identify = () => {
   const [selfieChecked, setSelfieChecked] = useState(false);
   const [selfieSecondsLeft, setSelfieSecondsLeft] = useState(0);
 
+  const [cardPhoto, setCardPhoto] = useState<string | null>(null);
+  const [cardFile, setCardFile] = useState<File | null>(null);
+  const [cardChecking, setCardChecking] = useState(false);
+  const [cardChecked, setCardChecked] = useState(false);
+  const [cardSecondsLeft, setCardSecondsLeft] = useState(0);
+
+  const [snilsPhoto, setSnilsPhoto] = useState<string | null>(null);
+  const [snilsFile, setSnilsFile] = useState<File | null>(null);
+  const [snilsChecking, setSnilsChecking] = useState(false);
+  const [snilsChecked, setSnilsChecked] = useState(false);
+  const [snilsSecondsLeft, setSnilsSecondsLeft] = useState(0);
+
   const [consentPd, setConsentPd] = useState(false);
   const [consentTransfer, setConsentTransfer] = useState(false);
   const [consentSms, setConsentSms] = useState(false);
@@ -111,6 +123,28 @@ const Identify = () => {
     runFileCheck(setSelfieChecking, setSelfieChecked, setSelfieSecondsLeft);
   };
 
+  const handleCardPhoto = (file: File) => {
+    if (file.size > MAX_FILE_BYTES) {
+      setSubmitError(`Фото карты слишком большое. Максимум ${MAX_FILE_MB} МБ.`);
+      return;
+    }
+    setSubmitError('');
+    setCardFile(file);
+    setCardPhoto(URL.createObjectURL(file));
+    runFileCheck(setCardChecking, setCardChecked, setCardSecondsLeft);
+  };
+
+  const handleSnilsPhoto = (file: File) => {
+    if (file.size > MAX_FILE_BYTES) {
+      setSubmitError(`Фото СНИЛС слишком большое. Максимум ${MAX_FILE_MB} МБ.`);
+      return;
+    }
+    setSubmitError('');
+    setSnilsFile(file);
+    setSnilsPhoto(URL.createObjectURL(file));
+    runFileCheck(setSnilsChecking, setSnilsChecked, setSnilsSecondsLeft);
+  };
+
   const previewDoc = (build: (c: { full_name?: string }, companyName?: string) => string, fullName: string) => {
     const html = build({ full_name: fullName }, companyName);
     const blob = new Blob([html], { type: 'text/html' });
@@ -118,19 +152,25 @@ const Identify = () => {
     window.open(url, '_blank');
   };
 
-  const canSubmit = passportFile && selfieFile && !passportChecking && !selfieChecking && consentPd && consentTransfer;
+  const canSubmit = passportFile && selfieFile && cardFile && snilsFile
+    && !passportChecking && !selfieChecking && !cardChecking && !snilsChecking
+    && consentPd && consentTransfer;
 
   const handleSubmit = async () => {
-    if (!token || !passportFile || !selfieFile) return;
+    if (!token || !passportFile || !selfieFile || !cardFile || !snilsFile) return;
     setSubmitting(true);
     setSubmitError('');
     try {
       const passport_photo_url = await apiUploadFile(passportFile);
       const selfie_photo_url = await apiUploadFile(selfieFile);
+      const card_photo_url = await apiUploadFile(cardFile);
+      const snils_photo_url = await apiUploadFile(snilsFile);
       await apiSubmitIdentify({
         token,
         passport_photo_url,
         selfie_photo_url,
+        card_photo_url,
+        snils_photo_url,
         consent_pd: consentPd,
         consent_transfer: consentTransfer,
         consent_sms: consentSms,
@@ -185,6 +225,8 @@ const Identify = () => {
     const statusLabel = data.state === 'submitted' ? data.status_label : 'На проверке';
     const passportStatus = data.state === 'submitted' ? data.passport_photo_status : 'pending';
     const selfieStatus = data.state === 'submitted' ? data.selfie_photo_status : 'pending';
+    const cardStatus = data.state === 'submitted' ? data.card_photo_status : 'pending';
+    const snilsStatus = data.state === 'submitted' ? data.snils_photo_status : 'pending';
     const statusIcon = (st: string | null) => st === 'approved' ? 'CheckCircle2' : st === 'rejected' ? 'XCircle' : 'Clock';
     const statusColor = (st: string | null) => st === 'approved' ? 'text-green-600' : st === 'rejected' ? 'text-red-600' : 'text-orange-500';
     const statusText = (st: string | null) => st === 'approved' ? 'Принято' : st === 'rejected' ? 'Отклонено' : 'На проверке';
@@ -208,6 +250,18 @@ const Identify = () => {
             <span className="text-muted-foreground">Селфи с паспортом</span>
             <span className={`flex items-center gap-1.5 font-medium ${statusColor(selfieStatus)}`}>
               <Icon name={statusIcon(selfieStatus)} size={14} /> {statusText(selfieStatus)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Фото банковской карты</span>
+            <span className={`flex items-center gap-1.5 font-medium ${statusColor(cardStatus)}`}>
+              <Icon name={statusIcon(cardStatus)} size={14} /> {statusText(cardStatus)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Фото СНИЛС</span>
+            <span className={`flex items-center gap-1.5 font-medium ${statusColor(snilsStatus)}`}>
+              <Icon name={statusIcon(snilsStatus)} size={14} /> {statusText(snilsStatus)}
             </span>
           </div>
           {data.state === 'submitted' && (
@@ -281,7 +335,29 @@ const Identify = () => {
               totalSeconds={CHECK_SECONDS}
             />
 
-            {(passportChecking || selfieChecking) && (
+            <CameraCapture
+              label="Фото банковской карты"
+              hint="Лицевая сторона карты, на которую получите займ"
+              preview={cardPhoto}
+              onCapture={handleCardPhoto}
+              checking={cardChecking}
+              checked={cardChecked}
+              secondsLeft={cardSecondsLeft}
+              totalSeconds={CHECK_SECONDS}
+            />
+
+            <CameraCapture
+              label="Фото СНИЛС"
+              hint="Наведите камеру на СНИЛС"
+              preview={snilsPhoto}
+              onCapture={handleSnilsPhoto}
+              checking={snilsChecking}
+              checked={snilsChecked}
+              secondsLeft={snilsSecondsLeft}
+              totalSeconds={CHECK_SECONDS}
+            />
+
+            {(passportChecking || selfieChecking || cardChecking || snilsChecking) && (
               <p className="flex items-center gap-1.5 text-center text-xs text-blue-600">
                 <Icon name="Loader2" size={13} className="shrink-0 animate-spin" /> Дождитесь окончания проверки фото
               </p>

@@ -6,10 +6,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, apiGenerateOwnIdentifyLink, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const BANKS = [
   { name: 'Сбербанк', icon: '🟢' },
@@ -140,6 +141,30 @@ const CabinetStatusCard = ({
   const [reapplyError, setReapplyError] = useState('');
   const [showCalc, setShowCalc] = useState(false);
   const [showReapplyLoading, setShowReapplyLoading] = useState(false);
+
+  const nav = useNavigate();
+  const [identifyLoading, setIdentifyLoading] = useState(false);
+  const [identifyError, setIdentifyError] = useState('');
+  const identifySubmitted = !!user.identify_submitted_at;
+  const identifyExpiresAt = user.identify_token_expires_at ? new Date(user.identify_token_expires_at) : null;
+  const identifyPending = !identifySubmitted && !!identifyExpiresAt && identifyExpiresAt.getTime() > Date.now();
+  const identifyStatuses = [user.passport_photo_status, user.selfie_photo_status, user.card_photo_status, user.snils_photo_status];
+  const identifyReviewing = identifySubmitted && identifyStatuses.some((s) => !s || s === 'pending');
+  const identifyRejected = identifySubmitted && identifyStatuses.some((s) => s === 'rejected');
+  const identifyApproved = identifySubmitted && identifyStatuses.every((s) => s === 'approved');
+
+  const handleGenerateIdentifyLink = async () => {
+    setIdentifyLoading(true);
+    setIdentifyError('');
+    try {
+      const link = await apiGenerateOwnIdentifyLink(user.ref_number);
+      nav(`/verify/${link.token}`);
+    } catch (e: unknown) {
+      setIdentifyError(e instanceof Error ? e.message : 'Не удалось создать ссылку');
+    } finally {
+      setIdentifyLoading(false);
+    }
+  };
 
   const CALC_RATE = 0.0006;
   const calcOverpay = Math.round(calcAmount * CALC_RATE * calcDays);
@@ -335,6 +360,63 @@ const CabinetStatusCard = ({
             <p className="text-sm text-amber-700">
               Рассмотрение заявки занимает больше времени, чем обычно. Иногда это может занять до 24 часов — мы уведомим вас, как только решение будет готово.
             </p>
+          </div>
+        )}
+
+        {status !== 'rejected' && status !== 'repaid' && (
+          <div className={`mx-4 mb-4 rounded-xl border p-3.5 ${
+            identifyApproved ? 'border-green-300 bg-green-50' :
+            identifyRejected ? 'border-red-300 bg-red-50' :
+            identifyReviewing ? 'border-blue-200 bg-blue-50' :
+            identifyPending ? 'border-orange-200 bg-orange-50' :
+            'border-accent/30 bg-accent/5'
+          }`}>
+            <div className="flex items-start gap-2.5">
+              <Icon
+                name={identifyApproved ? 'ShieldCheck' : identifyRejected ? 'AlertTriangle' : identifyReviewing ? 'Clock' : 'IdCard'}
+                size={18}
+                className={`mt-0.5 shrink-0 ${
+                  identifyApproved ? 'text-green-600' :
+                  identifyRejected ? 'text-red-600' :
+                  identifyReviewing ? 'text-blue-600' :
+                  identifyPending ? 'text-orange-600' : 'text-accent'
+                }`}
+              />
+              <div className="flex-1">
+                {identifyApproved ? (
+                  <p className="text-sm font-semibold text-green-700">Документы проверены и приняты</p>
+                ) : identifyRejected ? (
+                  <>
+                    <p className="text-sm font-semibold text-red-700">Часть документов отклонена</p>
+                    <p className="mt-0.5 text-xs text-red-600">Загрузите фото документов заново по новой ссылке</p>
+                  </>
+                ) : identifyReviewing ? (
+                  <p className="text-sm font-semibold text-blue-700">Идёт проверка загруженных фото</p>
+                ) : identifyPending ? (
+                  <p className="text-sm font-semibold text-orange-700">Ссылка на загрузку фото отправлена вам на почту</p>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-primary">Нужна идентификация</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Загрузите фото паспорта, селфи, карты и СНИЛС</p>
+                  </>
+                )}
+                {(!identifySubmitted || identifyRejected) && (
+                  <Button
+                    size="sm"
+                    disabled={identifyLoading}
+                    onClick={handleGenerateIdentifyLink}
+                    className="mt-2.5 h-8 bg-accent text-xs font-semibold text-accent-foreground hover:bg-accent/90"
+                  >
+                    {identifyLoading ? (
+                      <span className="flex items-center gap-1.5"><Icon name="Loader2" size={13} className="animate-spin" /> Создаём ссылку...</span>
+                    ) : (
+                      <span className="flex items-center gap-1.5"><Icon name="Camera" size={13} /> Загрузить фото документов</span>
+                    )}
+                  </Button>
+                )}
+                {identifyError && <p className="mt-1.5 text-xs text-red-600">{identifyError}</p>}
+              </div>
+            </div>
           </div>
         )}
 

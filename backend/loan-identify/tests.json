@@ -19,11 +19,18 @@
       "expectedStatus": 404
     },
     {
-      "name": "Generate without admin token",
+      "name": "Generate without ref_number",
       "method": "POST",
       "path": "/",
-      "body": {"action": "generate", "ref_number": "ZP-0001"},
-      "expectedStatus": 403
+      "body": {"action": "generate"},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Generate unknown ref_number",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "generate", "ref_number": "ZP-NONEXISTENT-XYZ"},
+      "expectedStatus": 404
     },
     {
       "name": "Submit without token",

@@ -42,6 +42,7 @@ const AdminRequestDetail = () => {
   const [docStatuses, setDocStatuses] = useState<Record<string, string>>({
     passport_photo_status: 'pending', registration_photo_status: 'pending',
     income_doc_status: 'pending', selfie_photo_status: 'pending',
+    card_photo_status: 'pending', snils_photo_status: 'pending',
   });
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
@@ -80,6 +81,8 @@ const AdminRequestDetail = () => {
           registration_photo_status: found.registration_photo_status || 'pending',
           income_doc_status: found.income_doc_status || 'pending',
           selfie_photo_status: found.selfie_photo_status || 'pending',
+          card_photo_status: found.card_photo_status || 'pending',
+          snils_photo_status: found.snils_photo_status || 'pending',
         });
       }
     } finally {
