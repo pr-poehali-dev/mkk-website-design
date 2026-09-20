@@ -69,6 +69,11 @@ const AdminRequestsTable = ({ requests, checkedRefs, onCheck, onEdit, fmt }: Pro
                   <span className={`inline-flex items-center gap-1.5 rounded-full ${m.bg} px-2.5 py-0.5 text-xs font-semibold ${m.color}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} /> {m.label}
                   </span>
+                  {r.identify_submitted_at && (
+                    <span className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-green-700">
+                      <Icon name="CheckCircle2" size={10} /> Запрос фото ок
+                    </span>
+                  )}
                 </td>
                 <td className="py-3 pr-3 text-muted-foreground">
                   {r.created_at ? new Date(r.created_at).toLocaleString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}

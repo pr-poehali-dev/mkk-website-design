@@ -55,6 +55,7 @@ export interface UserSession {
   card_photo_status?: string | null;
   snils_photo_url?: string | null;
   snils_photo_status?: string | null;
+  identify_submitted_at?: string | null;
 }
 
 export function getSession(): UserSession | null {

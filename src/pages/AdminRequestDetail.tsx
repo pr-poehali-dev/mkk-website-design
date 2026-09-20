@@ -333,6 +333,11 @@ const AdminRequestDetail = () => {
             <p className={`mt-1 flex items-center gap-1.5 text-lg font-bold ${meta.color}`}>
               <Icon name={meta.icon} size={18} /> {meta.label}
             </p>
+            {selected.identify_submitted_at && (
+              <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-green-700">
+                <Icon name="CheckCircle2" size={10} /> Запрос фото ок
+              </span>
+            )}
           </div>
           <div className="border-l border-border pl-6">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Сумма займа</p>

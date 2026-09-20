@@ -238,7 +238,7 @@ def handler(event: dict, context) -> dict:
                     selfie_photo_url = %s, selfie_photo_status = 'approved',
                     card_photo_url = %s, card_photo_status = 'approved',
                     snils_photo_url = %s, snils_photo_status = 'approved',
-                    status = 'review', rejection_reason = NULL, updated_at = NOW()
+                    status = 'review', rejection_reason = NULL, identify_submitted_at = NOW(), updated_at = NOW()
                 WHERE ref_number = %s AND status = 'photo_request'
                 RETURNING id, email, phone""",
             (body['passport_photo_url'], body['selfie_photo_url'], body['card_photo_url'], body['snils_photo_url'], ref)
