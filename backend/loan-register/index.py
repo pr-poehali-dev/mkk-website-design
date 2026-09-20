@@ -125,18 +125,6 @@ def handler(event: dict, context) -> dict:
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
 
-    # Проверяем, что email был подтверждён кодом из письма незадолго до отправки заявки
-    cur.execute(
-        f"""SELECT id FROM {SCHEMA}.verification_codes
-            WHERE email = %s AND purpose = 'register' AND used = true
-              AND created_at > NOW() - INTERVAL '30 minutes'
-            ORDER BY created_at DESC LIMIT 1""",
-        (email,)
-    )
-    if not cur.fetchone():
-        conn.close()
-        return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Email не подтверждён кодом. Запросите и введите код из письма.'})}
-
     phone = body['phone']
     full_name = body['full_name']
     passport = body.get('passport') or None
@@ -158,6 +146,7 @@ def handler(event: dict, context) -> dict:
             (phone,)
         )
     existing = cur.fetchone()
+    is_reapply = False
     if existing:
         ex_status = existing[1]
         ex_phone = existing[5]
@@ -167,6 +156,21 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({
                 'error': 'Клиент с такими данными (ФИО, паспорт или телефон) уже зарегистрирован. Войдите в личный кабинет, чтобы продолжить.'
             })}
+        # Повторная заявка от уже известного клиента (погашен/отклонён) — email уже подтверждался ранее
+        is_reapply = True
+
+    # Для новых заявок проверяем, что email был подтверждён кодом из письма незадолго до отправки
+    if not is_reapply:
+        cur.execute(
+            f"""SELECT id FROM {SCHEMA}.verification_codes
+                WHERE email = %s AND purpose = 'register' AND used = true
+                  AND created_at > NOW() - INTERVAL '30 minutes'
+                ORDER BY created_at DESC LIMIT 1""",
+            (email,)
+        )
+        if not cur.fetchone():
+            conn.close()
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Email не подтверждён кодом. Запросите и введите код из письма.'})}
 
     # Пароль: plain → hash, или hash напрямую, или берём из существующей заявки (только если совпал телефон)
     if body.get('password'):
