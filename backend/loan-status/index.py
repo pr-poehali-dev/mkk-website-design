@@ -221,27 +221,28 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
 
-    # Клиент завершает загрузку 4 фото для идентификации (без admin-токена).
+    # Клиент завершает загрузку 5 фото для идентификации (без admin-токена).
     # Фото считаются принятыми, заявка возвращается на скоринг.
     if not is_admin and body.get('action') == 'client_submit_identify_photos':
         ref = body.get('ref_number')
         if not ref:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}
-        required = ('passport_photo_url', 'selfie_photo_url', 'card_photo_url', 'snils_photo_url')
+        required = ('passport_photo_url', 'registration_photo_url', 'selfie_photo_url', 'card_photo_url', 'snils_photo_url')
         if not all(body.get(f) for f in required):
-            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нужны все четыре фото: паспорт, селфи, карта, СНИЛС'})}
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Нужны все пять фото: паспорт, регистрация, селфи, карта, СНИЛС'})}
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
         cur.execute(
             f"""UPDATE {SCHEMA}.loan_requests SET
                     passport_photo_url = %s, passport_photo_status = 'approved',
+                    registration_photo_url = %s, registration_photo_status = 'approved',
                     selfie_photo_url = %s, selfie_photo_status = 'approved',
                     card_photo_url = %s, card_photo_status = 'approved',
                     snils_photo_url = %s, snils_photo_status = 'approved',
                     status = 'review', rejection_reason = NULL, identify_submitted_at = NOW(), updated_at = NOW()
                 WHERE ref_number = %s AND status = 'photo_request'
                 RETURNING id, email, phone""",
-            (body['passport_photo_url'], body['selfie_photo_url'], body['card_photo_url'], body['snils_photo_url'], ref)
+            (body['passport_photo_url'], body['registration_photo_url'], body['selfie_photo_url'], body['card_photo_url'], body['snils_photo_url'], ref)
         )
         updated = cur.fetchone()
         if not updated:

