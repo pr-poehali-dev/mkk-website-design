@@ -584,7 +584,7 @@ const Anketa = () => {
               <div className="space-y-1.5">
                 <CameraCapture
                   label="Фото справки о доходах"
-                  hint="Необязательно · сфотографируйте документ"
+                  hint="Сфотографируйте документ"
                   preview={incomePreview}
                   onCapture={handleIncomeFile}
                   checking={incomeChecking}
@@ -602,7 +602,12 @@ const Anketa = () => {
 
               <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
                 disabled={passportChecking || selfieChecking || incomeChecking}
-                onClick={() => { if (selfieFile) next(); else setApiError('Сделайте фото лица с листком, на котором написан код'); }}>
+                onClick={() => {
+                  if (!passportFile) { setApiError('Сделайте фото паспорта'); return; }
+                  if (!selfieFile) { setApiError('Сделайте фото лица с листком, на котором написан код'); return; }
+                  if (!incomeFile) { setApiError('Сделайте фото справки о доходах'); return; }
+                  next();
+                }}>
                 Далее <Icon name="ArrowRight" size={18} className="ml-1" />
               </Button>
             </div>
