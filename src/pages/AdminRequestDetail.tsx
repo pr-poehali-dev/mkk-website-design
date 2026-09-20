@@ -420,6 +420,7 @@ const AdminRequestDetail = () => {
                 onClose={() => navigate('/admin')}
                 onBlockToggled={(_ref, is_blocked) => setSelected((prev) => prev ? { ...prev, is_blocked } : prev)}
                 setSaving={setSaving}
+                onIdentifyRequested={(_ref, expires_at) => setSelected((prev) => prev ? { ...prev, identify_token_expires_at: expires_at, identify_submitted_at: null } : prev)}
               />
             </div>
           </div>

@@ -8,11 +8,10 @@ interface Props {
   checkedRefs: Set<string>;
   onCheck: (ref: string, checked: boolean) => void;
   onEdit: (r: UserSession) => void;
-  onIdentify: (r: UserSession) => void;
   fmt: (n: number) => string;
 }
 
-const AdminRequestsTable = ({ requests, checkedRefs, onCheck, onEdit, onIdentify, fmt }: Props) => {
+const AdminRequestsTable = ({ requests, checkedRefs, onCheck, onEdit, fmt }: Props) => {
   const allChecked = requests.length > 0 && requests.every((r) => checkedRefs.has(r.ref_number));
 
   return (
@@ -76,9 +75,6 @@ const AdminRequestsTable = ({ requests, checkedRefs, onCheck, onEdit, onIdentify
                 </td>
                 <td className="py-3 pr-4" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-1.5">
-                    <Button size="sm" variant="outline" onClick={() => onIdentify(r)} title="Ссылка для идентификации">
-                      <Icon name="Link" size={13} />
-                    </Button>
                     <Button size="sm" variant="outline" onClick={() => onEdit(r)}>
                       <Icon name="Pencil" size={13} className="mr-1" /> Анкета
                     </Button>

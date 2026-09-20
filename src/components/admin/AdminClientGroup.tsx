@@ -9,7 +9,6 @@ interface Props {
   checkedRefs: Set<string>;
   onCheck: (ref: string, checked: boolean) => void;
   onEdit: (r: UserSession) => void;
-  onIdentify: (r: UserSession) => void;
   fmt: (n: number) => string;
 }
 
@@ -35,7 +34,7 @@ const badge = (status: string) => {
   );
 };
 
-const AdminClientGroup = ({ requests, checkedRefs, onCheck, onEdit, onIdentify, fmt }: Props) => {
+const AdminClientGroup = ({ requests, checkedRefs, onCheck, onEdit, fmt }: Props) => {
   const [expanded, setExpanded] = useState(false);
   const isGroup = requests.length > 1;
   const latest = requests[0];
@@ -80,9 +79,6 @@ const AdminClientGroup = ({ requests, checkedRefs, onCheck, onEdit, onIdentify, 
         <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-center">
           <span className="font-display text-xl font-bold text-primary">{fmt(r.amount)} ₽</span>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onIdentify(r); }} className="hidden items-center gap-1.5 sm:flex" title="Ссылка для идентификации">
-              <Icon name="Link" size={14} />
-            </Button>
             <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onEdit(r); }} className="hidden items-center gap-1.5 sm:flex">
               <Icon name="Pencil" size={14} /> Изменить
             </Button>
@@ -152,9 +148,6 @@ const AdminClientGroup = ({ requests, checkedRefs, onCheck, onEdit, onIdentify, 
                   </div>
                 </div>
                 <div className="flex items-center gap-2 self-end sm:self-auto">
-                  <Button size="sm" variant="outline" onClick={() => onIdentify(r)} className="flex items-center gap-1.5" title="Ссылка для идентификации">
-                    <Icon name="Link" size={14} />
-                  </Button>
                   <Button size="sm" variant="outline" onClick={() => onEdit(r)} className="flex items-center gap-1.5">
                     <Icon name="Pencil" size={14} /> Изменить
                   </Button>

@@ -9,7 +9,6 @@ import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 import AdminClientGroup from '@/components/admin/AdminClientGroup';
 import AdminRequestsTable from '@/components/admin/AdminRequestsTable';
 import AdminEditModal, { type EditForm } from '@/components/admin/AdminEditModal';
-import AdminIdentifyLinkModal from '@/components/admin/AdminIdentifyLinkModal';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -21,7 +20,6 @@ const Admin = () => {
   const [requests, setRequests] = useState<UserSession[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [selected, setSelected] = useState<UserSession | null>(null);
-  const [identifyTarget, setIdentifyTarget] = useState<UserSession | null>(null);
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', payment_bank: '', insurance_enabled: false });
   const [checkedRefs, setCheckedRefs] = useState<Set<string>>(new Set());
@@ -280,7 +278,6 @@ const Admin = () => {
                   checkedRefs={checkedRefs}
                   onCheck={handleCheck}
                   onEdit={openModal}
-                  onIdentify={setIdentifyTarget}
                   fmt={fmt}
                 />
                 <div className="space-y-3 sm:hidden">
@@ -291,7 +288,6 @@ const Admin = () => {
                       checkedRefs={checkedRefs}
                       onCheck={handleCheck}
                       onEdit={openModal}
-                      onIdentify={setIdentifyTarget}
                       fmt={fmt}
                     />
                   ))}
@@ -326,9 +322,12 @@ const Admin = () => {
           setRequests((prev) => prev.map((r) => r.ref_number === ref_number ? { ...r, ...patch } : r));
           setSelected((prev) => prev ? { ...prev, ...patch } : null);
         }}
+        onIdentifyRequested={(ref_number, expires_at) => {
+          const patch = { identify_token_expires_at: expires_at, identify_submitted_at: null };
+          setRequests((prev) => prev.map((r) => r.ref_number === ref_number ? { ...r, ...patch } : r));
+          setSelected((prev) => prev ? { ...prev, ...patch } : null);
+        }}
       />
-
-      <AdminIdentifyLinkModal target={identifyTarget} onClose={() => setIdentifyTarget(null)} />
     </div>
   );
 };
