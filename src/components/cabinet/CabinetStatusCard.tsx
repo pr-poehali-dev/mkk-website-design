@@ -353,24 +353,6 @@ const CabinetStatusCard = ({
                 <p className="text-xs text-teal-400 mt-0.5">Сумма займа</p>
               </div>
             </div>
-            <div className="mt-4 rounded-xl border border-border bg-card p-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Номер заявки</span>
-                <span className="font-mono font-semibold text-primary">{user.ref_number}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Срок займа</span>
-                <span className="font-semibold">{user.days} дн.</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Дата оформления</span>
-                <span className="font-semibold">{user.created_at?.slice(0, 10)}</span>
-              </div>
-              <div className="flex justify-between border-t border-border pt-2">
-                <span className="text-muted-foreground">Переплата</span>
-                <span className="font-semibold">{fmt(Math.round(user.amount * 0.008 * user.days))} ₽</span>
-              </div>
-            </div>
           </div>
         ) : status === 'transfer_error' ? (
           <div className="p-6 space-y-4">
