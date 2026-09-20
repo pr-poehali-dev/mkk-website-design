@@ -329,6 +329,8 @@ const CabinetStatusCard = ({
     }, 2500);
   };
 
+  const [payInfoOpen, setPayInfoOpen] = useState(false);
+
   const moneySentKey = `money_sent_seen_${user.ref_number}`;
   const [showMoneySent, setShowMoneySent] = useState(() =>
     status === 'money_sent' ? !localStorage.getItem(moneySentKey) : false
@@ -791,10 +793,34 @@ const CabinetStatusCard = ({
       </div>
 
       {status === 'money_sent' && (
-        <Button size="lg" className="mt-6 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90">
+        <Button size="lg" className="mt-6 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
+          onClick={() => setPayInfoOpen(true)}>
           Погасить займ <Icon name="ArrowRight" size={18} className="ml-1" />
         </Button>
       )}
+
+      {/* Поп-ап информации об оплате */}
+      <Dialog open={payInfoOpen} onOpenChange={setPayInfoOpen}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-display text-lg">
+              <Icon name="BadgeDollarSign" size={20} className="text-accent" />
+              Погашение займа
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-1">
+            <p className="text-sm leading-relaxed text-primary">
+              Уважаемый клиент! Для оплаты займа ✅ напишите нам в чат для запроса оплаты займа — наш специалист даст вам информацию и ссылку для оплаты.
+            </p>
+            <p className="text-xs text-muted-foreground">К сожалению, в данный момент оплата возможна только через специалиста.</p>
+            <a href="https://t.me/zaimyplus_support" target="_blank" rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition-colors">
+              <Icon name="MessageCircle" size={17} className="shrink-0" />
+              Написать в чат поддержки
+            </a>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {status === 'repaid' && (
         <Button
