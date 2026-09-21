@@ -166,7 +166,7 @@ const Index = () => {
           {/* Left */}
           <div className="animate-fade-up relative text-center lg:text-left">
             <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#1b1d3a] shadow-sm lg:mx-0">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2f3277] text-white">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full text-[#2f3277]">
                 <Icon name="Clock" size={13} />
               </span>
               Деньги на карте к <span className="text-[#4a4fb0]">{arrivalTime}</span>
