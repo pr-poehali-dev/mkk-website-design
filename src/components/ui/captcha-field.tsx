@@ -6,7 +6,7 @@ interface Props {
   onValidChange: (valid: boolean) => void;
 }
 
-const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+const CHARS = '0123456789';
 const LENGTH = 5;
 const WIDTH = 180;
 const HEIGHT = 60;
