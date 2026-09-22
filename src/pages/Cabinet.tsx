@@ -97,8 +97,8 @@ const Cabinet = () => {
 
       <main className="container max-w-3xl px-4 py-10">
         {cabinetBannerUrl && (
-          <div className="mb-6 overflow-hidden rounded-2xl">
-            <img src={cabinetBannerUrl} alt="Акция" className="w-full object-cover" />
+          <div className="mb-6 -mt-4 overflow-hidden rounded-2xl">
+            <img src={cabinetBannerUrl} alt="Акция" className="w-2/3 mx-auto object-cover" />
           </div>
         )}
 
