@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import Logo from '@/components/Logo';
 import CameraCapture from '@/components/anketa/CameraCapture';
-import { apiRegister, apiUploadFile, apiSendVerificationCode, apiVerifyCode } from '@/lib/api';
+import { apiRegister, apiUploadFile, apiSendVerificationCode, apiVerifyCode, apiLogin, saveSession } from '@/lib/api';
 import { formatPhone } from '@/lib/phone';
 
 const SuccessScreen = ({ nav }: { nav: (path: string) => void }) => {
@@ -28,7 +28,7 @@ const SuccessScreen = ({ nav }: { nav: (path: string) => void }) => {
         </p>
 
         <Button asChild size="lg" variant="secondary" className="mt-7 w-full rounded-xl font-semibold">
-          <Link to="/login">Личный кабинет</Link>
+          <Link to="/cabinet">Личный кабинет</Link>
         </Button>
         <button onClick={() => nav('/')} className="mt-3 block w-full text-center text-sm text-muted-foreground hover:text-primary">
           На главную
@@ -255,6 +255,14 @@ const Anketa = () => {
         existing_loans_count: Number(existingLoansCount),
         existing_debt_amount: Number(existingDebtAmount),
       });
+
+      try {
+        const session = await apiLogin(f1.phone, f1.password);
+        saveSession(session);
+      } catch {
+        // не критично — пользователь сможет войти вручную
+      }
+
       setStep(7);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
