@@ -372,7 +372,7 @@ const CabinetStatusCard = ({
 
             <div className="flex flex-col items-center px-6 pb-2 pt-6 text-center">
               <div className="relative mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-accent/10">
-                <Icon name="Hourglass" size={34} className="text-accent" />
+                <Icon name="Hourglass" size={34} className="animate-spin text-accent" style={{ animationDuration: '2.5s' }} />
                 <div className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   <Icon name="Sparkles" size={13} />
                 </div>
