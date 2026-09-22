@@ -21,25 +21,55 @@ const fmtDate = (iso: string) => {
   return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
 };
 
+const HIDE_AFTER_MS = 60000;
+const dismissedKey = (phone: string) => `notif_dismissed_${phone}`;
+
 const NotificationsBell = ({ phone }: Props) => {
   const [items, setItems] = useState<AppNotification[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const getDismissed = useCallback((): number[] => {
+    try {
+      return JSON.parse(localStorage.getItem(dismissedKey(phone)) || '[]');
+    } catch {
+      return [];
+    }
+  }, [phone]);
+
+  const dismiss = useCallback((id: number) => {
+    const dismissed = getDismissed();
+    if (!dismissed.includes(id)) {
+      localStorage.setItem(dismissedKey(phone), JSON.stringify([...dismissed, id]));
+    }
+    setItems((prev) => prev.filter((n) => n.id !== id));
+  }, [phone, getDismissed]);
+
   const fetchAll = useCallback(async () => {
     try {
       const data = await apiGetNotifications(phone);
-      setItems(data);
+      const dismissed = getDismissed();
+      const visible = data.filter((n) => !dismissed.includes(n.id));
+      setItems(visible);
     } finally {
       setLoading(false);
     }
-  }, [phone]);
+  }, [phone, getDismissed]);
 
   useEffect(() => {
     fetchAll();
     const t = setInterval(fetchAll, 60000);
     return () => clearInterval(t);
   }, [fetchAll]);
+
+  useEffect(() => {
+    const timers = items.map((n) => {
+      const age = Date.now() - new Date(n.created_at).getTime();
+      const delay = Math.max(0, HIDE_AFTER_MS - age);
+      return setTimeout(() => dismiss(n.id), delay);
+    });
+    return () => timers.forEach(clearTimeout);
+  }, [items, dismiss]);
 
   const unreadCount = items.filter((n) => !n.is_read).length;
 
