@@ -375,6 +375,52 @@ const CabinetStatusCard = ({
               Отказаться
             </button>
           </div>
+        ) : status === 'review' ? (
+          <>
+            <div className="bg-gradient-to-br from-primary to-primary/80 px-6 py-5 text-primary-foreground">
+              <p className="font-display text-lg font-bold sm:text-xl">Заявка на рассмотрении</p>
+            </div>
+
+            <div className="flex flex-col items-center px-6 pb-2 pt-6 text-center">
+              <div className="relative mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-accent/10">
+                <Icon name="Hourglass" size={34} className="text-accent" />
+                <div className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Icon name="Sparkles" size={13} />
+                </div>
+              </div>
+              <p className="font-display text-xl font-bold text-primary">Мы почти рассмотрели вашу заявку!</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {showDelayNotice
+                  ? 'Рассмотрение занимает больше времени, чем обычно. Иногда это может занять до 24 часов — мы уведомим вас, как только решение будет готово.'
+                  : 'Проверяем последние детали, результат будет готов совсем скоро'}
+              </p>
+            </div>
+
+            <div className="mx-4 mb-4 mt-2 space-y-3 rounded-xl border border-border bg-secondary/30 p-4 text-sm">
+              <div className="flex justify-between border-b border-border/60 pb-3">
+                <span className="text-muted-foreground">Сумма займа</span>
+                <span className="font-semibold text-primary">{fmt(user.amount)} ₽</span>
+              </div>
+              <div className="flex justify-between border-b border-border/60 pb-3">
+                <span className="text-muted-foreground">Срок</span>
+                <span className="font-semibold text-primary">{user.days} дн.</span>
+              </div>
+              <div className="flex justify-between border-b border-border/60 pb-3">
+                <span className="text-muted-foreground">Ставка</span>
+                <span className="font-semibold text-primary">0.8% / день</span>
+              </div>
+              <div className="flex justify-between border-b border-border/60 pb-3">
+                <span className="text-muted-foreground">Номер заявки</span>
+                <span className="font-semibold text-primary">{user.ref_number}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Осталось до решения</span>
+                <span className="font-mono font-semibold text-accent">
+                  {reviewSecondsLeft !== null && !showDelayNotice ? reviewTimerLabel : 'до 24 часов'}
+                </span>
+              </div>
+            </div>
+          </>
         ) : (
           <div className="flex items-center gap-4 border-b border-border p-6">
             <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${meta.bg} ${meta.color} transition-all`}>
@@ -387,7 +433,7 @@ const CabinetStatusCard = ({
           </div>
         )}
 
-        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' && status !== 'photo_request' && status !== 'overdue' ? (
+        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' && status !== 'photo_request' && status !== 'overdue' && status !== 'review' ? (
           <div className="flex items-start p-4 gap-0">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
@@ -409,24 +455,6 @@ const CabinetStatusCard = ({
             })}
           </div>
         ) : null}
-
-        {status === 'review' && reviewSecondsLeft !== null && !showDelayNotice && (
-          <div className="mx-4 mb-4 flex items-center gap-2.5 rounded-xl border border-accent/30 bg-accent/5 p-3.5">
-            <Icon name="Clock" size={18} className="shrink-0 text-accent" />
-            <p className="text-sm text-primary">
-              Обычно решение принимается в течение <span className="font-mono font-semibold text-accent">{reviewTimerLabel}</span>
-            </p>
-          </div>
-        )}
-
-        {status === 'review' && showDelayNotice && (
-          <div className="mx-4 mb-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3.5">
-            <Icon name="Clock" size={18} className="mt-0.5 shrink-0 text-amber-600" />
-            <p className="text-sm text-amber-700">
-              Рассмотрение заявки занимает больше времени, чем обычно. Иногда это может занять до 24 часов — мы уведомим вас, как только решение будет готово.
-            </p>
-          </div>
-        )}
 
         {status === 'photo_request' && (
           <div className="p-6 space-y-5">
