@@ -171,6 +171,12 @@ const CabinetStatusCard = ({
         apiUploadFile(cardFile),
         apiUploadFile(snilsFile),
       ]);
+      // Сразу фиксируем фото на сервере — чтобы перезагрузка страницы во время
+      // визуального ожидания не сбрасывала прогресс и не требовала повторной загрузки
+      await apiSubmitIdentifyPhotos({
+        ref_number: user.ref_number,
+        passport_photo_url, registration_photo_url, selfie_photo_url, card_photo_url, snils_photo_url,
+      });
       setPhotosUploading(false);
       setPhotosChecking(true);
       setPhotosSecondsLeft(PHOTO_CHECK_SECONDS);
@@ -180,15 +186,9 @@ const CabinetStatusCard = ({
             clearInterval(timer);
             (async () => {
               try {
-                await apiSubmitIdentifyPhotos({
-                  ref_number: user.ref_number,
-                  passport_photo_url, registration_photo_url, selfie_photo_url, card_photo_url, snils_photo_url,
-                });
                 const fresh = await apiGetRequest(user.ref_number);
                 saveSession(fresh);
                 setUser(fresh);
-              } catch (e: unknown) {
-                setPhotosError(e instanceof Error ? e.message : 'Не удалось отправить фото');
               } finally {
                 setPhotosChecking(false);
               }
