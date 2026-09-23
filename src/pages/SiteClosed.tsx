@@ -22,7 +22,7 @@ const SiteClosed = () => {
 
         <p className="mt-4 text-base text-white/60 leading-relaxed">
           Просим вас не беспокоиться — мы работаем над улучшением сервиса.<br />
-          <span className="text-white/40 text-sm">Сроки завершения работ 10.07.2026.</span>
+          <span className="text-white/40 text-sm">Сроки завершения работ: неизвестны</span>
         </p>
 
         {socialTelegram && (
