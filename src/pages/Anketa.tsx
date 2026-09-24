@@ -8,6 +8,26 @@ import Logo from '@/components/Logo';
 import CameraCapture from '@/components/anketa/CameraCapture';
 import { apiRegister, apiUploadFile, apiSendVerificationCode, apiVerifyCode, apiLogin, saveSession } from '@/lib/api';
 import { formatPhone } from '@/lib/phone';
+import { useMaintenance } from '@/lib/maintenanceContext';
+
+const MaintenanceScreen = () => (
+  <div className="flex min-h-screen items-center justify-center bg-secondary/40 px-4">
+    <div className="animate-fade-up w-full max-w-md rounded-3xl bg-background p-8 text-center shadow-xl sm:p-10">
+      <div className="relative mx-auto mb-7 flex h-24 w-24 items-center justify-center rounded-full bg-yellow-100">
+        <Icon name="Construction" size={36} className="text-yellow-600" />
+      </div>
+      <h1 className="font-display text-2xl font-bold leading-snug text-primary">
+        Приём заявок временно приостановлен
+      </h1>
+      <p className="mt-3 text-base text-muted-foreground">
+        На сайте проводятся технические работы. Пожалуйста, попробуйте оформить заявку немного позже.
+      </p>
+      <Button asChild size="lg" variant="secondary" className="mt-7 w-full rounded-xl font-semibold">
+        <Link to="/">На главную</Link>
+      </Button>
+    </div>
+  </div>
+);
 
 const SuccessScreen = ({ nav }: { nav: (path: string) => void }) => {
   return (
@@ -62,6 +82,7 @@ const CheckingScreen = ({ seconds }: { seconds: number }) => (
 );
 
 const Anketa = () => {
+  const { maintenance } = useMaintenance();
   const nav = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -281,6 +302,10 @@ const Anketa = () => {
       setCodeVerifying(false);
     }
   };
+
+  if (maintenance) {
+    return <MaintenanceScreen />;
+  }
 
   if (transitioning) {
     return <CheckingScreen seconds={transitionSeconds} />;
