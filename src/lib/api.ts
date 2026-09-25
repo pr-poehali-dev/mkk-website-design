@@ -291,6 +291,49 @@ export async function apiAddPayment(data: {
   return json as LoanPayment;
 }
 
+export interface LoanReceipt {
+  id: number;
+  ref_number: string;
+  receipt_number: string;
+  receipt_type: 'money_sent' | 'repaid';
+  amount: number;
+  file_url: string;
+  created_at: string;
+}
+
+export async function apiListReceipts(ref_number: string): Promise<LoanReceipt[]> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'list_receipts', ref_number }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки чеков');
+  return json as LoanReceipt[];
+}
+
+export async function apiClientListReceipts(ref_number: string): Promise<LoanReceipt[]> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'client_list_receipts', ref_number }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки чеков');
+  return json as LoanReceipt[];
+}
+
+export async function apiCreateReceipt(data: { ref_number: string; receipt_type: 'money_sent' | 'repaid'; amount?: number }): Promise<LoanReceipt> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'create_receipt', ...data }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка создания чека');
+  return json as LoanReceipt;
+}
+
 export async function apiAdminSetPassword(phone: string, new_password: string): Promise<void> {
   const res = await fetch(URLS.login, {
     method: 'POST',

@@ -2,9 +2,12 @@
 import json
 import os
 import smtplib
+import uuid
+from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import psycopg2
+import boto3
 
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
 ADMIN_TOKEN = 'admin_zaimy_plus'
@@ -22,6 +25,105 @@ DEFAULT_DESIGN = {
     'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
     'logo_url': '', 'signature': 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
 }
+DEFAULT_COMPANY_NAME = 'КПК «Частные займы плюс»'
+DEFAULT_COMPANY_INN = '220038299987'
+DEFAULT_COMPANY_OGRN = '0092800992828288'
+
+RECEIPT_TITLES = {'money_sent': 'Чек о выдаче займа', 'repaid': 'Чек о погашении займа'}
+
+
+def fmt_money(n: int) -> str:
+    return f'{n:,}'.replace(',', ' ')
+
+
+def build_receipt_html(full_name: str, phone: str, email: str, ref_number: str, days: int,
+                        receipt_type: str, receipt_number: str, amount: int,
+                        company_name: str, company_inn: str, company_ogrn: str, company_phone: str) -> str:
+    is_sent = receipt_type == 'money_sent'
+    title = RECEIPT_TITLES[receipt_type]
+    now = datetime.now()
+    date_str = now.strftime('%d.%m.%Y')
+    time_str = now.strftime('%H:%M')
+    total = amount + round(amount * 0.008 * days) if is_sent else amount
+    style = (
+        'body{font-family:Arial,sans-serif;max-width:520px;margin:32px auto;color:#111;font-size:13px;line-height:1.6}'
+        'h1{font-size:17px;text-align:center;margin:0 0 4px}'
+        '.sub{text-align:center;color:#666;font-size:12px;margin:0 0 20px}'
+        '.badge{display:block;margin:0 auto 18px;width:56px;height:56px;border-radius:50%;text-align:center;line-height:56px;font-size:26px;color:#fff}'
+        '.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee}'
+        '.label{color:#666}'
+        '.val{font-weight:bold;text-align:right}'
+        '.total{font-size:16px}'
+        '.total .val{color:#1a56db}'
+        '.footer{margin-top:24px;text-align:center;color:#888;font-size:11px;border-top:1px solid #eee;padding-top:14px}'
+        '.company{margin-top:18px;padding-top:14px;border-top:1px dashed #ccc;font-size:11px;color:#666;text-align:center}'
+    )
+    email_row = f'<div class="row"><span class="label">Email</span><span class="val">{email}</span></div>' if email else ''
+    phone_line = f'<br>Тел.: {company_phone}' if company_phone else ''
+    return f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>{title} {receipt_number}</title>
+<style>{style}</style>
+</head>
+<body>
+<div class="badge" style="background:{'#16a34a' if is_sent else '#1a56db'}">{'✓' if is_sent else '₽'}</div>
+<h1>{title}</h1>
+<p class="sub">№ {receipt_number} &nbsp;·&nbsp; {date_str} {time_str}</p>
+
+<div class="row"><span class="label">Заёмщик</span><span class="val">{full_name}</span></div>
+<div class="row"><span class="label">Телефон</span><span class="val">{phone}</span></div>
+{email_row}
+<div class="row"><span class="label">Номер заявки</span><span class="val">{ref_number}</span></div>
+<div class="row"><span class="label">{'Сумма выданного займа' if is_sent else 'Сумма погашения'}</span><span class="val">{fmt_money(amount)} ₽</span></div>
+<div class="row total"><span class="label">{'К возврату' if is_sent else 'Статус'}</span><span class="val">{f'{fmt_money(total)} ₽' if is_sent else 'Займ погашен полностью'}</span></div>
+
+<div class="company">
+  <b>{company_name}</b><br>
+  ИНН {company_inn} · ОГРН {company_ogrn}{phone_line}
+</div>
+
+<p class="footer">Документ сформирован автоматически и не требует подписи.<br>Сохраните его как подтверждение операции по договору займа.</p>
+</body>
+</html>"""
+
+
+def upload_html_to_s3(html: str, folder: str, filename: str) -> str:
+    data = html.encode('utf-8')
+    key = f'{folder}/{filename}'
+    s3 = boto3.client(
+        's3',
+        endpoint_url='https://bucket.poehali.dev',
+        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+    )
+    s3.put_object(Bucket='files', Key=key, Body=data, ContentType='text/html; charset=utf-8')
+    return f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+
+
+def generate_and_store_receipt(cur, ref_number: str, receipt_type: str, full_name: str, phone: str,
+                                email: str, days: int, amount: int, company_settings: dict) -> dict:
+    prefix = 'В' if receipt_type == 'money_sent' else 'П'
+    receipt_number = f"ЧК-{prefix}-{ref_number}-{datetime.now().strftime('%y%m%d%H%M')}"
+    company_name = company_settings.get('company_name') or DEFAULT_COMPANY_NAME
+    company_inn = company_settings.get('company_inn') or DEFAULT_COMPANY_INN
+    company_ogrn = company_settings.get('company_ogrn') or DEFAULT_COMPANY_OGRN
+    company_phone = company_settings.get('company_phone') or ''
+    html = build_receipt_html(full_name, phone, email or '', ref_number, days, receipt_type,
+                               receipt_number, amount, company_name, company_inn, company_ogrn, company_phone)
+    file_url = upload_html_to_s3(html, 'receipts', f'{uuid.uuid4()}.html')
+    cur.execute(
+        f"""INSERT INTO {SCHEMA}.loan_receipts (ref_number, receipt_number, receipt_type, amount, html, file_url)
+            VALUES (%s, %s, %s, %s, %s, %s) RETURNING id, created_at""",
+        (ref_number, receipt_number, receipt_type, amount, html, file_url)
+    )
+    row = cur.fetchone()
+    return {
+        'id': row[0], 'ref_number': ref_number, 'receipt_number': receipt_number,
+        'receipt_type': receipt_type, 'amount': amount, 'file_url': file_url,
+        'created_at': row[1].isoformat() if row[1] else None,
+    }
 
 
 def render_email_html(design: dict, body_html: str) -> str:
@@ -115,7 +217,8 @@ def get_system_email_settings(cur) -> dict:
         return {}
 
 
-def send_status_email(to_email: str, ref_number: str, status: str, settings: dict) -> str:
+def send_status_email(to_email: str, ref_number: str, status: str, settings: dict,
+                       extra_attachment_url: str = '', extra_attachment_name: str = '') -> str:
     if status not in DEFAULT_STATUS_EMAIL_TEXT:
         return 'skipped: unknown status'
     login = os.environ.get('SMTP_LOGIN')
@@ -130,6 +233,7 @@ def send_status_email(to_email: str, ref_number: str, status: str, settings: dic
     body_template = tpl.get('body') or default_body
     text = body_template.replace('{ref}', ref_number)
     text += render_attachment_html(tpl.get('attachment_url', ''), tpl.get('attachment_name', ''))
+    text += render_attachment_html(extra_attachment_url, extra_attachment_name)
     html_body = render_email_html(design, text)
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
@@ -256,8 +360,73 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
 
+    # Клиент смотрит свои чеки (без admin-токена)
+    if not is_admin and body.get('action') == 'client_list_receipts':
+        ref = body.get('ref_number')
+        if not ref:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT id, ref_number, receipt_number, receipt_type, amount, file_url, created_at
+                FROM {SCHEMA}.loan_receipts WHERE ref_number = %s ORDER BY created_at DESC""",
+            (ref,)
+        )
+        rows = cur.fetchall()
+        conn.close()
+        receipts = [{
+            'id': r[0], 'ref_number': r[1], 'receipt_number': r[2], 'receipt_type': r[3],
+            'amount': r[4], 'file_url': r[5], 'created_at': r[6].isoformat() if r[6] else None,
+        } for r in rows]
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps(receipts)}
+
     if not is_admin:
         return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
+
+    # Список чеков по заявке (админ)
+    if body.get('action') == 'list_receipts':
+        ref = body.get('ref_number')
+        if not ref:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT id, ref_number, receipt_number, receipt_type, amount, file_url, created_at
+                FROM {SCHEMA}.loan_receipts WHERE ref_number = %s ORDER BY created_at DESC""",
+            (ref,)
+        )
+        rows = cur.fetchall()
+        conn.close()
+        receipts = [{
+            'id': r[0], 'ref_number': r[1], 'receipt_number': r[2], 'receipt_type': r[3],
+            'amount': r[4], 'file_url': r[5], 'created_at': r[6].isoformat() if r[6] else None,
+        } for r in rows]
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps(receipts)}
+
+    # Сформировать чек вручную (админ)
+    if body.get('action') == 'create_receipt':
+        ref = body.get('ref_number')
+        receipt_type = body.get('receipt_type')
+        if not ref or receipt_type not in ('money_sent', 'repaid'):
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number и корректный receipt_type обязательны'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT full_name, phone, email, days, amount FROM {SCHEMA}.loan_requests WHERE ref_number = %s",
+            (ref,)
+        )
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
+        full_name, phone, email, days, loan_amount = row
+        amount = body.get('amount') or loan_amount
+        cur.execute(f"SELECT key, value FROM {SCHEMA}.site_settings WHERE key LIKE 'company_%'")
+        company_settings = {r[0]: r[1] for r in cur.fetchall()}
+        receipt = generate_and_store_receipt(cur, ref, receipt_type, full_name, phone, email, days, amount, company_settings)
+        conn.commit()
+        conn.close()
+        return {'statusCode': 201, 'headers': headers, 'body': json.dumps(receipt)}
 
     # Список платежей по заявке
     if body.get('action') == 'list_payments':
@@ -469,7 +638,8 @@ def handler(event: dict, context) -> dict:
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
     cur.execute(
-        f"UPDATE {SCHEMA}.loan_requests SET {', '.join(fields)} WHERE ref_number = %s RETURNING id, email, phone",
+        f"""UPDATE {SCHEMA}.loan_requests SET {', '.join(fields)} WHERE ref_number = %s
+            RETURNING id, email, phone, full_name, days, amount""",
         values
     )
     updated = cur.fetchone()
@@ -478,6 +648,9 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
 
     updated_phone = updated[2]
+    updated_full_name = updated[3]
+    updated_days = updated[4]
+    updated_amount = updated[5]
     email_settings = get_system_email_settings(cur) if status is not None and updated[1] else {}
 
     if status is not None:
@@ -490,10 +663,21 @@ def handler(event: dict, context) -> dict:
     if 'operator_comment' in body and body['operator_comment']:
         create_notification(cur, updated_phone, ref, 'comment', 'Сообщение от оператора', body['operator_comment'])
 
+    # Займ выдан или погашен — формируем фирменный чек и прикладываем к письму
+    receipt = None
+    if status in ('money_sent', 'repaid'):
+        cur.execute(f"SELECT key, value FROM {SCHEMA}.site_settings WHERE key LIKE 'company_%'")
+        company_settings = {r[0]: r[1] for r in cur.fetchall()}
+        receipt = generate_and_store_receipt(
+            cur, ref, status, updated_full_name, updated_phone, updated[1] or '', updated_days, updated_amount, company_settings
+        )
+
     conn.commit()
     conn.close()
 
     if status is not None and updated[1]:
-        send_status_email(updated[1], ref, status, email_settings)
+        extra_url = receipt['file_url'] if receipt else ''
+        extra_name = RECEIPT_TITLES.get(status, '') if receipt else ''
+        send_status_email(updated[1], ref, status, email_settings, extra_url, extra_name)
 
     return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True, 'ref_number': ref})}

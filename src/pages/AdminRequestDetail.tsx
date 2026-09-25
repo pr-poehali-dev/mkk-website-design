@@ -10,6 +10,7 @@ import AdminEditDocumentsPassword from '@/components/admin/AdminEditDocumentsPas
 import AdminEditEmailForm from '@/components/admin/AdminEditEmailForm';
 import AdminEditLoanForm from '@/components/admin/AdminEditLoanForm';
 import AdminPaymentHistory from '@/components/admin/AdminPaymentHistory';
+import AdminReceiptHistory from '@/components/admin/AdminReceiptHistory';
 import { type EditForm } from '@/components/admin/adminEditTypes';
 import {
   apiAdminSetPassword, apiUploadFile, apiAdminSetDocStatus, apiSendEmail,
@@ -432,6 +433,11 @@ const AdminRequestDetail = () => {
         {/* История платежей */}
         <div className="mt-5">
           <AdminPaymentHistory refNumber={selected.ref_number} />
+        </div>
+
+        {/* Чеки по займу */}
+        <div className="mt-5">
+          <AdminReceiptHistory refNumber={selected.ref_number} loanAmount={selected.amount} />
         </div>
       </main>
     </div>

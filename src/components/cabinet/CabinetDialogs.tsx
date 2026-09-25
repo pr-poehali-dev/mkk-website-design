@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, apiUpdateClientEmail, apiSendVerificationCode, apiVerifyCode, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiUpdateClientDocs, apiUpdateClientEmail, apiSendVerificationCode, apiVerifyCode, apiGetHistory, apiClientListReceipts, saveSession, type UserSession, type LoanReceipt } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from '@/components/admin/contractHtml';
@@ -108,6 +108,21 @@ const CabinetDialogs = ({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<UserSession[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+
+  const [receipts, setReceipts] = useState<LoanReceipt[]>([]);
+  const [receiptsLoading, setReceiptsLoading] = useState(false);
+
+  useEffect(() => {
+    if (docsOpen) {
+      setReceiptsLoading(true);
+      apiClientListReceipts(user.ref_number).then(setReceipts).catch(() => {}).finally(() => setReceiptsLoading(false));
+    }
+  }, [docsOpen, user.ref_number]);
+
+  const RECEIPT_TYPE_META: Record<string, { label: string; icon: string; className: string }> = {
+    money_sent: { label: 'Займ выдан', icon: 'BadgeCheck', className: 'bg-green-100 text-green-600' },
+    repaid: { label: 'Займ погашен', icon: 'CircleDollarSign', className: 'bg-blue-100 text-blue-600' },
+  };
 
   const openHistory = async () => {
     setHistoryOpen(true);
@@ -553,6 +568,39 @@ const CabinetDialogs = ({
                 </Button>
               </div>
             </div>
+
+            {/* Чеки по займу */}
+            {(receiptsLoading || receipts.length > 0) && (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Чеки по займу</p>
+                {receiptsLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Icon name="Loader2" size={18} className="animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {receipts.map((r) => {
+                      const meta = RECEIPT_TYPE_META[r.receipt_type] || RECEIPT_TYPE_META.money_sent;
+                      return (
+                        <div key={r.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+                          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${meta.className}`}>
+                            <Icon name={meta.icon} size={17} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-primary">{meta.label}</p>
+                            <p className="text-xs text-muted-foreground">{r.receipt_number} · {fmt(r.amount)} ₽</p>
+                          </div>
+                          <a href={r.file_url} target="_blank" rel="noopener noreferrer"
+                            className="shrink-0 flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-accent hover:bg-accent/5 transition-colors">
+                            <Icon name="Download" size={13} /> Скачать
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Фото документов — загрузка клиентом */}
             <div>
