@@ -8,6 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, apiUploadFile, apiSubmitIdentifyPhotos, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
+import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
 import CameraCapture from '@/components/anketa/CameraCapture';
 import { useState, useEffect } from 'react';
 
@@ -330,6 +331,16 @@ const CabinetStatusCard = ({
 
   const [payInfoOpen, setPayInfoOpen] = useState(false);
   const isActiveLoan = status === 'money_sent' || status === 'overdue';
+
+  const dueDate = (() => {
+    const start = new Date(user.money_sent_at || user.created_at);
+    const due = new Date(start);
+    due.setDate(due.getDate() + user.days);
+    return due;
+  })();
+  const daysOverdue = Math.max(1, Math.ceil((Date.now() - dueDate.getTime()) / 86400000));
+  const overdueDailyPenalty = Math.round(user.amount * 0.01);
+  const overduePenaltyTotal = overdueDailyPenalty * daysOverdue;
 
   const moneySentKey = `money_sent_seen_${user.ref_number}`;
   const [showMoneySent, setShowMoneySent] = useState(() =>
@@ -795,6 +806,51 @@ const CabinetStatusCard = ({
                   <p className="text-2xl font-bold text-emerald-600">{fmt(user.amount)} ₽</p>
                 </div>
               </div>
+            </div>
+          )}
+          {status !== 'issued' && (
+            <div className={`rounded-2xl border p-6 ${isActiveLoan ? 'mt-4 border-accent/40 bg-accent/5' : 'border-border bg-card'}`}>
+              <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-primary">
+                <Icon name={isActiveLoan ? 'BadgeDollarSign' : 'Wallet'} size={18} className="text-accent" />
+                {isActiveLoan ? 'Активный займ' : 'Параметры займа'}
+              </h2>
+              <dl className="space-y-3 text-sm">
+                <div className="flex justify-between"><dt className="text-muted-foreground">Сумма займа</dt><dd className="font-semibold">{fmt(user.amount)} ₽</dd></div>
+                <div className="flex justify-between"><dt className="text-muted-foreground">Срок</dt><dd className="font-semibold">{user.days} дн.</dd></div>
+                {isActiveLoan && (
+                  <>
+                    <div className="flex justify-between"><dt className="text-muted-foreground">Переплата (0.8%/день)</dt><dd className="font-semibold">{fmt(Math.round(user.amount * 0.008 * user.days))} ₽</dd></div>
+                    <div className="flex justify-between border-t border-accent/20 pt-2">
+                      <dt className="font-semibold text-primary">К возврату</dt>
+                      <dd className="font-bold text-accent text-base">{fmt(user.amount + Math.round(user.amount * 0.008 * user.days))} ₽</dd>
+                    </div>
+                  </>
+                )}
+                {status === 'overdue' && (
+                  <>
+                    <div className="flex justify-between border-t border-red-200 pt-2">
+                      <dt className="text-red-600">Дней просрочки</dt>
+                      <dd className="font-semibold text-red-700">{daysOverdue} дн.</dd>
+                    </div>
+                    <div className="flex justify-between"><dt className="text-red-600">Пеня за просрочку (1%/день)</dt><dd className="font-semibold text-red-700">{fmt(overdueDailyPenalty)} ₽/дн.</dd></div>
+                    <div className="flex justify-between"><dt className="text-red-600">Начислено пени</dt><dd className="font-semibold text-red-700">{fmt(overduePenaltyTotal)} ₽</dd></div>
+                    <div className="flex justify-between border-t border-red-200 pt-2">
+                      <dt className="font-semibold text-red-700">Итого к возврату с пеней</dt>
+                      <dd className="font-bold text-red-700 text-base">{fmt(user.amount + Math.round(user.amount * 0.008 * user.days) + overduePenaltyTotal)} ₽</dd>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between"><dt className="text-muted-foreground">Дата заявки</dt><dd className="font-semibold">{user.created_at?.slice(0, 10)}</dd></div>
+              </dl>
+              {isActiveLoan && (
+                <LoanRepaymentProgress
+                  amount={user.amount}
+                  days={user.days}
+                  startDate={user.money_sent_at || user.created_at}
+                  overpay={Math.round(user.amount * 0.008 * user.days)}
+                  statusOverdue={status === 'overdue'}
+                />
+              )}
             </div>
           )}
           </>
