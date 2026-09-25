@@ -847,7 +847,10 @@ const CabinetStatusCard = ({
                     </div>
                   </>
                 )}
-                <div className="flex justify-between"><dt className="text-muted-foreground">Дата заявки</dt><dd className="font-semibold">{user.created_at?.slice(0, 10)}</dd></div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">{isActiveLoan ? 'Дата выдачи займа' : 'Дата заявки'}</dt>
+                  <dd className="font-semibold">{(isActiveLoan ? (user.money_sent_at || user.created_at) : user.created_at)?.slice(0, 10)}</dd>
+                </div>
               </dl>
               {isActiveLoan && (
                 <LoanRepaymentProgress
