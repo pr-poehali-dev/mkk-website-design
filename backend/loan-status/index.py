@@ -568,13 +568,23 @@ def handler(event: dict, context) -> dict:
     if status is not None:
         if status not in VALID_STATUSES:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неверный статус'})}
+
+        # Узнаём текущий статус в БД — money_sent_at обновляем только при РЕАЛЬНОМ переходе
+        # в money_sent, а не при каждом повторном сохранении заявки с тем же статусом
+        conn_check = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur_check = conn_check.cursor()
+        cur_check.execute(f"SELECT status FROM {SCHEMA}.loan_requests WHERE ref_number = %s", (ref,))
+        row_check = cur_check.fetchone()
+        conn_check.close()
+        current_status = row_check[0] if row_check else None
+
         fields.append('status = %s')
         values.append(status)
         if status != 'rejected':
             # Ручная смена статуса оператором — сбрасываем причину автоотказа робота
             fields.append('rejection_reason = %s')
             values.append(None)
-        if status == 'money_sent':
+        if status == 'money_sent' and current_status != 'money_sent':
             # Фиксируем дату выдачи денег — отсчёт срока начинается заново
             fields.append('money_sent_at = NOW()')
             reset_reminder = True
@@ -664,8 +674,9 @@ def handler(event: dict, context) -> dict:
         create_notification(cur, updated_phone, ref, 'comment', 'Сообщение от оператора', body['operator_comment'])
 
     # Займ выдан или погашен — формируем фирменный чек и прикладываем к письму
+    # (только при реальном переходе в статус, а не при повторном сохранении заявки)
     receipt = None
-    if status in ('money_sent', 'repaid'):
+    if status in ('money_sent', 'repaid') and current_status != status:
         cur.execute(f"SELECT key, value FROM {SCHEMA}.site_settings WHERE key LIKE 'company_%'")
         company_settings = {r[0]: r[1] for r in cur.fetchall()}
         receipt = generate_and_store_receipt(
