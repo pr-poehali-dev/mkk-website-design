@@ -342,6 +342,13 @@ const CabinetStatusCard = ({
   const overdueDailyPenalty = Math.round(user.amount * 0.01);
   const overduePenaltyTotal = overdueDailyPenalty * daysOverdue;
 
+  // Проценты начисляются день за днём с момента выдачи денег, а не сразу за весь срок займа
+  const accruedDays = Math.min(
+    user.days,
+    Math.max(1, Math.ceil((Date.now() - new Date(user.money_sent_at || user.created_at).getTime()) / 86400000))
+  );
+  const currentOverpay = Math.round(user.amount * 0.008 * accruedDays);
+
   const moneySentKey = `money_sent_seen_${user.ref_number}`;
   const [showMoneySent, setShowMoneySent] = useState(() =>
     status === 'money_sent' ? !localStorage.getItem(moneySentKey) : false
@@ -819,10 +826,10 @@ const CabinetStatusCard = ({
                 <div className="flex justify-between"><dt className="text-muted-foreground">Срок</dt><dd className="font-semibold">{user.days} дн.</dd></div>
                 {isActiveLoan && (
                   <>
-                    <div className="flex justify-between"><dt className="text-muted-foreground">Переплата (0.8%/день)</dt><dd className="font-semibold">{fmt(Math.round(user.amount * 0.008 * user.days))} ₽</dd></div>
+                    <div className="flex justify-between"><dt className="text-muted-foreground">Начислено процентов на сегодня (0.8%/день)</dt><dd className="font-semibold">{fmt(currentOverpay)} ₽</dd></div>
                     <div className="flex justify-between border-t border-accent/20 pt-2">
-                      <dt className="font-semibold text-primary">К возврату</dt>
-                      <dd className="font-bold text-accent text-base">{fmt(user.amount + Math.round(user.amount * 0.008 * user.days))} ₽</dd>
+                      <dt className="font-semibold text-primary">К возврату на сегодня</dt>
+                      <dd className="font-bold text-accent text-base">{fmt(user.amount + currentOverpay)} ₽</dd>
                     </div>
                   </>
                 )}
