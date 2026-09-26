@@ -336,11 +336,11 @@ export async function apiCreateReceipt(data: { ref_number: string; receipt_type:
   return json as LoanReceipt;
 }
 
-export async function apiAdminSetPassword(phone: string, new_password: string): Promise<void> {
+export async function apiAdminSetPassword(ref_number: string, new_password: string): Promise<void> {
   const res = await fetch(URLS.login, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
-    body: JSON.stringify({ action: 'admin_set_password', phone, new_password }),
+    body: JSON.stringify({ action: 'admin_set_password', ref_number, new_password }),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка смены пароля');

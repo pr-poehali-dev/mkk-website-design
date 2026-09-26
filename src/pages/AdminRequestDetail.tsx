@@ -223,7 +223,7 @@ const AdminRequestDetail = () => {
     setPwdSaving(true);
     setPwdMsg(null);
     try {
-      await apiAdminSetPassword(selected.phone, newPassword);
+      await apiAdminSetPassword(selected.ref_number, newPassword);
       setPwdMsg({ ok: true, text: 'Пароль успешно изменён' });
       setNewPassword('');
     } catch (e: unknown) {

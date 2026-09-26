@@ -20,15 +20,16 @@ def handler(event: dict, context) -> dict:
         admin_token = event.get('headers', {}).get('x-admin-token', '')
         if admin_token != 'admin_zaimy_plus':
             return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
-        phone = body.get('phone', '').strip()
+        ref_number = body.get('ref_number', '').strip()
         new_password = body.get('new_password', '').strip()
-        if not phone or not new_password:
+        if not ref_number or not new_password:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Заполните все поля'})}
         if len(new_password) < 4:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Пароль должен быть не менее 4 символов'})}
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
-        cur.execute(f"UPDATE {SCHEMA}.loan_requests SET password_hash = %s, password_plain = %s WHERE phone = %s", (hash_password(new_password), new_password, phone))
+        # Пароль меняется только у конкретной заявки (по ref_number), а не у всех заявок клиента с этим телефоном
+        cur.execute(f"UPDATE {SCHEMA}.loan_requests SET password_hash = %s, password_plain = %s WHERE ref_number = %s", (hash_password(new_password), new_password, ref_number))
         conn.commit()
         conn.close()
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
