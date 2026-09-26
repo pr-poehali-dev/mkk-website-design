@@ -56,6 +56,7 @@ export interface UserSession {
   snils_photo_url?: string | null;
   snils_photo_status?: string | null;
   identify_submitted_at?: string | null;
+  admin_notes?: string | null;
 }
 
 export function getSession(): UserSession | null {
@@ -169,6 +170,7 @@ export async function apiUpdateRequest(data: {
   amount?: number;
   days?: number;
   operator_comment?: string;
+  admin_notes?: string;
   payment_bank?: string | null;
   is_blocked?: boolean;
   doc_urls?: string[];

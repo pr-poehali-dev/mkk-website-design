@@ -14,7 +14,7 @@ COLS = ['id', 'ref_number', 'full_name', 'phone', 'passport', 'passport_by',
         'insurance_enabled', 'money_sent_at', 'selfie_photo_url', 'selfie_photo_status',
         'existing_loans_count', 'existing_debt_amount', 'rejection_reason', 'updated_at',
         'card_photo_url', 'card_photo_status', 'snils_photo_url', 'snils_photo_status',
-        'identify_submitted_at']
+        'identify_submitted_at', 'admin_notes']
 
 SELECT_COLS = """id, ref_number, full_name, phone, passport, passport_by,
                        birth_date, amount, days, status, operator_comment, created_at,
@@ -24,7 +24,7 @@ SELECT_COLS = """id, ref_number, full_name, phone, passport, passport_by,
                        insurance_enabled, money_sent_at, selfie_photo_url, selfie_photo_status,
                        existing_loans_count, existing_debt_amount, rejection_reason, updated_at,
                        card_photo_url, card_photo_status, snils_photo_url, snils_photo_status,
-                       identify_submitted_at"""
+                       identify_submitted_at, admin_notes"""
 
 def row_to_dict(row):
     d = dict(zip(COLS, row))
@@ -68,7 +68,11 @@ def handler(event: dict, context) -> dict:
         )
         rows = cur.fetchall()
         conn.close()
-        return {'statusCode': 200, 'headers': headers, 'body': json.dumps([row_to_dict(r) for r in rows])}
+        history_items = [row_to_dict(r) for r in rows]
+        if not is_admin:
+            for item in history_items:
+                item.pop('admin_notes', None)
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps(history_items)}
 
     if params.get('action') == 'settings':
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
@@ -105,4 +109,7 @@ def handler(event: dict, context) -> dict:
     if not row:
         return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Заявка не найдена'})}
 
-    return {'statusCode': 200, 'headers': headers, 'body': json.dumps(row_to_dict(row))}
+    result = row_to_dict(row)
+    # Заметки видит только администратор — клиенту в личном кабинете их не отдаём
+    result.pop('admin_notes', None)
+    return {'statusCode': 200, 'headers': headers, 'body': json.dumps(result)}

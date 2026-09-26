@@ -30,7 +30,7 @@ const AdminRequestDetail = () => {
   const [selected, setSelected] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', payment_bank: '', insurance_enabled: false });
+  const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', admin_notes: '', payment_bank: '', insurance_enabled: false });
   const [deleting, setDeleting] = useState(false);
 
   const [newPassword, setNewPassword] = useState('');
@@ -72,6 +72,7 @@ const AdminRequestDetail = () => {
           amount: String(found.amount),
           days: String(found.days),
           operator_comment: found.operator_comment || '',
+          admin_notes: found.admin_notes || '',
           payment_bank: found.payment_bank || '',
           insurance_enabled: found.insurance_enabled || false,
         });
@@ -262,6 +263,7 @@ const AdminRequestDetail = () => {
         amount: parseInt(editForm.amount),
         days: parseInt(editForm.days),
         operator_comment: editForm.operator_comment,
+        admin_notes: editForm.admin_notes,
         payment_bank: editForm.payment_bank || null,
         insurance_enabled: editForm.insurance_enabled,
       });
@@ -271,6 +273,7 @@ const AdminRequestDetail = () => {
         amount: parseInt(editForm.amount),
         days: parseInt(editForm.days),
         operator_comment: editForm.operator_comment,
+        admin_notes: editForm.admin_notes,
         insurance_enabled: editForm.insurance_enabled,
       } : prev);
     } finally {

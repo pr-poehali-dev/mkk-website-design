@@ -240,6 +240,19 @@ const AdminEditLoanForm = ({
           onChange={(e) => setEditForm({ ...editForm, operator_comment: e.target.value })} />
       </div>
 
+      {/* Внутренние заметки по клиенту (видны только администратору) */}
+      <div className="space-y-1.5 rounded-xl border border-amber-200 bg-amber-50 p-3">
+        <Label htmlFor="edit-admin-notes" className="flex items-center gap-1.5 text-amber-800">
+          <Icon name="Lock" size={13} /> Заметки для администратора
+        </Label>
+        <Textarea id="edit-admin-notes" rows={3}
+          placeholder="Внутренняя информация — клиент её не увидит..."
+          className="bg-white"
+          value={editForm.admin_notes}
+          onChange={(e) => setEditForm({ ...editForm, admin_notes: e.target.value })} />
+        <p className="text-xs text-amber-700/80">Видно только администраторам, клиенту не отправляется</p>
+      </div>
+
       <div className="flex gap-3">
         <Button onClick={onSave} disabled={saving}
           className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90">

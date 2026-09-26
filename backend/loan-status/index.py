@@ -608,6 +608,11 @@ def handler(event: dict, context) -> dict:
         fields.append('operator_comment = %s')
         values.append(body['operator_comment'] or None)
 
+    if 'admin_notes' in body:
+        # Внутренние заметки видны только администратору, клиенту не показываются и не отправляются
+        fields.append('admin_notes = %s')
+        values.append(body['admin_notes'] or None)
+
     if 'payment_bank' in body:
         fields.append('payment_bank = %s')
         values.append(body['payment_bank'] or None)
