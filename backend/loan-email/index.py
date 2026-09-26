@@ -2,6 +2,7 @@
 import json
 import os
 import smtplib
+import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.utils import formatdate, make_msgid, formataddr
@@ -11,6 +12,7 @@ SCHEMA = os.environ['MAIN_DB_SCHEMA']
 ADMIN_TOKEN = 'admin_zaimy_plus'
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
+EMAIL_TRACK_URL = 'https://functions.poehali.dev/3c76d9b4-ed95-4e6f-9842-69466e85dadf'
 DEFAULT_DESIGN = {
     'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
     'logo_url': '', 'signature': 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
@@ -52,6 +54,21 @@ def send_email(to_email: str, subject: str, html_body: str, text_body: str, bran
     with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
         server.login(login, password)
         server.sendmail(login, [to_email], msg.as_string())
+
+
+def log_email(ref_number: str, email: str, subject: str, preview: str, source: str, tracking_id: str) -> None:
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.email_log (ref_number, email, subject, preview, source, tracking_id)
+                VALUES (%s, %s, %s, %s, %s, %s)""",
+            (ref_number, email, subject, preview[:300] if preview else None, source, tracking_id)
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f'[loan-email] Failed to log email: {e}')
 
 
 def handler(event: dict, context) -> dict:
@@ -139,10 +156,14 @@ def handler(event: dict, context) -> dict:
         """
 
     text_body = html_to_text(html_body)
+    tracking_id = str(uuid.uuid4())
+    html_body += f'<img src="{EMAIL_TRACK_URL}?tid={tracking_id}" width="1" height="1" style="display:none" alt="" />'
 
     try:
         send_email(to_email, subject, html_body, text_body, design['brand_name'])
     except Exception as e:
         return {'statusCode': 500, 'headers': headers, 'body': json.dumps({'error': f'Не удалось отправить письмо: {str(e)}'})}
+
+    log_email(ref_number, to_email, subject, message, 'manual', tracking_id)
 
     return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}

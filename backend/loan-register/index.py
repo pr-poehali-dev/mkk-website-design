@@ -3,6 +3,7 @@ import json
 import os
 import hashlib
 import smtplib
+import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import psycopg2
@@ -10,6 +11,7 @@ import psycopg2
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
+EMAIL_TRACK_URL = 'https://functions.poehali.dev/3c76d9b4-ed95-4e6f-9842-69466e85dadf'
 
 DEFAULT_DESIGN = {
     'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
@@ -83,6 +85,21 @@ def render_email_html(design: dict, body_html: str) -> str:
     """
 
 
+def log_email(ref_number: str, email: str, subject: str, preview: str, source: str, tracking_id: str) -> None:
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.email_log (ref_number, email, subject, preview, source, tracking_id)
+                VALUES (%s, %s, %s, %s, %s, %s)""",
+            (ref_number, email, subject, preview[:300] if preview else None, source, tracking_id)
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f'[loan-register] Failed to log email: {e}')
+
+
 def send_review_email(to_email: str, ref_number: str, settings: dict) -> None:
     login = os.environ.get('SMTP_LOGIN')
     password = os.environ.get('SMTP_PASSWORD')
@@ -94,7 +111,8 @@ def send_review_email(to_email: str, ref_number: str, settings: dict) -> None:
     subject = tpl.get('subject') or default_subject
     body_template = tpl.get('body') or default_body
     text = body_template.format(ref=ref_number)
-    html_body = render_email_html(design, text)
+    tracking_id = str(uuid.uuid4())
+    html_body = render_email_html(design, text) + f'<img src="{EMAIL_TRACK_URL}?tid={tracking_id}" width="1" height="1" style="display:none" alt="" />'
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
     msg['From'] = login
@@ -104,6 +122,7 @@ def send_review_email(to_email: str, ref_number: str, settings: dict) -> None:
         with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
             server.login(login, password)
             server.sendmail(login, [to_email], msg.as_string())
+        log_email(ref_number, to_email, subject, text, 'register', tracking_id)
     except Exception as e:
         print(f'[loan-register] Failed to send review email to {to_email} for {ref_number}: {e}')
 

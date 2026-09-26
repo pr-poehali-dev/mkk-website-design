@@ -2,6 +2,7 @@
 import json
 import os
 import smtplib
+import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import psycopg2
@@ -11,6 +12,7 @@ ADMIN_TOKEN = 'admin_zaimy_plus'
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
 SUPPORT_INBOX_ENV = 'SMTP_LOGIN'
+EMAIL_TRACK_URL = 'https://functions.poehali.dev/3c76d9b4-ed95-4e6f-9842-69466e85dadf'
 
 DEFAULT_DESIGN = {
     'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
@@ -105,6 +107,21 @@ def send_html_email(to_email: str, subject: str, body_html: str, design: dict) -
         server.sendmail(login, [to_email], msg.as_string())
 
 
+def log_email(ref_number, email: str, subject: str, preview: str, source: str, tracking_id: str) -> None:
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.email_log (ref_number, email, subject, preview, source, tracking_id)
+                VALUES (%s, %s, %s, %s, %s, %s)""",
+            (ref_number, email, subject, preview[:300] if preview else None, source, tracking_id)
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f'[loan-support] Failed to log email: {e}')
+
+
 def render_attachment_html(attachment_url: str, attachment_name: str) -> str:
     if not attachment_url:
         return ''
@@ -152,12 +169,12 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'id и reply обязательны'})}
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
-        cur.execute(f"SELECT email, name, phone FROM {SCHEMA}.support_messages WHERE id = %s", (msg_id,))
+        cur.execute(f"SELECT email, name, phone, ref_number FROM {SCHEMA}.support_messages WHERE id = %s", (msg_id,))
         row = cur.fetchone()
         if not row:
             conn.close()
             return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Обращение не найдено'})}
-        client_email, client_name, client_phone = row
+        client_email, client_name, client_phone, msg_ref_number = row
         settings = get_system_email_settings(cur)
         design = {**DEFAULT_DESIGN, **(settings.get('design') or {})}
         if admin_file_urls is not None:
@@ -180,12 +197,11 @@ def handler(event: dict, context) -> dict:
         conn.close()
         if client_email:
             try:
-                send_html_email(
-                    client_email,
-                    'Ответ службы поддержки',
-                    f'Здравствуйте, {client_name}!<br><br>{reply_text.replace(chr(10), "<br>")}',
-                    design,
-                )
+                tracking_id = str(uuid.uuid4())
+                greeting = f'Здравствуйте, {client_name}!<br><br>{reply_text.replace(chr(10), "<br>")}'
+                pixel = f'<img src="{EMAIL_TRACK_URL}?tid={tracking_id}" width="1" height="1" style="display:none" alt="" />'
+                send_html_email(client_email, 'Ответ службы поддержки', greeting + pixel, design)
+                log_email(msg_ref_number, client_email, 'Ответ службы поддержки', reply_text, 'support_reply', tracking_id)
             except Exception:
                 pass
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}

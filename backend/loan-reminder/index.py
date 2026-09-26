@@ -6,6 +6,7 @@
 import json
 import os
 import smtplib
+import uuid
 from datetime import date, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -16,6 +17,7 @@ SCHEMA = os.environ['MAIN_DB_SCHEMA']
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
 LAST_RUN_KEY = 'reminder_last_run_date'
+EMAIL_TRACK_URL = 'https://functions.poehali.dev/3c76d9b4-ed95-4e6f-9842-69466e85dadf'
 
 DEFAULT_DESIGN = {
     'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
@@ -111,6 +113,21 @@ def get_email_settings(cur) -> dict:
         return {}
 
 
+def log_email(ref_number: str, email: str, subject: str, preview: str, source: str, tracking_id: str) -> None:
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.email_log (ref_number, email, subject, preview, source, tracking_id)
+                VALUES (%s, %s, %s, %s, %s, %s)""",
+            (ref_number, email, subject, preview[:300] if preview else None, source, tracking_id)
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f'[loan-reminder] Failed to log email: {e}')
+
+
 def send_reminder_email(to_email: str, ref_number: str, return_date: str, total: int, settings: dict) -> bool:
     login = os.environ.get('SMTP_LOGIN')
     password = os.environ.get('SMTP_PASSWORD')
@@ -125,7 +142,8 @@ def send_reminder_email(to_email: str, ref_number: str, return_date: str, total:
         .replace('{total}', f'{total:,}'.replace(',', ' '))
     )
     text += render_attachment_html(tpl.get('attachment_url', ''), tpl.get('attachment_name', ''))
-    html_body = render_email_html(design, text)
+    tracking_id = str(uuid.uuid4())
+    html_body = render_email_html(design, text) + f'<img src="{EMAIL_TRACK_URL}?tid={tracking_id}" width="1" height="1" style="display:none" alt="" />'
     msg = MIMEMultipart('alternative')
     msg['Subject'] = tpl['subject']
     msg['From'] = login
@@ -135,6 +153,7 @@ def send_reminder_email(to_email: str, ref_number: str, return_date: str, total:
         with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
             server.login(login, password)
             server.sendmail(login, [to_email], msg.as_string())
+        log_email(ref_number, to_email, tpl['subject'], text, 'reminder', tracking_id)
         return True
     except Exception as e:
         print(f'[loan-reminder] Failed to send reminder to {to_email} for {ref_number}: {e}')

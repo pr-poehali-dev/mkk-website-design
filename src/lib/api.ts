@@ -259,6 +259,29 @@ export async function apiDeleteRequests(ref_numbers: string[]): Promise<void> {
   if (!res.ok) throw new Error(json.error || 'Ошибка удаления');
 }
 
+export interface EmailLogItem {
+  id: number;
+  ref_number: string | null;
+  email: string;
+  subject: string;
+  preview: string | null;
+  source: string;
+  sent_at: string;
+  opened_at: string | null;
+  open_count: number;
+}
+
+export async function apiListEmails(ref_number: string): Promise<EmailLogItem[]> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'list_emails', ref_number }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки истории писем');
+  return json as EmailLogItem[];
+}
+
 export interface LoanPayment {
   id: number;
   ref_number: string;

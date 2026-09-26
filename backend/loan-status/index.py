@@ -20,6 +20,7 @@ STATUS_LABELS = {
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
 DEFAULT_DEBT_THRESHOLD = 120000
+EMAIL_TRACK_URL = 'https://functions.poehali.dev/3c76d9b4-ed95-4e6f-9842-69466e85dadf'
 
 DEFAULT_DESIGN = {
     'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
@@ -217,6 +218,26 @@ def get_system_email_settings(cur) -> dict:
         return {}
 
 
+def log_email(ref_number: str, email: str, subject: str, preview: str, source: str, tracking_id: str) -> None:
+    """Пишет в email_log отдельным соединением — вызывается независимо от того, закрыто ли основное соединение."""
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.email_log (ref_number, email, subject, preview, source, tracking_id)
+                VALUES (%s, %s, %s, %s, %s, %s)""",
+            (ref_number, email, subject, preview[:300] if preview else None, source, tracking_id)
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f'[loan-status] Failed to log email: {e}')
+
+
+def tracking_pixel_html(tracking_id: str) -> str:
+    return f'<img src="{EMAIL_TRACK_URL}?tid={tracking_id}" width="1" height="1" style="display:none" alt="" />'
+
+
 def send_status_email(to_email: str, ref_number: str, status: str, settings: dict,
                        extra_attachment_url: str = '', extra_attachment_name: str = '') -> str:
     if status not in DEFAULT_STATUS_EMAIL_TEXT:
@@ -234,7 +255,8 @@ def send_status_email(to_email: str, ref_number: str, status: str, settings: dic
     text = body_template.replace('{ref}', ref_number)
     text += render_attachment_html(tpl.get('attachment_url', ''), tpl.get('attachment_name', ''))
     text += render_attachment_html(extra_attachment_url, extra_attachment_name)
-    html_body = render_email_html(design, text)
+    tracking_id = str(uuid.uuid4())
+    html_body = render_email_html(design, text) + tracking_pixel_html(tracking_id)
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
     msg['From'] = login
@@ -244,6 +266,7 @@ def send_status_email(to_email: str, ref_number: str, status: str, settings: dic
         with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
             server.login(login, password)
             server.sendmail(login, [to_email], msg.as_string())
+        log_email(ref_number, to_email, subject, text, f'status_{status}', tracking_id)
         return 'ok'
     except Exception as e:
         print(f'[loan-status] Failed to send status email to {to_email} for {ref_number} status={status}: {e}')
@@ -427,6 +450,27 @@ def handler(event: dict, context) -> dict:
         conn.commit()
         conn.close()
         return {'statusCode': 201, 'headers': headers, 'body': json.dumps(receipt)}
+
+    # История писем, отправленных клиенту по заявке (получены/прочитаны)
+    if body.get('action') == 'list_emails':
+        ref = body.get('ref_number')
+        if not ref:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT id, ref_number, email, subject, preview, source, sent_at, opened_at, open_count
+                FROM {SCHEMA}.email_log WHERE ref_number = %s ORDER BY sent_at DESC""",
+            (ref,)
+        )
+        rows = cur.fetchall()
+        conn.close()
+        emails = [{
+            'id': r[0], 'ref_number': r[1], 'email': r[2], 'subject': r[3], 'preview': r[4],
+            'source': r[5], 'sent_at': r[6].isoformat() if r[6] else None,
+            'opened_at': r[7].isoformat() if r[7] else None, 'open_count': r[8],
+        } for r in rows]
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps(emails)}
 
     # Список платежей по заявке
     if body.get('action') == 'list_payments':
