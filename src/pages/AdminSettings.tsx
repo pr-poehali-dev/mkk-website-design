@@ -7,6 +7,7 @@ import { apiGetSiteSettings, apiSaveSiteSettings, apiUploadFile } from '@/lib/ap
 import {
   DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_LOGO_URL, DEFAULT_CABINET_BANNER_URL, DEFAULT_COMPANY_INN, DEFAULT_COMPANY_OGRN,
   DEFAULT_COMPANY_PHONE, DEFAULT_COMPANY_EMAIL, DEFAULT_SOCIAL_TELEGRAM, DEFAULT_SOCIAL_VK, DEFAULT_SOCIAL_OK, DEFAULT_SOCIAL_MAX,
+  DEFAULT_PAYMENT_INFO_TEXT, DEFAULT_PAYMENT_INFO_NOTE, DEFAULT_PAYMENT_INFO_LINK_URL, DEFAULT_PAYMENT_INFO_LINK_TEXT,
 } from '@/lib/maintenanceContext';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 
@@ -48,6 +49,12 @@ const AdminSettings = () => {
   const [chatWidgetCode, setChatWidgetCode] = useState('');
   const [chatWidgetSaving, setChatWidgetSaving] = useState(false);
   const [chatWidgetSaved, setChatWidgetSaved] = useState(false);
+  const [paymentInfoText, setPaymentInfoText] = useState(DEFAULT_PAYMENT_INFO_TEXT);
+  const [paymentInfoNote, setPaymentInfoNote] = useState(DEFAULT_PAYMENT_INFO_NOTE);
+  const [paymentInfoLinkUrl, setPaymentInfoLinkUrl] = useState(DEFAULT_PAYMENT_INFO_LINK_URL);
+  const [paymentInfoLinkText, setPaymentInfoLinkText] = useState(DEFAULT_PAYMENT_INFO_LINK_TEXT);
+  const [paymentInfoSaving, setPaymentInfoSaving] = useState(false);
+  const [paymentInfoSaved, setPaymentInfoSaved] = useState(false);
 
   useEffect(() => {
     if (authed) {
@@ -68,6 +75,10 @@ const AdminSettings = () => {
         setSocialOk(s.social_ok ?? DEFAULT_SOCIAL_OK);
         setSocialMax(s.social_max ?? DEFAULT_SOCIAL_MAX);
         setChatWidgetCode(s.chat_widget_code || '');
+        setPaymentInfoText(s.payment_info_text || DEFAULT_PAYMENT_INFO_TEXT);
+        setPaymentInfoNote(s.payment_info_note || DEFAULT_PAYMENT_INFO_NOTE);
+        setPaymentInfoLinkUrl(s.payment_info_link_url || DEFAULT_PAYMENT_INFO_LINK_URL);
+        setPaymentInfoLinkText(s.payment_info_link_text || DEFAULT_PAYMENT_INFO_LINK_TEXT);
         setLoaded(true);
       });
     }
@@ -412,6 +423,87 @@ const AdminSettings = () => {
                     {socialSaving
                       ? <Icon name="Loader2" size={14} className="animate-spin" />
                       : socialSaved
+                        ? <Icon name="Check" size={14} className="text-green-600" />
+                        : <Icon name="Save" size={14} />}
+                    <span className="ml-1.5">Сохранить</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Текст поп-апа "Погашение займа" в личном кабинете */}
+            <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
+                  <Icon name="BadgeDollarSign" size={18} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-primary">Поп-ап «Погашение займа» в кабинете</p>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Показывается клиенту при нажатии на кнопку «Погасить займ»
+                  </p>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="mb-1 block text-xs text-muted-foreground">Основной текст</span>
+                      <Textarea
+                        rows={3}
+                        value={paymentInfoText}
+                        onChange={(e) => { setPaymentInfoText(e.target.value); setPaymentInfoSaved(false); }}
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <span className="mb-1 block text-xs text-muted-foreground">Пояснение (мелким шрифтом, необязательно)</span>
+                      <input
+                        type="text"
+                        value={paymentInfoNote}
+                        onChange={(e) => { setPaymentInfoNote(e.target.value); setPaymentInfoSaved(false); }}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-28 shrink-0 text-xs text-muted-foreground">Ссылка кнопки</span>
+                      <input
+                        type="text"
+                        value={paymentInfoLinkUrl}
+                        placeholder="https://t.me/..."
+                        onChange={(e) => { setPaymentInfoLinkUrl(e.target.value); setPaymentInfoSaved(false); }}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-28 shrink-0 text-xs text-muted-foreground">Текст кнопки</span>
+                      <input
+                        type="text"
+                        value={paymentInfoLinkText}
+                        onChange={(e) => { setPaymentInfoLinkText(e.target.value); setPaymentInfoSaved(false); }}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-3"
+                    disabled={paymentInfoSaving}
+                    onClick={async () => {
+                      setPaymentInfoSaving(true);
+                      try {
+                        await apiSaveSiteSettings({
+                          payment_info_text: paymentInfoText.trim(),
+                          payment_info_note: paymentInfoNote.trim(),
+                          payment_info_link_url: paymentInfoLinkUrl.trim(),
+                          payment_info_link_text: paymentInfoLinkText.trim(),
+                        });
+                        setPaymentInfoSaved(true);
+                        setTimeout(() => setPaymentInfoSaved(false), 2000);
+                      } catch (_e) {
+                        // ignore
+                      } finally { setPaymentInfoSaving(false); }
+                    }}>
+                    {paymentInfoSaving
+                      ? <Icon name="Loader2" size={14} className="animate-spin" />
+                      : paymentInfoSaved
                         ? <Icon name="Check" size={14} className="text-green-600" />
                         : <Icon name="Save" size={14} />}
                     <span className="ml-1.5">Сохранить</span>

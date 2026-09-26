@@ -10,6 +10,7 @@ import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, 
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
 import CameraCapture from '@/components/anketa/CameraCapture';
+import { useMaintenance } from '@/lib/maintenanceContext';
 import { useState, useEffect } from 'react';
 
 const BANKS = [
@@ -61,6 +62,7 @@ const CabinetStatusCard = ({
   const status = (user.status as StatusKey) in STATUS_META ? (user.status as StatusKey) : 'review';
   const meta = STATUS_META[status];
   const activeStep = meta.step;
+  const { paymentInfoText, paymentInfoNote, paymentInfoLinkUrl, paymentInfoLinkText } = useMaintenance();
 
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [consentData, setConsentData] = useState(false);
@@ -884,14 +886,16 @@ const CabinetStatusCard = ({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-1">
-            <p className="text-sm leading-relaxed text-primary">
-              Уважаемый клиент! Для оплаты займа ✅ напишите нам в чат для запроса оплаты займа — наш специалист даст вам информацию и ссылку для оплаты.
+            <p className="text-sm leading-relaxed text-primary whitespace-pre-line">
+              {paymentInfoText}
             </p>
-            <p className="text-xs text-muted-foreground">К сожалению, в данный момент оплата возможна только через специалиста.</p>
-            <a href="https://t.me/zaimyplus_support" target="_blank" rel="noopener noreferrer"
+            {paymentInfoNote && (
+              <p className="text-xs text-muted-foreground">{paymentInfoNote}</p>
+            )}
+            <a href={paymentInfoLinkUrl} target="_blank" rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition-colors">
               <Icon name="MessageCircle" size={17} className="shrink-0" />
-              Написать в чат поддержки
+              {paymentInfoLinkText}
             </a>
           </div>
         </DialogContent>

@@ -12,6 +12,10 @@ export const DEFAULT_SOCIAL_TELEGRAM = 'https://t.me/zaymiplus263';
 export const DEFAULT_SOCIAL_VK = '';
 export const DEFAULT_SOCIAL_OK = '';
 export const DEFAULT_SOCIAL_MAX = '';
+export const DEFAULT_PAYMENT_INFO_TEXT = 'Уважаемый клиент! Для оплаты займа ✅ напишите нам в чат для запроса оплаты займа — наш специалист даст вам информацию и ссылку для оплаты.';
+export const DEFAULT_PAYMENT_INFO_NOTE = 'К сожалению, в данный момент оплата возможна только через специалиста.';
+export const DEFAULT_PAYMENT_INFO_LINK_URL = 'https://t.me/zaimyplus_support';
+export const DEFAULT_PAYMENT_INFO_LINK_TEXT = 'Написать в чат поддержки';
 
 interface MaintenanceState {
   maintenance: boolean;
@@ -27,6 +31,10 @@ interface MaintenanceState {
   socialVk: string;
   socialOk: string;
   socialMax: string;
+  paymentInfoText: string;
+  paymentInfoNote: string;
+  paymentInfoLinkUrl: string;
+  paymentInfoLinkText: string;
 }
 
 const DEFAULT_STATE: MaintenanceState = {
@@ -43,6 +51,10 @@ const DEFAULT_STATE: MaintenanceState = {
   socialVk: DEFAULT_SOCIAL_VK,
   socialOk: DEFAULT_SOCIAL_OK,
   socialMax: DEFAULT_SOCIAL_MAX,
+  paymentInfoText: DEFAULT_PAYMENT_INFO_TEXT,
+  paymentInfoNote: DEFAULT_PAYMENT_INFO_NOTE,
+  paymentInfoLinkUrl: DEFAULT_PAYMENT_INFO_LINK_URL,
+  paymentInfoLinkText: DEFAULT_PAYMENT_INFO_LINK_TEXT,
 };
 
 const MaintenanceContext = createContext<MaintenanceState>(DEFAULT_STATE);
@@ -66,6 +78,10 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
         socialVk: s.social_vk ?? DEFAULT_SOCIAL_VK,
         socialOk: s.social_ok ?? DEFAULT_SOCIAL_OK,
         socialMax: s.social_max ?? DEFAULT_SOCIAL_MAX,
+        paymentInfoText: s.payment_info_text || DEFAULT_PAYMENT_INFO_TEXT,
+        paymentInfoNote: s.payment_info_note || DEFAULT_PAYMENT_INFO_NOTE,
+        paymentInfoLinkUrl: s.payment_info_link_url || DEFAULT_PAYMENT_INFO_LINK_URL,
+        paymentInfoLinkText: s.payment_info_link_text || DEFAULT_PAYMENT_INFO_LINK_TEXT,
       });
     });
   }, []);
