@@ -16,8 +16,9 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 200, 'headers': headers, 'body': ''}
 
     body = json.loads(event.get('body') or '{}')
+    req_headers = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
     if body.get('action') == 'admin_set_password':
-        admin_token = event.get('headers', {}).get('x-admin-token', '')
+        admin_token = req_headers.get('x-admin-token', '')
         if admin_token != 'admin_zaimy_plus':
             return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
         ref_number = body.get('ref_number', '').strip()
