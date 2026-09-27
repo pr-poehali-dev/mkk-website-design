@@ -9,6 +9,7 @@ import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 import AdminClientGroup from '@/components/admin/AdminClientGroup';
 import AdminRequestsTable from '@/components/admin/AdminRequestsTable';
 import AdminEditModal, { type EditForm } from '@/components/admin/AdminEditModal';
+import { exportDashboardExcel } from '@/lib/exportDashboardExcel';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -143,7 +144,13 @@ const Admin = () => {
       </Dialog>
 
       <main className="container px-4 py-8">
-        <h1 className="font-display text-2xl font-bold text-primary">Управление заявками</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="font-display text-2xl font-bold text-primary">Управление заявками</h1>
+          <Button size="sm" variant="outline" className="gap-1.5"
+            onClick={() => exportDashboardExcel(requests, stats, dashboardStats)}>
+            <Icon name="FileSpreadsheet" size={16} /> Выгрузить в Excel
+          </Button>
+        </div>
 
         {/* Статистика */}
         <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
