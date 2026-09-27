@@ -6,11 +6,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, apiUploadFile, apiSubmitIdentifyPhotos, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, apiUploadFile, apiSubmitIdentifyPhotos, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
 import CameraCapture from '@/components/anketa/CameraCapture';
 import { useMaintenance } from '@/lib/maintenanceContext';
+import { getLoanRate, fmtRate } from '@/lib/loanRate';
 import { useState, useEffect } from 'react';
 
 const BANKS = [
@@ -334,6 +335,12 @@ const CabinetStatusCard = ({
   const [payInfoOpen, setPayInfoOpen] = useState(false);
   const isActiveLoan = status === 'money_sent' || status === 'overdue';
 
+  const [allUserRequests, setAllUserRequests] = useState<UserSession[]>([user]);
+  useEffect(() => {
+    apiGetHistory(user.phone).then(setAllUserRequests).catch(() => setAllUserRequests([user]));
+  }, [user.phone]);
+  const loanRate = getLoanRate(user, allUserRequests);
+
   const dueDate = (() => {
     const start = new Date(user.money_sent_at || user.created_at);
     const due = new Date(start);
@@ -349,7 +356,7 @@ const CabinetStatusCard = ({
     user.days,
     Math.max(1, Math.ceil((Date.now() - new Date(user.money_sent_at || user.created_at).getTime()) / 86400000))
   );
-  const currentOverpay = Math.round(user.amount * 0.008 * accruedDays);
+  const currentOverpay = Math.round(user.amount * loanRate * accruedDays);
 
   const moneySentKey = `money_sent_seen_${user.ref_number}`;
   const [showMoneySent, setShowMoneySent] = useState(() =>
@@ -669,7 +676,7 @@ const CabinetStatusCard = ({
 
             {/* Итоги */}
             {(() => {
-              const overpay = Math.round(approvedAmount * 0.008 * approvedDays);
+              const overpay = Math.round(approvedAmount * loanRate * approvedDays);
               const insurance = user.insurance_enabled ? Math.round(356 + approvedAmount * 0.005) : 0;
               const total = approvedAmount + overpay + insurance;
               return (
@@ -680,7 +687,7 @@ const CabinetStatusCard = ({
                   </div>
                   <div className="flex justify-between px-4 py-3">
                     <dt className="text-muted-foreground">Проценты</dt>
-                    <dd className="font-semibold text-primary">0.8 %</dd>
+                    <dd className="font-semibold text-primary">{fmtRate(loanRate)}</dd>
                   </div>
                   <div className="flex justify-between px-4 py-3">
                     <dt className="text-muted-foreground">Показатель долговой нагрузки</dt>
@@ -828,7 +835,7 @@ const CabinetStatusCard = ({
                 <div className="flex justify-between"><dt className="text-muted-foreground">Срок</dt><dd className="font-semibold">{user.days} дн.</dd></div>
                 {isActiveLoan && (
                   <>
-                    <div className="flex justify-between"><dt className="text-muted-foreground">Начислено процентов на сегодня (0.8%/день)</dt><dd className="font-semibold">{fmt(currentOverpay)} ₽</dd></div>
+                    <div className="flex justify-between"><dt className="text-muted-foreground">Начислено процентов на сегодня ({fmtRate(loanRate)}/день)</dt><dd className="font-semibold">{fmt(currentOverpay)} ₽</dd></div>
                     <div className="flex justify-between border-t border-accent/20 pt-2">
                       <dt className="font-semibold text-primary">К возврату на сегодня</dt>
                       <dd className="font-bold text-accent text-base">{fmt(user.amount + currentOverpay)} ₽</dd>
@@ -845,7 +852,7 @@ const CabinetStatusCard = ({
                     <div className="flex justify-between"><dt className="text-red-600">Начислено пени</dt><dd className="font-semibold text-red-700">{fmt(overduePenaltyTotal)} ₽</dd></div>
                     <div className="flex justify-between border-t border-red-200 pt-2">
                       <dt className="font-semibold text-red-700">Итого к возврату с пеней</dt>
-                      <dd className="font-bold text-red-700 text-base">{fmt(user.amount + Math.round(user.amount * 0.008 * user.days) + overduePenaltyTotal)} ₽</dd>
+                      <dd className="font-bold text-red-700 text-base">{fmt(user.amount + Math.round(user.amount * loanRate * user.days) + overduePenaltyTotal)} ₽</dd>
                     </div>
                   </>
                 )}
@@ -859,7 +866,7 @@ const CabinetStatusCard = ({
                   amount={user.amount}
                   days={user.days}
                   startDate={user.money_sent_at || user.created_at}
-                  overpay={Math.round(user.amount * 0.008 * user.days)}
+                  overpay={Math.round(user.amount * loanRate * user.days)}
                   statusOverdue={status === 'overdue'}
                 />
               )}

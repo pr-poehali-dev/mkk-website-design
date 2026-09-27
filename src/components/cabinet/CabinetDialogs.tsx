@@ -7,6 +7,7 @@ import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiU
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from '@/components/admin/contractHtml';
+import { getLoanRate } from '@/lib/loanRate';
 import {
   buildDebtClearanceCertificateHtml,
   buildPersonalDataConsentHtml,
@@ -68,12 +69,18 @@ const CabinetDialogs = ({
     return d.toLocaleDateString('ru-RU');
   })();
 
-  const overpay = Math.round(user.amount * 0.008 * user.days);
+  const [allUserRequests, setAllUserRequests] = useState<UserSession[]>([user]);
+  useEffect(() => {
+    apiGetHistory(user.phone).then(setAllUserRequests).catch(() => setAllUserRequests([user]));
+  }, [user.phone]);
+  const loanRate = getLoanRate(user, allUserRequests);
+
+  const overpay = Math.round(user.amount * loanRate * user.days);
   const total = user.amount + overpay;
 
   const downloadContract = () => {
     const sigCode = localStorage.getItem(`sig_code_${user.ref_number}`) || undefined;
-    const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate, sigCode, companyName, companyInn, companyOgrn);
+    const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate, sigCode, companyName, companyInn, companyOgrn, loanRate);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
