@@ -11,6 +11,7 @@ export interface ClientDocData {
   ref_number?: string | null;
   amount?: number | null;
   created_at?: string | null;
+  status?: string | null;
 }
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
@@ -83,9 +84,27 @@ export function buildPhoneChangeApplicationHtml(companyName = DEFAULT_COMPANY_NA
 }
 
 export function buildDebtClearanceCertificateHtml(client?: ClientDocData, companyName = DEFAULT_COMPANY_NAME, companyInn = DEFAULT_COMPANY_INN, companyOgrn = DEFAULT_COMPANY_OGRN): string {
+  const hasLoan = !!client?.ref_number;
+  const isOverdue = client?.status === 'overdue';
+  const redStyle = 'color:#dc2626;font-weight:bold';
+
+  const contractLine = hasLoan
+    ? `${val(client?.ref_number)} от ${val(client?.created_at ? client.created_at.slice(0, 10) : undefined)}`
+    : '<b>отсутствует</b>';
+
+  const amountLine = hasLoan && client?.amount
+    ? `<b>${fmt(client.amount)} ₽</b>`
+    : '<b>отсутствует</b>';
+
+  const statusParagraph = isOverdue
+    ? `<p style="${redStyle}">по состоянию на ${today()} заёмщик имеет непогашенную просроченную задолженность по указанному договору займа. Задолженность по основному долгу, процентам, штрафам и пеням на дату выдачи настоящей справки <u>не отсутствует</u>.</p>`
+    : hasLoan
+      ? `<p>по состоянию на ${today()} исполнил(а) свои обязательства по указанному договору займа в полном объёме. Задолженность по основному долгу, процентам, штрафам и пеням на дату выдачи настоящей справки <b>отсутствует</b>.</p>`
+      : `<p>по состоянию на ${today()} не имеет действующих или непогашенных договоров займа с ${esc(companyName)}. Задолженность <b>отсутствует</b>.</p>`;
+
   return wrap('Справка об отсутствии задолженности', `
 <h1>СПРАВКА</h1>
-<p class="center muted">об отсутствии задолженности по договору займа</p>
+<p class="center muted">${isOverdue ? 'о наличии задолженности по договору займа' : 'об отсутствии задолженности по договору займа'}</p>
 
 <p class="center">№ <span class="blank-sm"></span> от ${val(today())}</p>
 
@@ -94,10 +113,10 @@ export function buildDebtClearanceCertificateHtml(client?: ClientDocData, compan
 <p><b>Заёмщик:</b> ${val(client?.full_name)}<br>
 (ФИО полностью)</p>
 <p><b>Паспорт:</b> ${val(client?.passport)}, выдан ${val(client?.passport_by)}</p>
-<p><b>Договор займа №:</b> ${val(client?.ref_number)} от ${val(client?.created_at ? client.created_at.slice(0, 10) : undefined)}</p>
-<p><b>Сумма займа:</b> ${client?.amount ? `<b>${fmt(client.amount)} ₽</b>` : '<span class="blank-sm"></span>'}</p>
+<p><b>Договор займа №:</b> ${contractLine}</p>
+<p><b>Сумма займа:</b> ${amountLine}</p>
 
-<p>по состоянию на ${val(today())} исполнил(а) свои обязательства по указанному договору займа в полном объёме. Задолженность по основному долгу, процентам, штрафам и пеням на дату выдачи настоящей справки <b>отсутствует</b>.</p>
+${statusParagraph}
 
 <p>Настоящая справка выдана для предоставления по месту требования.</p>
 

@@ -92,6 +92,7 @@ const CabinetDialogs = ({
     ref_number: user.ref_number,
     amount: user.amount,
     created_at: user.created_at,
+    status: user.status,
   };
 
   const downloadDoc = (build: (c: typeof clientDocData, companyName?: string, companyInn?: string, companyOgrn?: string) => string, fileName: string) => {
