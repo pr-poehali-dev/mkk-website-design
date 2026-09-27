@@ -7,10 +7,11 @@ interface Props {
   days: number;
   startDate: string;
   overpay: number;
+  insurance?: number;
   statusOverdue?: boolean;
 }
 
-const LoanRepaymentProgress = ({ amount, days, startDate, overpay, statusOverdue }: Props) => {
+const LoanRepaymentProgress = ({ amount, days, startDate, overpay, insurance = 0, statusOverdue }: Props) => {
   const start = new Date(startDate);
   const due = new Date(start);
   due.setDate(due.getDate() + days);
@@ -28,7 +29,7 @@ const LoanRepaymentProgress = ({ amount, days, startDate, overpay, statusOverdue
   const daysOverdue = isOverdue ? Math.max(1, Math.ceil((now.getTime() - due.getTime()) / msPerDay)) : 0;
   const penaltyTotal = Math.round(amount * 0.01) * daysOverdue;
 
-  const total = amount + overpay + penaltyTotal;
+  const total = amount + overpay + insurance + penaltyTotal;
   const dueLabel = due.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
 
   const barColor = isOverdue ? 'bg-red-500' : isUrgent ? 'bg-orange-500' : 'bg-accent';

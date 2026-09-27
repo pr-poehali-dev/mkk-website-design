@@ -852,7 +852,7 @@ const CabinetStatusCard = ({
                     <div className="flex justify-between"><dt className="text-red-600">Начислено пени</dt><dd className="font-semibold text-red-700">{fmt(overduePenaltyTotal)} ₽</dd></div>
                     <div className="flex justify-between border-t border-red-200 pt-2">
                       <dt className="font-semibold text-red-700">Итого к возврату с пеней</dt>
-                      <dd className="font-bold text-red-700 text-base">{fmt(user.amount + Math.round(user.amount * loanRate * user.days) + overduePenaltyTotal)} ₽</dd>
+                      <dd className="font-bold text-red-700 text-base">{fmt(user.amount + Math.round(user.amount * loanRate * user.days) + (user.insurance_enabled ? Math.round(356 + user.amount * 0.005) : 0) + overduePenaltyTotal)} ₽</dd>
                     </div>
                   </>
                 )}
@@ -867,6 +867,7 @@ const CabinetStatusCard = ({
                   days={user.days}
                   startDate={user.money_sent_at || user.created_at}
                   overpay={Math.round(user.amount * loanRate * user.days)}
+                  insurance={user.insurance_enabled ? Math.round(356 + user.amount * 0.005) : 0}
                   statusOverdue={status === 'overdue'}
                 />
               )}
