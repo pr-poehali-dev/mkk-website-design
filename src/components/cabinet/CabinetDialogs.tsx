@@ -7,7 +7,7 @@ import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiU
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from '@/components/admin/contractHtml';
-import { getLoanRate } from '@/lib/loanRate';
+import { getLoanRate, fmtRate } from '@/lib/loanRate';
 import {
   buildDebtClearanceCertificateHtml,
   buildPersonalDataConsentHtml,
@@ -555,7 +555,7 @@ const CabinetDialogs = ({
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-muted-foreground">Ставка</dt>
-                    <dd className="font-semibold">0.8% / день</dd>
+                    <dd className="font-semibold">{fmtRate(loanRate)} / день</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-muted-foreground">Проценты</dt>
@@ -747,7 +747,8 @@ const CabinetDialogs = ({
               {historyItems.map((item, i) => {
                 const st = (item.status as StatusKey) in STATUS_META ? (item.status as StatusKey) : 'review';
                 const meta = STATUS_META[st];
-                const overpayItem = Math.round(item.amount * 0.008 * item.days);
+                const itemRate = getLoanRate(item, historyItems);
+                const overpayItem = Math.round(item.amount * itemRate * item.days);
                 const totalItem = item.amount + overpayItem;
                 return (
                   <div key={item.ref_number} className="rounded-xl border border-border bg-secondary/40 p-4">
