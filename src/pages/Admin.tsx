@@ -335,6 +335,7 @@ const Admin = () => {
 
       <AdminEditModal
         selected={selected}
+        allRequests={requests}
         editForm={editForm}
         setEditForm={setEditForm}
         saving={saving}

@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiListAdminNotes, type UserSession, type AdminNoteItem } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { type EditForm } from './adminEditTypes';
+import { fmtRate } from '@/lib/loanRate';
 
 const BANKS = [
   { name: 'Сбербанк', icon: '🟢' },
@@ -39,6 +40,8 @@ interface Props {
   editForm: EditForm;
   setEditForm: (form: EditForm) => void;
   contract: ContractInfo | null;
+  loanRate: number;
+  repeatClient: boolean;
   saving: boolean;
   onSave: () => void;
   onClose: () => void;
@@ -51,6 +54,8 @@ const AdminEditLoanForm = ({
   editForm,
   setEditForm,
   contract,
+  loanRate,
+  repeatClient,
   saving,
   onSave,
   onClose,
@@ -163,7 +168,14 @@ const AdminEditLoanForm = ({
         const totalWithPenalty = contract.total + insuranceSum + penaltyTotal;
         return (
           <div className={`rounded-xl border p-4 text-sm space-y-2 ${isOverdue ? 'bg-red-50 border-red-200' : 'bg-accent/5 border-accent/20'}`}>
-            <p className={`text-xs font-semibold uppercase tracking-widest ${isOverdue ? 'text-red-600' : 'text-accent'}`}>Расчёт займа</p>
+            <div className="flex items-center justify-between">
+              <p className={`text-xs font-semibold uppercase tracking-widest ${isOverdue ? 'text-red-600' : 'text-accent'}`}>Расчёт займа</p>
+              {repeatClient && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">
+                  <Icon name="RefreshCw" size={10} /> Повторный займ
+                </span>
+              )}
+            </div>
             <div className="flex justify-between">
               <span className={isOverdue ? 'text-red-600' : 'text-muted-foreground'}>Сумма займа</span>
               <span className={`font-medium ${isOverdue ? 'text-red-700' : ''}`}>{fmt(contract.amt)} ₽</span>
@@ -174,7 +186,7 @@ const AdminEditLoanForm = ({
             </div>
             <div className="flex justify-between">
               <span className={isOverdue ? 'text-red-600' : 'text-muted-foreground'}>Ставка</span>
-              <span className={`font-medium ${isOverdue ? 'text-red-700' : ''}`}>0.8% / день</span>
+              <span className={`font-medium ${isOverdue ? 'text-red-700' : ''}`}>{fmtRate(loanRate)} / день{repeatClient ? ' · акционная' : ''}</span>
             </div>
             <div className="flex justify-between">
               <span className={isOverdue ? 'text-red-600' : 'text-muted-foreground'}>Переплата</span>

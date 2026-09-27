@@ -16,10 +16,12 @@ export function buildContractHtml(
   companyName: string = DEFAULT_COMPANY_NAME,
   companyInn: string = DEFAULT_COMPANY_INN,
   companyOgrn: string = DEFAULT_COMPANY_OGRN,
+  rate: number = 0.008,
 ): string {
-  const overpay = Math.round(amt * 0.008 * dys);
+  const overpay = Math.round(amt * rate * dys);
   const insurance = selected.insurance_enabled ? Math.round(356 + amt * 0.005) : 0;
   const total = amt + overpay + insurance;
+  const ratePercentLabel = `${(rate * 100).toFixed(2).replace(/\.?0+$/, '')}%`;
 
   const style = [
     'body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#111;font-size:13px;line-height:1.6}',
@@ -51,7 +53,7 @@ export function buildContractHtml(
 <h2>Условия займа</h2>
 <div class="row"><span class="label">Сумма займа</span><span class="val">${fmt(amt)} ₽</span></div>
 <div class="row"><span class="label">Срок</span><span class="val">${dys} дней</span></div>
-<div class="row"><span class="label">Процентная ставка</span><span class="val">0.8% в день</span></div>
+<div class="row"><span class="label">Процентная ставка</span><span class="val">${ratePercentLabel} в день</span></div>
 <div class="row"><span class="label">Начисленные проценты</span><span class="val">${fmt(overpay)} ₽</span></div>
 ${selected.insurance_enabled ? `<div class="row"><span class="label">Страховка займа</span><span class="val">${fmt(insurance)} ₽</span></div>` : ''}
 <div class="row"><span class="label">Дата возврата</span><span class="val">${returnDate}</span></div>

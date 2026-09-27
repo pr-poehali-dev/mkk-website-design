@@ -6,6 +6,7 @@ import {
 } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from './contractHtml';
+import { getLoanRate, isRepeatRequest } from '@/lib/loanRate';
 import { useState, useEffect } from 'react';
 import AdminEditClientInfo from './AdminEditClientInfo';
 import AdminEditDocumentsPassword from './AdminEditDocumentsPassword';
@@ -17,6 +18,7 @@ export type { EditForm };
 
 interface Props {
   selected: UserSession | null;
+  allRequests: UserSession[];
   editForm: EditForm;
   setEditForm: (form: EditForm) => void;
   saving: boolean;
@@ -29,6 +31,7 @@ interface Props {
 
 const AdminEditModal = ({
   selected,
+  allRequests,
   editForm,
   setEditForm,
   saving,
@@ -261,17 +264,20 @@ const AdminEditModal = ({
     }
   };
 
+  const repeatClient = selected ? isRepeatRequest(selected, allRequests) : false;
+  const loanRate = selected ? getLoanRate(selected, allRequests) : 0.008;
+
   const getContractInfo = () => {
     if (!selected || !editForm.amount || !editForm.days) return null;
     const amt = parseInt(editForm.amount) || 0;
     const dys = parseInt(editForm.days) || 0;
-    const overpay = Math.round(amt * 0.008 * dys);
+    const overpay = Math.round(amt * loanRate * dys);
     const total = amt + overpay;
     const contractCode = `ДГ-${selected.ref_number}-${selected.created_at?.slice(0, 10).replace(/-/g, '')}`;
     const d = new Date(selected.created_at || Date.now());
     d.setDate(d.getDate() + dys);
     const returnDate = d.toLocaleDateString('ru-RU');
-    const getHtml = () => buildContractHtml(selected, amt, dys, contractCode, returnDate, undefined, companyName, companyInn, companyOgrn);
+    const getHtml = () => buildContractHtml(selected, amt, dys, contractCode, returnDate, undefined, companyName, companyInn, companyOgrn, loanRate);
     return { amt, dys, overpay, total, contractCode, returnDate, getHtml };
   };
 
@@ -344,6 +350,8 @@ const AdminEditModal = ({
               editForm={editForm}
               setEditForm={setEditForm}
               contract={contract}
+              loanRate={loanRate}
+              repeatClient={repeatClient}
               saving={saving}
               onSave={handleSave}
               onClose={onClose}

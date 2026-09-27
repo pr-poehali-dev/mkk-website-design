@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { type UserSession } from '@/lib/api';
+import { getLoanRate, isRepeatRequest } from '@/lib/loanRate';
 
 interface Props {
   requests: UserSession[];
@@ -43,8 +44,10 @@ const AdminRequestsTable = ({ requests, checkedRefs, onCheck, onEdit, fmt }: Pro
             const st = (r.status as StatusKey) in STATUS_META ? (r.status as StatusKey) : 'review';
             const m = STATUS_META[st];
             const isChecked = checkedRefs.has(r.ref_number);
-            const overpay = Math.round(r.amount * 0.008 * r.days);
+            const rate = getLoanRate(r, requests);
+            const overpay = Math.round(r.amount * rate * r.days);
             const toReturn = r.status === 'repaid' ? 0 : r.amount + overpay;
+            const repeat = isRepeatRequest(r, requests);
             return (
               <tr
                 key={r.ref_number}
@@ -60,7 +63,14 @@ const AdminRequestsTable = ({ requests, checkedRefs, onCheck, onEdit, fmt }: Pro
                   />
                 </td>
                 <td className="py-3 pr-3 font-semibold text-primary">{r.ref_number}</td>
-                <td className="py-3 pr-3 text-primary">{r.full_name}</td>
+                <td className="py-3 pr-3 text-primary">
+                  {r.full_name}
+                  {repeat && (
+                    <span className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">
+                      <Icon name="RefreshCw" size={10} /> Повторная
+                    </span>
+                  )}
+                </td>
                 <td className="py-3 pr-3 text-muted-foreground">{r.phone}</td>
                 <td className="py-3 pr-3 font-medium text-primary">{fmt(r.amount)} ₽</td>
                 <td className="py-3 pr-3 text-muted-foreground">{r.days} дн.</td>
