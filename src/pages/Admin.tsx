@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { apiGetAll, apiDeleteRequests, apiGetSupportMessages, type UserSession } from '@/lib/api';
+import { apiGetAll, apiDeleteRequests, apiGetSupportMessages, apiGetDashboardStats, type UserSession, type DashboardStats } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 import AdminClientGroup from '@/components/admin/AdminClientGroup';
@@ -29,6 +29,7 @@ const Admin = () => {
   const [tab, setTab] = useState<'active' | 'rejected' | 'closed' | 'all'>('active');
   const [menuOpen, setMenuOpen] = useState(false);
   const [newSupportCount, setNewSupportCount] = useState(0);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
 
   const fetchAll = useCallback(async () => {
     setLoadingList(true);
@@ -48,6 +49,7 @@ const Admin = () => {
       apiGetSupportMessages().then((items) => {
         setNewSupportCount(items.filter((m) => m.status === 'new').length);
       }).catch(() => {});
+      apiGetDashboardStats().then(setDashboardStats).catch(() => {});
     }
   }, [authed, fetchAll]);
 
@@ -168,6 +170,28 @@ const Admin = () => {
             <button onClick={() => setStatusFilter(null)} className="flex items-center gap-1 text-xs text-accent hover:underline">
               <Icon name="X" size={12} /> Сбросить
             </button>
+          </div>
+        )}
+
+        {/* Суммы за месяц */}
+        {dashboardStats && (
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+              <div className="flex items-center gap-2 text-emerald-700">
+                <Icon name="ArrowUpRight" size={18} />
+                <span className="text-sm font-medium">Выдано за этот месяц</span>
+              </div>
+              <p className="mt-1 text-2xl font-bold text-emerald-800">{fmt(dashboardStats.issued_sum)} ₽</p>
+              <p className="text-xs text-emerald-700/70">{dashboardStats.issued_count} займ(ов)</p>
+            </div>
+            <div className="rounded-2xl border border-teal-200 bg-teal-50 p-4">
+              <div className="flex items-center gap-2 text-teal-700">
+                <Icon name="ArrowDownRight" size={18} />
+                <span className="text-sm font-medium">Погашено за этот месяц</span>
+              </div>
+              <p className="mt-1 text-2xl font-bold text-teal-800">{fmt(dashboardStats.repaid_sum)} ₽</p>
+              <p className="text-xs text-teal-700/70">{dashboardStats.repaid_count} платеж(ей)</p>
+            </div>
           </div>
         )}
 

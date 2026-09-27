@@ -259,6 +259,24 @@ export async function apiDeleteRequests(ref_numbers: string[]): Promise<void> {
   if (!res.ok) throw new Error(json.error || 'Ошибка удаления');
 }
 
+export interface DashboardStats {
+  issued_sum: number;
+  issued_count: number;
+  repaid_sum: number;
+  repaid_count: number;
+}
+
+export async function apiGetDashboardStats(): Promise<DashboardStats> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'dashboard_stats' }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки статистики');
+  return json as DashboardStats;
+}
+
 export interface AdminNoteItem {
   id: number;
   ref_number: string;

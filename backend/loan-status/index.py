@@ -406,6 +406,28 @@ def handler(event: dict, context) -> dict:
     if not is_admin:
         return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
 
+    # Статистика для дашборда: сумма выданных и погашенных займов за текущий месяц
+    if body.get('action') == 'dashboard_stats':
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT COALESCE(SUM(amount), 0), COUNT(*) FROM {SCHEMA}.loan_requests
+                WHERE money_sent_at IS NOT NULL
+                  AND date_trunc('month', money_sent_at) = date_trunc('month', NOW())"""
+        )
+        issued_sum, issued_count = cur.fetchone()
+        cur.execute(
+            f"""SELECT COALESCE(SUM(amount), 0), COUNT(*) FROM {SCHEMA}.loan_payments
+                WHERE status = 'success'
+                  AND date_trunc('month', created_at) = date_trunc('month', NOW())"""
+        )
+        repaid_sum, repaid_count = cur.fetchone()
+        conn.close()
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({
+            'issued_sum': float(issued_sum), 'issued_count': issued_count,
+            'repaid_sum': float(repaid_sum), 'repaid_count': repaid_count,
+        })}
+
     # Список чеков по заявке (админ)
     if body.get('action') == 'list_receipts':
         ref = body.get('ref_number')
