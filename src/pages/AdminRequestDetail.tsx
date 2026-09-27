@@ -220,12 +220,14 @@ const AdminRequestDetail = () => {
   };
 
   const handleSetPassword = async () => {
-    if (!selected || !newPassword) return;
+    if (!selected || !newPassword.trim()) return;
+    const trimmed = newPassword.trim();
     setPwdSaving(true);
     setPwdMsg(null);
     try {
-      await apiAdminSetPassword(selected.ref_number, newPassword);
-      setPwdMsg({ ok: true, text: 'Пароль успешно изменён' });
+      await apiAdminSetPassword(selected.ref_number, trimmed);
+      setSelected((prev) => (prev ? { ...prev, password_plain: trimmed } : prev));
+      setPwdMsg({ ok: true, text: `Новый пароль для заявки ${selected.ref_number} сохранён` });
       setNewPassword('');
     } catch (e: unknown) {
       setPwdMsg({ ok: false, text: e instanceof Error ? e.message : 'Ошибка' });

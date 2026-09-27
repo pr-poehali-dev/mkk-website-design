@@ -61,28 +61,41 @@ const AdminEditDocumentsPassword = ({
 
       {/* Пароль клиента */}
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Пароль клиента</p>
-        {selected.password_plain && (
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Пароль клиента</p>
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+            Заявка {selected.ref_number}
+          </span>
+        </div>
+        {selected.password_plain ? (
           <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2">
             <span className="text-xs text-muted-foreground">Текущий:</span>
             <span className="font-mono text-sm font-semibold text-primary">{selected.password_plain}</span>
           </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">Пароль ещё не задан</p>
         )}
         <div className="flex gap-2">
           <Input
             type="text"
-            placeholder="Новый пароль"
+            placeholder="Новый пароль (мин. 4 символа)"
             value={newPassword}
             onChange={(e) => { setNewPassword(e.target.value); setPwdMsg(null); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && newPassword.trim().length >= 4 && !pwdSaving) onSetPassword();
+            }}
             className="flex-1"
           />
-          <Button size="sm" variant="outline" disabled={pwdSaving || !newPassword} onClick={onSetPassword}>
+          <Button size="sm" variant="outline" disabled={pwdSaving || newPassword.trim().length < 4} onClick={onSetPassword}>
             {pwdSaving
               ? <Icon name="Loader2" size={14} className="animate-spin" />
               : <Icon name="KeyRound" size={14} />}
             <span className="ml-1.5">Изменить</span>
           </Button>
         </div>
+        {newPassword.length > 0 && newPassword.trim().length < 4 && (
+          <p className="text-xs text-amber-600">Пароль должен быть не менее 4 символов</p>
+        )}
         {pwdMsg && (
           <p className={`text-xs ${pwdMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{pwdMsg.text}</p>
         )}
