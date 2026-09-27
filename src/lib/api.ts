@@ -259,6 +259,24 @@ export async function apiDeleteRequests(ref_numbers: string[]): Promise<void> {
   if (!res.ok) throw new Error(json.error || 'Ошибка удаления');
 }
 
+export interface AdminNoteItem {
+  id: number;
+  ref_number: string;
+  note: string;
+  created_at: string;
+}
+
+export async function apiListAdminNotes(ref_number: string): Promise<AdminNoteItem[]> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'list_admin_notes', ref_number }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки истории заметок');
+  return json as AdminNoteItem[];
+}
+
 export interface EmailLogItem {
   id: number;
   ref_number: string | null;

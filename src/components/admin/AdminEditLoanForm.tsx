@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiListAdminNotes, type UserSession, type AdminNoteItem } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { type EditForm } from './adminEditTypes';
 
@@ -56,6 +57,46 @@ const AdminEditLoanForm = ({
   onBlockToggled,
   setSaving,
 }: Props) => {
+  const [notesSaving, setNotesSaving] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
+  const [notesHistory, setNotesHistory] = useState<AdminNoteItem[] | null>(null);
+  const [notesHistoryLoading, setNotesHistoryLoading] = useState(false);
+  const [notesHistoryOpen, setNotesHistoryOpen] = useState(false);
+
+  const handleSaveNotes = async () => {
+    setNotesSaving(true);
+    try {
+      await apiUpdateRequest({ ref_number: selected.ref_number, admin_notes: editForm.admin_notes });
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 2000);
+      if (notesHistoryOpen) {
+        const data = await apiListAdminNotes(selected.ref_number);
+        setNotesHistory(data);
+      }
+    } catch (_e) {
+      // ignore
+    } finally {
+      setNotesSaving(false);
+    }
+  };
+
+  const toggleNotesHistory = async () => {
+    if (notesHistoryOpen) {
+      setNotesHistoryOpen(false);
+      return;
+    }
+    setNotesHistoryOpen(true);
+    setNotesHistoryLoading(true);
+    try {
+      const data = await apiListAdminNotes(selected.ref_number);
+      setNotesHistory(data);
+    } catch (_e) {
+      // ignore
+    } finally {
+      setNotesHistoryLoading(false);
+    }
+  };
+
   return (
     <>
       {/* Статус */}
@@ -242,15 +283,56 @@ const AdminEditLoanForm = ({
 
       {/* Внутренние заметки по клиенту (видны только администратору) */}
       <div className="space-y-1.5 rounded-xl border border-amber-200 bg-amber-50 p-3">
-        <Label htmlFor="edit-admin-notes" className="flex items-center gap-1.5 text-amber-800">
-          <Icon name="Lock" size={13} /> Заметки для администратора
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="edit-admin-notes" className="flex items-center gap-1.5 text-amber-800">
+            <Icon name="Lock" size={13} /> Заметки для администратора
+          </Label>
+          <button type="button" onClick={toggleNotesHistory}
+            className="flex items-center gap-1 text-xs font-medium text-amber-700 hover:text-amber-900">
+            <Icon name="History" size={13} />
+            История
+            <Icon name={notesHistoryOpen ? 'ChevronUp' : 'ChevronDown'} size={13} />
+          </button>
+        </div>
         <Textarea id="edit-admin-notes" rows={3}
           placeholder="Внутренняя информация — клиент её не увидит..."
           className="bg-white"
           value={editForm.admin_notes}
           onChange={(e) => setEditForm({ ...editForm, admin_notes: e.target.value })} />
-        <p className="text-xs text-amber-700/80">Видно только администраторам, клиенту не отправляется</p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-amber-700/80">Видно только администраторам, клиенту не отправляется</p>
+          <Button type="button" size="sm" variant="outline" disabled={notesSaving}
+            className="h-7 border-amber-300 bg-white text-xs text-amber-800 hover:bg-amber-100"
+            onClick={handleSaveNotes}>
+            {notesSaving
+              ? <Icon name="Loader2" size={13} className="animate-spin" />
+              : notesSaved
+                ? <Icon name="Check" size={13} className="text-green-600" />
+                : <Icon name="Save" size={13} />}
+            <span className="ml-1">Сохранить</span>
+          </Button>
+        </div>
+
+        {notesHistoryOpen && (
+          <div className="mt-2 space-y-1.5 border-t border-amber-200 pt-2">
+            {notesHistoryLoading ? (
+              <div className="flex items-center justify-center py-3">
+                <Icon name="Loader2" size={16} className="animate-spin text-amber-700" />
+              </div>
+            ) : !notesHistory || notesHistory.length === 0 ? (
+              <p className="py-1 text-center text-xs text-amber-700/70">История заметок пуста</p>
+            ) : (
+              notesHistory.map((n) => (
+                <div key={n.id} className="rounded-lg border border-amber-200 bg-white p-2">
+                  <p className="text-xs text-primary whitespace-pre-line">{n.note}</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    {new Date(n.created_at).toLocaleString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3">

@@ -451,6 +451,26 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return {'statusCode': 201, 'headers': headers, 'body': json.dumps(receipt)}
 
+    # История заметок администратора по заявке
+    if body.get('action') == 'list_admin_notes':
+        ref = body.get('ref_number')
+        if not ref:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT id, ref_number, note, created_at
+                FROM {SCHEMA}.admin_notes_history WHERE ref_number = %s ORDER BY created_at DESC""",
+            (ref,)
+        )
+        rows = cur.fetchall()
+        conn.close()
+        notes = [{
+            'id': r[0], 'ref_number': r[1], 'note': r[2],
+            'created_at': r[3].isoformat() if r[3] else None,
+        } for r in rows]
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps(notes)}
+
     # История писем, отправленных клиенту по заявке (получены/прочитаны)
     if body.get('action') == 'list_emails':
         ref = body.get('ref_number')
@@ -652,10 +672,13 @@ def handler(event: dict, context) -> dict:
         fields.append('operator_comment = %s')
         values.append(body['operator_comment'] or None)
 
+    save_admin_notes_history = False
     if 'admin_notes' in body:
         # Внутренние заметки видны только администратору, клиенту не показываются и не отправляются
         fields.append('admin_notes = %s')
         values.append(body['admin_notes'] or None)
+        if (body['admin_notes'] or '').strip():
+            save_admin_notes_history = True
 
     if 'payment_bank' in body:
         fields.append('payment_bank = %s')
@@ -721,6 +744,12 @@ def handler(event: dict, context) -> dict:
 
     if 'operator_comment' in body and body['operator_comment']:
         create_notification(cur, updated_phone, ref, 'comment', 'Сообщение от оператора', body['operator_comment'])
+
+    if save_admin_notes_history:
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.admin_notes_history (ref_number, note) VALUES (%s, %s)",
+            (ref, body['admin_notes'])
+        )
 
     # Займ выдан или погашен — формируем фирменный чек и прикладываем к письму
     # (только при реальном переходе в статус, а не при повторном сохранении заявки)
