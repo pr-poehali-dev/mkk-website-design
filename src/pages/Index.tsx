@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 import Icon from '@/components/ui/icon';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import SocialLinks from '@/components/SocialLinks';
@@ -392,32 +393,40 @@ const Index = () => {
           <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-accent">Отзывы</p>
           <h2 className="font-display text-3xl font-bold text-primary sm:text-4xl">Что говорят наши клиенты</h2>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {reviews.map((r) => (
-            <div key={r.name} className="flex flex-col rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                  {r.name.split(' ').map((w) => w[0]).join('')}
+        <Carousel opts={{ align: 'start', loop: true }} className="w-full">
+          <CarouselContent>
+            {reviews.map((r) => (
+              <CarouselItem key={r.name} className="sm:basis-1/2 lg:basis-1/3">
+                <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                      {r.name.split(' ').map((w) => w[0]).join('')}
+                    </div>
+                    <div>
+                      <p className="font-display text-base font-semibold text-primary">{r.name}</p>
+                      <p className="text-xs text-muted-foreground">{r.city}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Icon
+                        key={i}
+                        name="Star"
+                        size={15}
+                        className={i < r.rating ? 'fill-accent text-accent' : 'text-border'}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{r.text}</p>
                 </div>
-                <div>
-                  <p className="font-display text-base font-semibold text-primary">{r.name}</p>
-                  <p className="text-xs text-muted-foreground">{r.city}</p>
-                </div>
-              </div>
-              <div className="mt-3 flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Icon
-                    key={i}
-                    name="Star"
-                    size={15}
-                    className={i < r.rating ? 'fill-accent text-accent' : 'text-border'}
-                  />
-                ))}
-              </div>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{r.text}</p>
-            </div>
-          ))}
-        </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <div className="mt-6 flex justify-center gap-3">
+            <CarouselPrevious className="static translate-y-0" />
+            <CarouselNext className="static translate-y-0" />
+          </div>
+        </Carousel>
       </section>
 
       {/* FAQ */}
