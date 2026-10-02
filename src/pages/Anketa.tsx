@@ -1,85 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import Logo from '@/components/Logo';
-import CameraCapture from '@/components/anketa/CameraCapture';
 import { apiRegister, apiUploadFile, apiSendVerificationCode, apiVerifyCode, apiLogin, saveSession } from '@/lib/api';
-import { formatPhone } from '@/lib/phone';
 import { useMaintenance } from '@/lib/maintenanceContext';
-
-const MaintenanceScreen = () => (
-  <div className="flex min-h-screen items-center justify-center bg-secondary/40 px-4">
-    <div className="animate-fade-up w-full max-w-md rounded-3xl bg-background p-8 text-center shadow-xl sm:p-10">
-      <div className="relative mx-auto mb-7 flex h-24 w-24 items-center justify-center rounded-full bg-yellow-100">
-        <Icon name="Construction" size={36} className="text-yellow-600" />
-      </div>
-      <h1 className="font-display text-2xl font-bold leading-snug text-primary">
-        Приём заявок временно приостановлен
-      </h1>
-      <p className="mt-3 text-base text-muted-foreground">
-        На сайте проводятся технические работы. Пожалуйста, попробуйте оформить заявку немного позже.
-      </p>
-      <Button asChild size="lg" variant="secondary" className="mt-7 w-full rounded-xl font-semibold">
-        <Link to="/">На главную</Link>
-      </Button>
-    </div>
-  </div>
-);
-
-const SuccessScreen = ({ nav }: { nav: (path: string) => void }) => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary/40 px-4">
-      <div className="animate-fade-up w-full max-w-md rounded-3xl bg-background p-8 text-center shadow-xl sm:p-10">
-        <div className="relative mx-auto mb-7 flex h-24 w-24 items-center justify-center rounded-full bg-blue-100">
-          <Icon name="Loader2" size={36} className="animate-spin text-blue-600" />
-        </div>
-
-        <h1 className="font-display text-2xl font-bold leading-snug text-primary">
-          Ваша заявка на проверке
-        </h1>
-        <p className="mt-3 text-base text-muted-foreground">
-          Мы проверяем ваши документы. Это может занять некоторое время.
-        </p>
-        <p className="mt-3 text-sm text-muted-foreground/70">
-          Страница обновляется автоматически. Вы также получите SMS-уведомление.
-        </p>
-
-        <Button asChild size="lg" variant="secondary" className="mt-7 w-full rounded-xl font-semibold">
-          <Link to="/cabinet">Личный кабинет</Link>
-        </Button>
-        <button onClick={() => nav('/')} className="mt-3 block w-full text-center text-sm text-muted-foreground hover:text-primary">
-          На главную
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const SELFIE_EXAMPLE_URL = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/e014475b-6ad6-4982-9ef6-ccfa2cf49809.jpg';
-
-const STEPS = [
-  { n: 1, title: 'Личные данные', icon: 'User' },
-  { n: 2, title: 'Паспорт', icon: 'BookUser' },
-  { n: 3, title: 'Параметры займа', icon: 'Wallet' },
-  { n: 4, title: 'Фото документов', icon: 'Images' },
-  { n: 5, title: 'Адрес и работа', icon: 'Briefcase' },
-];
-
-const CheckingScreen = ({ seconds }: { seconds: number }) => (
-  <div className="flex min-h-screen items-center justify-center bg-secondary/40 px-4">
-    <div className="animate-fade-up w-full max-w-md rounded-3xl bg-background p-8 text-center shadow-xl sm:p-10">
-      <div className="relative mx-auto mb-7 flex h-24 w-24 items-center justify-center rounded-full bg-blue-100">
-        <Icon name="Loader2" size={36} className="animate-spin text-blue-600" />
-      </div>
-      <h1 className="font-display text-2xl font-bold leading-snug text-primary">Идёт проверка данных</h1>
-      <p className="mt-3 text-base text-muted-foreground">Пожалуйста, подождите, мы проверяем введённую информацию.</p>
-      <p className="mt-4 font-display text-3xl font-bold text-accent">{seconds} сек.</p>
-    </div>
-  </div>
-);
+import { MaintenanceScreen, SuccessScreen, CheckingScreen, EmailConfirmScreen } from '@/components/anketa/AnketaScreens';
+import AnketaProgress, { STEPS } from '@/components/anketa/AnketaProgress';
+import { PersonalStep, PassportStep, LoanStep } from '@/components/anketa/AnketaFormSteps';
+import { PhotosStep, AddressStep } from '@/components/anketa/AnketaDocsSteps';
 
 const Anketa = () => {
   const { maintenance } = useMaintenance();
@@ -146,18 +74,6 @@ const Anketa = () => {
       });
     }, 1000);
   };
-
-  const upd1 = (k: keyof typeof f1) => (e: React.ChangeEvent<HTMLInputElement>) => setF1({ ...f1, [k]: e.target.value });
-
-  const handlePhone = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setF1({ ...f1, phone: formatPhone(e.target.value) });
-
-  const handleWorkPhone = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setF4({ ...f4, work_phone: formatPhone(e.target.value) });
-  const upd2 = (k: keyof typeof f2) => (e: React.ChangeEvent<HTMLInputElement>) => setF2({ ...f2, [k]: e.target.value });
-  const upd4 = (k: keyof typeof f4) => (e: React.ChangeEvent<HTMLInputElement>) => setF4({ ...f4, [k]: e.target.value });
-
-  const fmt = (n: number) => n.toLocaleString('ru-RU');
 
   const MAX_FILE_MB = 5;
   const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
@@ -317,60 +233,19 @@ const Anketa = () => {
 
   if (step === 6) {
     return (
-      <div className="min-h-screen bg-secondary/40">
-        <header className="border-b border-border bg-background">
-          <div className="container flex h-16 items-center justify-between px-4">
-            <Logo variant="compact" />
-            <button onClick={() => setStep(5)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
-              <Icon name="ArrowLeft" size={16} /> Назад
-            </button>
-          </div>
-        </header>
-        <main className="container max-w-md px-4 py-14">
-          <div className="animate-fade-up rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-              <Icon name="Mail" size={28} className="text-blue-600" />
-            </div>
-            <h1 className="font-display mb-2 text-center text-2xl font-bold text-primary">Подтвердите email</h1>
-            <p className="mb-6 text-center text-sm text-muted-foreground">
-              Мы отправили код подтверждения на <span className="font-semibold text-primary">{f1.email}</span>
-            </p>
-
-            {apiError && (
-              <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-                <p className="flex items-center gap-2"><Icon name="AlertCircle" size={16} className="shrink-0" /> {apiError}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="emailCode">Код из письма</Label>
-                <Input id="emailCode" inputMode="numeric" maxLength={6} placeholder="6-значный код"
-                  value={emailCode} onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ''))}
-                  className="text-center font-mono text-lg tracking-widest" required />
-              </div>
-              <Button type="submit" size="lg" disabled={loading || codeVerifying || !emailCode}
-                className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-60">
-                {loading || codeVerifying ? (
-                  <span className="flex items-center gap-2">
-                    <Icon name="Loader2" size={18} className="animate-spin" />
-                    {codeVerifying ? 'Проверяем код...' : incomeUploading ? 'Загружаем справку...' : 'Отправляем заявку...'}
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">Подтвердить и отправить заявку <Icon name="Send" size={18} /></span>
-                )}
-              </Button>
-              <button
-                type="button"
-                onClick={handleSendEmailCode}
-                disabled={codeSending}
-                className="block w-full text-center text-sm text-muted-foreground hover:text-primary">
-                {codeSending ? 'Отправляем...' : 'Отправить код повторно'}
-              </button>
-            </form>
-          </div>
-        </main>
-      </div>
+      <EmailConfirmScreen
+        email={f1.email}
+        apiError={apiError}
+        emailCode={emailCode}
+        setEmailCode={setEmailCode}
+        loading={loading}
+        codeVerifying={codeVerifying}
+        incomeUploading={incomeUploading}
+        codeSending={codeSending}
+        onBack={() => setStep(5)}
+        onSubmit={handleSubmit}
+        onResend={handleSendEmailCode}
+      />
     );
   }
 
@@ -392,33 +267,7 @@ const Anketa = () => {
       </header>
 
       <main className="container max-w-2xl px-4 py-10 md:max-w-3xl md:py-14">
-        {/* Прогресс */}
-        <div className="mb-8">
-          <div className="mb-4 flex items-center justify-between gap-2">
-            {STEPS.map((s) => (
-              <div key={s.n} className="flex flex-1 flex-col items-center gap-1.5">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-all ${
-                  step > s.n ? 'bg-accent text-accent-foreground' :
-                  step === s.n ? 'bg-primary text-primary-foreground' :
-                  'bg-secondary text-muted-foreground'
-                }`}>
-                  {step > s.n
-                    ? <Icon name="Check" size={18} />
-                    : <Icon name={s.icon} size={18} />
-                  }
-                </div>
-                <span className={`hidden text-center text-xs sm:block ${step === s.n ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
-                  {s.title}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-            <div className="h-full rounded-full bg-accent transition-all duration-500"
-              style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }} />
-          </div>
-          <p className="mt-3 text-center text-sm text-muted-foreground">Шаг {step} из {STEPS.length} — {STEPS[step - 1].title}</p>
-        </div>
+        <AnketaProgress step={step} />
 
         <div className="animate-fade-up rounded-2xl border border-border bg-card/40 p-6 backdrop-blur-md sm:p-8">
           <h1 className="font-display mb-6 text-2xl font-bold text-primary">{STEPS[step - 1].title}</h1>
@@ -438,267 +287,61 @@ const Anketa = () => {
 
           {/* ШАГ 1: Личные данные */}
           {step === 1 && (
-            <div className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="lastname">Фамилия *</Label>
-                  <Input id="lastname" placeholder="Иванов" value={f1.lastname} onChange={upd1('lastname')} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="firstname">Имя *</Label>
-                  <Input id="firstname" placeholder="Иван" value={f1.firstname} onChange={upd1('firstname')} required />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="middlename">Отчество</Label>
-                <Input id="middlename" placeholder="Иванович" value={f1.middlename} onChange={upd1('middlename')} />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="birth_date">Дата рождения *</Label>
-                  <Input id="birth_date" type="date" value={f1.birth_date} onChange={upd1('birth_date')} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="phone">Телефон *</Label>
-                  <Input id="phone" type="tel" placeholder="+7 (___) ___-__-__" value={f1.phone} onChange={handlePhone} onFocus={() => { if (!f1.phone) setF1({ ...f1, phone: '+7 ' }); }} required />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Электронная почта *</Label>
-                <Input id="email" type="email" placeholder="example@mail.ru" value={f1.email} onChange={upd1('email')} required />
-                <p className="text-xs text-muted-foreground">На этот адрес придёт код подтверждения заявки и подписи договора</p>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Придумайте пароль *</Label>
-                <Input id="password" type="password" placeholder="для входа в личный кабинет" value={f1.password} onChange={upd1('password')} required />
-              </div>
-              <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
-                onClick={() => { if (f1.lastname && f1.firstname && f1.birth_date && f1.phone && f1.email && f1.password) nextWithCheck(); else setApiError('Заполните все обязательные поля'); }}>
-                Далее <Icon name="ArrowRight" size={18} className="ml-1" />
-              </Button>
-            </div>
+            <PersonalStep f1={f1} setF1={setF1} setApiError={setApiError} nextWithCheck={nextWithCheck} />
           )}
 
           {/* ШАГ 2: Паспорт */}
           {step === 2 && (
-            <div className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="series">Серия и номер *</Label>
-                  <Input id="series" placeholder="0000 000000" value={f2.series} onChange={upd2('series')} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="issued_date">Дата выдачи</Label>
-                  <Input id="issued_date" type="date" value={f2.issued_date} onChange={upd2('issued_date')} />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="issued">Кем выдан *</Label>
-                <Input id="issued" placeholder="ОВД района..." value={f2.issued} onChange={upd2('issued')} required />
-              </div>
-
-              <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
-                onClick={() => { if (f2.series && f2.issued) next(); else setApiError('Заполните серию/номер и кем выдан'); }}>
-                Далее <Icon name="ArrowRight" size={18} className="ml-1" />
-              </Button>
-            </div>
+            <PassportStep f2={f2} setF2={setF2} setApiError={setApiError} next={next} />
           )}
 
           {/* ШАГ 3: Параметры займа */}
           {step === 3 && (
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label>Сумма займа</Label>
-                  <span className="font-display text-xl font-bold text-accent">{fmt(amount)} ₽</span>
-                </div>
-                <input type="range" min={3000} max={100000} step={1000} value={amount}
-                  onChange={(e) => setAmount(Number(e.target.value))}
-                  className="w-full accent-accent" />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>3 000 ₽</span><span>100 000 ₽</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label>Срок займа</Label>
-                  <span className="font-display text-xl font-bold text-accent">{days} дней</span>
-                </div>
-                <input type="range" min={7} max={90} step={1} value={days}
-                  onChange={(e) => setDays(Number(e.target.value))}
-                  className="w-full accent-accent" />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>7 дней</span><span>90 дней</span>
-                </div>
-              </div>
-
-              <div className="rounded-xl bg-secondary p-4 text-sm space-y-1.5">
-                <div className="flex justify-between"><span className="text-muted-foreground">Сумма займа</span><span className="font-semibold">{fmt(amount)} ₽</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Переплата (0.8%/день)</span><span className="font-semibold">{fmt(Math.round(amount * 0.008 * days))} ₽</span></div>
-                <div className="flex justify-between border-t border-border pt-1.5"><span className="font-semibold text-primary">К возврату</span><span className="font-bold text-primary">{fmt(amount + Math.round(amount * 0.008 * days))} ₽</span></div>
-              </div>
-
-              <fieldset className="space-y-4 rounded-xl border border-border p-4">
-                <legend className="mb-1 flex items-center gap-2 px-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  <Icon name="CreditCard" size={15} className="text-accent" /> Текущая долговая нагрузка
-                </legend>
-                <div className="space-y-1.5">
-                  <Label htmlFor="existing_loans_count">Количество открытых займов/кредитов *</Label>
-                  <Input id="existing_loans_count" type="number" min={0} max={50} inputMode="numeric"
-                    value={existingLoansCount}
-                    placeholder="0"
-                    required
-                    onChange={(e) => setExistingLoansCount(e.target.value.replace(/[^0-9]/g, ''))} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="existing_debt_amount">Общая сумма долга по ним (₽) *</Label>
-                  <Input id="existing_debt_amount" type="number" min={0} step={1000} inputMode="numeric"
-                    value={existingDebtAmount}
-                    placeholder="0"
-                    required
-                    onChange={(e) => setExistingDebtAmount(e.target.value.replace(/[^0-9]/g, ''))} />
-                </div>
-                <p className="text-xs text-muted-foreground">Укажите честно — это влияет на решение по заявке.</p>
-              </fieldset>
-
-              <Button size="lg" className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90"
-                onClick={() => { if (existingLoansCount !== '' && existingDebtAmount !== '') next(); else setApiError('Заполните информацию о текущей долговой нагрузке'); }}>
-                Далее <Icon name="ArrowRight" size={18} className="ml-1" />
-              </Button>
-            </div>
+            <LoanStep
+              amount={amount}
+              setAmount={setAmount}
+              days={days}
+              setDays={setDays}
+              existingLoansCount={existingLoansCount}
+              setExistingLoansCount={setExistingLoansCount}
+              existingDebtAmount={existingDebtAmount}
+              setExistingDebtAmount={setExistingDebtAmount}
+              setApiError={setApiError}
+              next={next}
+            />
           )}
 
           {/* ШАГ 4: Фото документов */}
           {step === 4 && (
-            <div className="space-y-6">
-              <div className="space-y-1.5">
-                <CameraCapture
-                  label="Фото паспорта (разворот с фото)"
-                  hint="Наведите камеру на разворот с фотографией"
-                  preview={passportPhoto}
-                  onCapture={handlePassportPhoto}
-                  checking={passportChecking}
-                  checked={passportChecked}
-                  secondsLeft={passportSecondsLeft}
-                  totalSeconds={CHECK_SECONDS}
-                />
-              </div>
-
-              <div className="space-y-3">
-                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-                  <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-800">
-                    <Icon name="Info" size={16} className="shrink-0" /> Как сделать фото с кодом
-                  </p>
-                  <ol className="ml-1 space-y-1.5 text-sm text-blue-700">
-                    <li>1. Напишите код <span className="rounded bg-white px-1.5 py-0.5 font-mono font-bold text-blue-900">{selfieCode}</span> крупно на листе бумаги</li>
-                    <li>2. Сфотографируйте своё лицо с этим листком рядом (как на примере)</li>
-                    <li>3. Убедитесь, что лицо и код хорошо видны</li>
-                  </ol>
-                  <div className="mt-3 overflow-hidden rounded-lg border border-blue-200">
-                    <img src={SELFIE_EXAMPLE_URL} alt="Пример фото с кодом" className="w-full object-cover" />
-                  </div>
-                  <p className="mt-2 text-center text-xs text-blue-600">Пример фото</p>
-                </div>
-
-                <CameraCapture
-                  label="Фото лица с кодом"
-                  hint="Наведите камеру на своё лицо и листок с кодом"
-                  preview={selfiePhoto}
-                  onCapture={handleSelfiePhoto}
-                  aspect="square"
-                  checking={selfieChecking}
-                  checked={selfieChecked}
-                  secondsLeft={selfieSecondsLeft}
-                  totalSeconds={CHECK_SECONDS}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <CameraCapture
-                  label="Фото справки о доходах"
-                  hint="Сфотографируйте документ"
-                  preview={incomePreview}
-                  onCapture={handleIncomeFile}
-                  checking={incomeChecking}
-                  checked={incomeChecked}
-                  secondsLeft={incomeSecondsLeft}
-                  totalSeconds={CHECK_SECONDS}
-                />
-              </div>
-
-              {(passportChecking || selfieChecking || incomeChecking) && (
-                <p className="flex items-center gap-1.5 text-center text-xs text-blue-600">
-                  <Icon name="Loader2" size={13} className="shrink-0 animate-spin" /> Дождитесь окончания проверки фото, чтобы продолжить
-                </p>
-              )}
-
-              <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
-                disabled={passportChecking || selfieChecking || incomeChecking}
-                onClick={() => {
-                  if (!passportFile) { setApiError('Сделайте фото паспорта'); return; }
-                  if (!selfieFile) { setApiError('Сделайте фото лица с листком, на котором написан код'); return; }
-                  if (!incomeFile) { setApiError('Сделайте фото справки о доходах'); return; }
-                  next();
-                }}>
-                Далее <Icon name="ArrowRight" size={18} className="ml-1" />
-              </Button>
-            </div>
+            <PhotosStep
+              checkSeconds={CHECK_SECONDS}
+              selfieCode={selfieCode}
+              passportPhoto={passportPhoto}
+              passportFile={passportFile}
+              passportChecking={passportChecking}
+              passportChecked={passportChecked}
+              passportSecondsLeft={passportSecondsLeft}
+              onPassportPhoto={handlePassportPhoto}
+              selfiePhoto={selfiePhoto}
+              selfieFile={selfieFile}
+              selfieChecking={selfieChecking}
+              selfieChecked={selfieChecked}
+              selfieSecondsLeft={selfieSecondsLeft}
+              onSelfiePhoto={handleSelfiePhoto}
+              incomePreview={incomePreview}
+              incomeFile={incomeFile}
+              incomeChecking={incomeChecking}
+              incomeChecked={incomeChecked}
+              incomeSecondsLeft={incomeSecondsLeft}
+              onIncomeFile={handleIncomeFile}
+              setApiError={setApiError}
+              next={next}
+            />
           )}
 
           {/* ШАГ 5: Адрес и работа */}
           {step === 5 && (
-            <form onSubmit={handleSendEmailCode} className="space-y-5">
-              <fieldset className="space-y-4">
-                <legend className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  <Icon name="MapPin" size={15} className="text-accent" /> Адрес
-                </legend>
-                <div className="space-y-1.5">
-                  <Label htmlFor="address_residence">Место проживания *</Label>
-                  <Input id="address_residence" placeholder="г. Москва, ул. Ленина, д. 1, кв. 1"
-                    value={f4.address_residence} onChange={upd4('address_residence')} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="address_registration">Адрес регистрации (прописки)</Label>
-                  <Input id="address_registration" placeholder="Совпадает с местом проживания или укажите другой"
-                    value={f4.address_registration} onChange={upd4('address_registration')} />
-                </div>
-              </fieldset>
-
-              <fieldset className="space-y-4">
-                <legend className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  <Icon name="Briefcase" size={15} className="text-accent" /> Место работы
-                </legend>
-                <div className="space-y-1.5">
-                  <Label htmlFor="work_place">Организация и должность *</Label>
-                  <Input id="work_place" placeholder="ООО «Компания», менеджер"
-                    value={f4.work_place} onChange={upd4('work_place')} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="work_phone">Телефон работы</Label>
-                  <Input id="work_phone" type="tel" placeholder="+7 (___) ___-__-__"
-                    value={f4.work_phone} onChange={handleWorkPhone}
-                    onFocus={() => { if (!f4.work_phone) setF4({ ...f4, work_phone: '+7 ' }); }} />
-                </div>
-              </fieldset>
-
-              <div className="rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
-                <Icon name="ShieldCheck" size={16} className="mr-1.5 inline text-accent" />
-                Ваши данные передаются по защищённому соединению и не передаются третьим лицам.
-              </div>
-
-              <Button type="submit" size="lg" disabled={codeSending}
-                className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-60">
-                {codeSending ? (
-                  <span className="flex items-center gap-2">
-                    <Icon name="Loader2" size={18} className="animate-spin" />
-                    Отправляем код на почту...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">Подтвердить email и продолжить <Icon name="ArrowRight" size={18} /></span>
-                )}
-              </Button>
-            </form>
+            <AddressStep f4={f4} setF4={setF4} codeSending={codeSending} onSubmit={handleSendEmailCode} />
           )}
         </div>
       </main>
