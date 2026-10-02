@@ -1,0 +1,2 @@
+ALTER TABLE t_p90084086_mkk_website_design.access_requests ADD COLUMN IF NOT EXISTS admin_comment text NULL;
+ALTER TABLE t_p90084086_mkk_website_design.access_requests ADD COLUMN IF NOT EXISTS processed_at timestamptz NULL;

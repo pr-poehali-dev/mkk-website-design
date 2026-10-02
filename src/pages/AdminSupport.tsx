@@ -8,6 +8,7 @@ import {
   type SupportMessage, type SupportStatus,
 } from '@/lib/api';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
+import AdminAccessRequests from '@/components/admin/AdminAccessRequests';
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
@@ -19,6 +20,7 @@ const STATUS_META: Record<SupportStatus, { label: string; badge: string; border:
 
 const AdminSupport = () => {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('zaimy_admin') === '1');
+  const [section, setSection] = useState<'support' | 'access'>('support');
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<SupportMessage[]>([]);
   const [tab, setTab] = useState<SupportStatus | 'all'>('new');
@@ -113,6 +115,19 @@ const AdminSupport = () => {
       <main className="container max-w-3xl px-4 py-8">
         <h1 className="font-display text-2xl font-bold text-primary">Обращения в поддержку</h1>
 
+        <div className="mt-4 inline-flex rounded-xl border border-border bg-card p-1">
+          <button onClick={() => setSection('support')}
+            className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${section === 'support' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary'}`}>
+            <Icon name="MessageCircleQuestion" size={15} /> Вопросы
+          </button>
+          <button onClick={() => setSection('access')}
+            className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${section === 'access' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary'}`}>
+            <Icon name="KeyRound" size={15} /> Смена пароля
+          </button>
+        </div>
+
+        {section === 'access' ? <AdminAccessRequests /> : (
+          <>
         <div className="mt-5 flex flex-wrap gap-2">
           {([
             { key: 'new', label: 'Новые', count: countByStatus('new') },
@@ -272,6 +287,8 @@ const AdminSupport = () => {
               );
             })}
           </div>
+        )}
+          </>
         )}
       </main>
     </div>

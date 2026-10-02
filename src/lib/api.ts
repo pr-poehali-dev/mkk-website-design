@@ -759,3 +759,40 @@ export async function apiSubmitIdentifyPhotos(data: {
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Не удалось отправить данные');
 }
+export interface AccessRequestItem {
+  id: number;
+  ref_number: string;
+  full_name: string;
+  passport: string;
+  snils: string;
+  selfie_url: string;
+  email: string | null;
+  phone: string | null;
+  status: 'new' | 'approved' | 'rejected';
+  created_at: string | null;
+  processed_at: string | null;
+  admin_comment: string | null;
+}
+
+export async function apiGetAccessRequests(): Promise<AccessRequestItem[]> {
+  const res = await fetch(URLS.login, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'admin_list_access_requests' }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as AccessRequestItem[];
+}
+
+export async function apiUpdateAccessRequest(data: {
+  id: number; status?: 'new' | 'approved' | 'rejected'; admin_comment?: string;
+}): Promise<void> {
+  const res = await fetch(URLS.login, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'admin_update_access_request', ...data }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+}

@@ -56,6 +56,60 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
 
+    if body.get('action') in ('admin_list_access_requests', 'admin_update_access_request'):
+        if req_headers.get('x-admin-token', '') != 'admin_zaimy_plus':
+            return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        if body['action'] == 'admin_update_access_request':
+            req_id = int(body.get('id') or 0)
+            status = body.get('status')
+            comment = body.get('admin_comment')
+            if status not in (None, 'new', 'approved', 'rejected'):
+                conn.close()
+                return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неверный статус'})}
+            cur.execute(f"SELECT ref_number, new_password_hash, status FROM {SCHEMA}.access_requests WHERE id = %s", (req_id,))
+            row = cur.fetchone()
+            if not row:
+                conn.close()
+                return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Обращение не найдено'})}
+            sets = []
+            vals = []
+            if comment is not None:
+                sets.append('admin_comment = %s')
+                vals.append(str(comment).strip() or None)
+            if status:
+                sets.append('status = %s')
+                vals.append(status)
+                sets.append('processed_at = NOW()' if status != 'new' else 'processed_at = NULL')
+                if status == 'approved' and row[2] != 'approved':
+                    cur.execute(
+                        f"UPDATE {SCHEMA}.loan_requests SET password_hash = %s, password_plain = NULL WHERE ref_number = %s",
+                        (row[1], row[0])
+                    )
+            if sets:
+                vals.append(req_id)
+                cur.execute(f"UPDATE {SCHEMA}.access_requests SET {', '.join(sets)} WHERE id = %s", vals)
+            conn.commit()
+            conn.close()
+            return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
+        cur.execute(
+            f"""SELECT a.id, a.ref_number, a.full_name, a.passport, a.snils, a.selfie_url, a.email, a.status,
+                       a.created_at, a.admin_comment, a.processed_at, l.phone
+                FROM {SCHEMA}.access_requests a
+                LEFT JOIN LATERAL (SELECT phone FROM {SCHEMA}.loan_requests WHERE ref_number = a.ref_number LIMIT 1) l ON true
+                ORDER BY a.created_at DESC"""
+        )
+        cols = ['id', 'ref_number', 'full_name', 'passport', 'snils', 'selfie_url', 'email', 'status', 'created_at', 'admin_comment', 'processed_at', 'phone']
+        items = []
+        for r in cur.fetchall():
+            d = dict(zip(cols, r))
+            d['created_at'] = d['created_at'].isoformat() if d['created_at'] else None
+            d['processed_at'] = d['processed_at'].isoformat() if d['processed_at'] else None
+            items.append(d)
+        conn.close()
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps(items)}
+
     if body.get('action') == 'access_request':
         full_name = (body.get('full_name') or '').strip()
         new_password = (body.get('new_password') or '').strip()
