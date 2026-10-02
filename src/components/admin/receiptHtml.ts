@@ -1,3 +1,4 @@
+import { getTariff } from '@/lib/loanRate';
 import { type UserSession } from '@/lib/api';
 import { DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_INN, DEFAULT_COMPANY_OGRN } from './contractHtml';
 
@@ -57,7 +58,7 @@ export function buildReceiptHtml(
 ${selected.email ? `<div class="row"><span class="label">Email</span><span class="val">${selected.email}</span></div>` : ''}
 <div class="row"><span class="label">Номер заявки</span><span class="val">${selected.ref_number}</span></div>
 <div class="row"><span class="label">${isSent ? 'Сумма выданного займа' : 'Сумма погашения'}</span><span class="val">${fmt(amount)} ₽</span></div>
-<div class="row total"><span class="label">${isSent ? 'К возврату' : 'Статус'}</span><span class="val">${isSent ? `${fmt(Math.round(amount * 0.008 * selected.days) + amount)} ₽` : 'Займ погашен полностью'}</span></div>
+<div class="row total"><span class="label">${isSent ? 'К возврату' : 'Статус'}</span><span class="val">${isSent ? `${fmt(Math.round(amount * (getTariff(selected.tariff)?.rate ?? 0.008) * selected.days) + amount)} ₽` : 'Займ погашен полностью'}</span></div>
 
 <div class="company">
   <b>${companyName}</b><br>

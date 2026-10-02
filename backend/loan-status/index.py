@@ -714,6 +714,12 @@ def handler(event: dict, context) -> dict:
         fields.append('doc_urls = %s')
         values.append(body['doc_urls'] or [])
 
+    if 'tariff' in body:
+        if body['tariff'] not in (None, '', 'start', 'mini', 'super'):
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неверный тариф'})}
+        fields.append('tariff = %s')
+        values.append(body['tariff'] or None)
+
     if 'insurance_enabled' in body:
         fields.append('insurance_enabled = %s')
         values.append(bool(body['insurance_enabled']))

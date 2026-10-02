@@ -11,7 +11,7 @@ import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
 import CameraCapture from '@/components/anketa/CameraCapture';
 import { useMaintenance } from '@/lib/maintenanceContext';
-import { getLoanRate, fmtRate } from '@/lib/loanRate';
+import { getLoanRate, fmtRate, getTariff } from '@/lib/loanRate';
 import { useState, useEffect } from 'react';
 
 const BANKS = [
@@ -340,6 +340,7 @@ const CabinetStatusCard = ({
     apiGetHistory(user.phone).then(setAllUserRequests).catch(() => setAllUserRequests([user]));
   }, [user.phone]);
   const loanRate = getLoanRate(user, allUserRequests);
+  const tariff = getTariff(user.tariff);
 
   const dueDate = (() => {
     const start = new Date(user.money_sent_at || user.created_at);
@@ -685,6 +686,18 @@ const CabinetStatusCard = ({
                     <dt className="text-muted-foreground">Возвращаете</dt>
                     <dd className="font-bold text-primary">{fmt(total)} ₽</dd>
                   </div>
+                  {tariff && (
+                    <div className="flex justify-between px-4 py-3">
+                      <dt className="text-muted-foreground">Тариф</dt>
+                      <dd className="font-semibold text-primary">{tariff.name}</dd>
+                    </div>
+                  )}
+                  {tariff?.weekly && (
+                    <div className="flex justify-between px-4 py-3">
+                      <dt className="text-muted-foreground">Платёж раз в неделю</dt>
+                      <dd className="font-semibold text-primary">{Math.ceil(approvedDays / 7)} × ≈{fmt(Math.round(total / Math.ceil(approvedDays / 7)))} ₽</dd>
+                    </div>
+                  )}
                   <div className="flex justify-between px-4 py-3">
                     <dt className="text-muted-foreground">Проценты</dt>
                     <dd className="font-semibold text-primary">{fmtRate(loanRate)}</dd>
@@ -831,6 +844,7 @@ const CabinetStatusCard = ({
                 {isActiveLoan ? 'Активный займ' : 'Параметры займа'}
               </h2>
               <dl className="space-y-3 text-sm">
+                {tariff && <div className="flex justify-between"><dt className="text-muted-foreground">Тариф</dt><dd className="font-semibold">{tariff.name}</dd></div>}
                 <div className="flex justify-between"><dt className="text-muted-foreground">Сумма займа</dt><dd className="font-semibold">{fmt(user.amount)} ₽</dd></div>
                 <div className="flex justify-between"><dt className="text-muted-foreground">Срок</dt><dd className="font-semibold">{user.days} дн.</dd></div>
                 {isActiveLoan && (
@@ -868,6 +882,7 @@ const CabinetStatusCard = ({
                   startDate={user.money_sent_at || user.created_at}
                   overpay={Math.round(user.amount * loanRate * user.days)}
                   insurance={user.insurance_enabled ? Math.round(356 + user.amount * 0.005) : 0}
+                  tariff={tariff}
                   statusOverdue={status === 'overdue'}
                 />
               )}

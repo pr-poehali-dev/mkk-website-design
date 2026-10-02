@@ -247,6 +247,7 @@ const AdminEditModal = ({
         operator_comment: editForm.operator_comment,
         payment_bank: editForm.payment_bank || null,
         insurance_enabled: editForm.insurance_enabled,
+        tariff: editForm.tariff || null,
       });
       onSaved({
         ref_number: selected.ref_number,
@@ -255,6 +256,7 @@ const AdminEditModal = ({
         days: parseInt(editForm.days),
         operator_comment: editForm.operator_comment,
         insurance_enabled: editForm.insurance_enabled,
+        tariff: editForm.tariff || null,
       });
       onClose();
     } catch (_e) {
@@ -265,7 +267,7 @@ const AdminEditModal = ({
   };
 
   const repeatClient = selected ? isRepeatRequest(selected, allRequests) : false;
-  const loanRate = selected ? getLoanRate(selected, allRequests) : 0.008;
+  const loanRate = selected ? getLoanRate({ ...selected, tariff: editForm.tariff || null }, allRequests) : 0.008;
 
   const getContractInfo = () => {
     if (!selected || !editForm.amount || !editForm.days) return null;

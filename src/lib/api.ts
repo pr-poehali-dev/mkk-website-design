@@ -57,6 +57,7 @@ export interface UserSession {
   snils_photo_status?: string | null;
   identify_submitted_at?: string | null;
   admin_notes?: string | null;
+  tariff?: string | null;
 }
 
 export function getSession(): UserSession | null {
@@ -175,6 +176,7 @@ export async function apiUpdateRequest(data: {
   is_blocked?: boolean;
   doc_urls?: string[];
   insurance_enabled?: boolean;
+  tariff?: string | null;
 }): Promise<void> {
   const res = await fetch(URLS.status, {
     method: 'POST',

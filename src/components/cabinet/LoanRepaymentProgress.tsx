@@ -1,4 +1,5 @@
 import Icon from '@/components/ui/icon';
+import { buildSchedule, type Tariff } from '@/lib/loanRate';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -8,10 +9,11 @@ interface Props {
   startDate: string;
   overpay: number;
   insurance?: number;
+  tariff?: Tariff | null;
   statusOverdue?: boolean;
 }
 
-const LoanRepaymentProgress = ({ amount, days, startDate, overpay, insurance = 0, statusOverdue }: Props) => {
+const LoanRepaymentProgress = ({ amount, days, startDate, overpay, insurance = 0, tariff = null, statusOverdue }: Props) => {
   const start = new Date(startDate);
   const due = new Date(start);
   due.setDate(due.getDate() + days);
@@ -30,6 +32,8 @@ const LoanRepaymentProgress = ({ amount, days, startDate, overpay, insurance = 0
   const penaltyTotal = Math.round(amount * 0.01) * daysOverdue;
 
   const total = amount + overpay + insurance + penaltyTotal;
+  const schedule = tariff?.weekly ? buildSchedule(startDate, amount + overpay + insurance, days, tariff) : [];
+  const nextPayment = schedule.find((p) => p.date.getTime() >= now.getTime() - msPerDay);
   const dueLabel = due.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
 
   const barColor = isOverdue ? 'bg-red-500' : isUrgent ? 'bg-orange-500' : 'bg-accent';
@@ -67,6 +71,31 @@ const LoanRepaymentProgress = ({ amount, days, startDate, overpay, insurance = 0
         <span className={`text-sm ${isOverdue ? 'text-red-700' : 'text-muted-foreground'}`}>{isOverdue ? 'Сумма к возврату с пеней' : 'Сумма к возврату'}</span>
         <span className={`font-display text-lg font-bold ${isOverdue ? 'text-red-700' : 'text-primary'}`}>{fmt(total)} ₽</span>
       </div>
+
+      {schedule.length > 1 && (
+        <div className="mt-3 rounded-lg border border-border bg-card p-3">
+          <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-primary">
+            <Icon name="CalendarDays" size={15} className="text-accent" />
+            График платежей — раз в неделю
+          </p>
+          {nextPayment && !isOverdue && (
+            <p className="mb-2 text-xs text-muted-foreground">
+              Ближайший платёж: <span className="font-semibold text-primary">{fmt(nextPayment.amount)} ₽</span> до {nextPayment.date.toLocaleDateString('ru-RU')}
+            </p>
+          )}
+          <div className="max-h-48 space-y-1 overflow-y-auto text-xs">
+            {schedule.map((p) => {
+              const past = p.date.getTime() < now.getTime() - msPerDay;
+              return (
+                <div key={p.num} className={`flex justify-between rounded px-2 py-1 ${nextPayment?.num === p.num ? 'bg-accent/10 font-semibold' : ''} ${past ? 'text-muted-foreground' : ''}`}>
+                  <span>{p.num}. {p.date.toLocaleDateString('ru-RU')}</span>
+                  <span>{fmt(p.amount)} ₽</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

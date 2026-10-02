@@ -22,7 +22,7 @@ const Admin = () => {
   const [loadingList, setLoadingList] = useState(false);
   const [selected, setSelected] = useState<UserSession | null>(null);
   const [saving, setSaving] = useState(false);
-  const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', payment_bank: '', insurance_enabled: false });
+  const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', payment_bank: '', insurance_enabled: false, tariff: '' });
   const [checkedRefs, setCheckedRefs] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState('');
@@ -67,6 +67,7 @@ const Admin = () => {
       operator_comment: r.operator_comment || '',
       payment_bank: r.payment_bank || '',
       insurance_enabled: r.insurance_enabled || false,
+      tariff: r.tariff || '',
     });
   };
 

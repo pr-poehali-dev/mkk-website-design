@@ -1,4 +1,5 @@
 import { type UserSession } from '@/lib/api';
+import { getTariff, buildSchedule } from '@/lib/loanRate';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -21,6 +22,11 @@ export function buildContractHtml(
   const overpay = Math.round(amt * rate * dys);
   const insurance = selected.insurance_enabled ? Math.round(356 + amt * 0.005) : 0;
   const total = amt + overpay + insurance;
+  const tariff = getTariff(selected.tariff);
+  const schedule = tariff?.weekly ? buildSchedule(selected.money_sent_at || selected.created_at, total, dys, tariff) : [];
+  const scheduleHtml = schedule.length > 1
+    ? `<h2>График платежей (раз в неделю)</h2>${schedule.map((p) => `<div class="row"><span class="label">${p.num}. ${p.date.toLocaleDateString('ru-RU')}</span><span class="val">${fmt(p.amount)} ₽</span></div>`).join('')}`
+    : '';
   const ratePercentLabel = `${(rate * 100).toFixed(2).replace(/\.?0+$/, '')}%`;
 
   const style = [
@@ -51,6 +57,7 @@ export function buildContractHtml(
 <p><b>Займодавец:</b> ${companyName}, ИНН ${companyInn}, ОГРН ${companyOgrn}</p>
 <p><b>Заёмщик:</b> ${selected.full_name}, тел. ${selected.phone}${selected.email ? `, email: ${selected.email}` : ''}</p>
 <h2>Условия займа</h2>
+${tariff ? `<div class="row"><span class="label">Тариф</span><span class="val">${tariff.name}</span></div>` : ''}
 <div class="row"><span class="label">Сумма займа</span><span class="val">${fmt(amt)} ₽</span></div>
 <div class="row"><span class="label">Срок</span><span class="val">${dys} дней</span></div>
 <div class="row"><span class="label">Процентная ставка</span><span class="val">${ratePercentLabel} в день</span></div>
@@ -58,6 +65,7 @@ export function buildContractHtml(
 ${selected.insurance_enabled ? `<div class="row"><span class="label">Страховка займа</span><span class="val">${fmt(insurance)} ₽</span></div>` : ''}
 <div class="row"><span class="label">Дата возврата</span><span class="val">${returnDate}</span></div>
 <div class="row"><span class="label total">Итого к возврату</span><span class="val total">${fmt(total)} ₽</span></div>
+${scheduleHtml}
 <h2>Реквизиты заявки</h2>
 <p>Номер заявки: <b>${selected.ref_number}</b></p>
 <p>Паспорт: <b>${selected.passport || '—'}</b></p>

@@ -33,7 +33,7 @@ const AdminRequestDetail = () => {
   const [allRequests, setAllRequests] = useState<UserSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', admin_notes: '', payment_bank: '', insurance_enabled: false });
+  const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', admin_notes: '', payment_bank: '', insurance_enabled: false, tariff: '' });
   const [deleting, setDeleting] = useState(false);
 
   const [newPassword, setNewPassword] = useState('');
@@ -79,6 +79,7 @@ const AdminRequestDetail = () => {
           admin_notes: found.admin_notes || '',
           payment_bank: found.payment_bank || '',
           insurance_enabled: found.insurance_enabled || false,
+          tariff: found.tariff || '',
         });
         setDocUrls(found.doc_urls || []);
         setDocStatuses({
@@ -272,6 +273,7 @@ const AdminRequestDetail = () => {
         admin_notes: editForm.admin_notes,
         payment_bank: editForm.payment_bank || null,
         insurance_enabled: editForm.insurance_enabled,
+        tariff: editForm.tariff || null,
       });
       setSelected((prev) => prev ? {
         ...prev,
@@ -281,6 +283,7 @@ const AdminRequestDetail = () => {
         operator_comment: editForm.operator_comment,
         admin_notes: editForm.admin_notes,
         insurance_enabled: editForm.insurance_enabled,
+        tariff: editForm.tariff || null,
       } : prev);
     } finally {
       setSaving(false);
@@ -301,7 +304,7 @@ const AdminRequestDetail = () => {
   };
 
   const repeatClient = selected ? isRepeatRequest(selected, allRequests) : false;
-  const loanRate = selected ? getLoanRate(selected, allRequests) : 0.008;
+  const loanRate = selected ? getLoanRate({ ...selected, tariff: editForm.tariff || null }, allRequests) : 0.008;
 
   const getContractInfo = () => {
     if (!selected || !editForm.amount || !editForm.days) return null;

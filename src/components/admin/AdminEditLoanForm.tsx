@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiListAdminNotes, type UserSession, type AdminNoteItem } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { type EditForm } from './adminEditTypes';
-import { fmtRate } from '@/lib/loanRate';
+import { fmtRate, TARIFFS, TARIFF_KEYS, getTariff, buildSchedule } from '@/lib/loanRate';
 
 const BANKS = [
   { name: 'Сбербанк', icon: '🟢' },
@@ -117,6 +117,33 @@ const AdminEditLoanForm = ({
         </Select>
       </div>
 
+      {/* Тариф */}
+      <div className="space-y-1.5">
+        <Label>Тариф</Label>
+        <Select
+          value={editForm.tariff || 'none'}
+          onValueChange={(v) => {
+            const key = v === 'none' ? '' : v;
+            const t = getTariff(key);
+            let days = editForm.days;
+            if (t) {
+              const d = parseInt(days) || 0;
+              if (d < t.minDays) days = String(t.minDays);
+              if (d > t.maxDays) days = String(t.maxDays);
+            }
+            setEditForm({ ...editForm, tariff: key, days });
+          }}
+        >
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Без тарифа (стандартная ставка)</SelectItem>
+            {TARIFF_KEYS.map((k) => (
+              <SelectItem key={k} value={k}>{TARIFFS[k].name} · {fmtRate(TARIFFS[k].rate)} в день · {TARIFFS[k].description}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Сумма и срок */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
@@ -127,7 +154,7 @@ const AdminEditLoanForm = ({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="edit-days">Срок (дней)</Label>
-          <Input id="edit-days" type="number" min={1} max={365}
+          <Input id="edit-days" type="number" min={getTariff(editForm.tariff)?.minDays ?? 1} max={getTariff(editForm.tariff)?.maxDays ?? 365}
             value={editForm.days}
             onChange={(e) => setEditForm({ ...editForm, days: e.target.value })} />
         </div>
@@ -166,11 +193,17 @@ const AdminEditLoanForm = ({
           penaltyTotal = Math.round(contract.amt * 0.01) * daysOverdue;
         }
         const totalWithPenalty = contract.total + insuranceSum + penaltyTotal;
+        const tariffObj = getTariff(editForm.tariff);
+        const schedule = tariffObj?.weekly ? buildSchedule(selected.money_sent_at || selected.created_at, contract.total + insuranceSum, contract.dys, tariffObj) : [];
         return (
           <div className={`rounded-xl border p-4 text-sm space-y-2 ${isOverdue ? 'bg-red-50 border-red-200' : 'bg-accent/5 border-accent/20'}`}>
             <div className="flex items-center justify-between">
               <p className={`text-xs font-semibold uppercase tracking-widest ${isOverdue ? 'text-red-600' : 'text-accent'}`}>Расчёт займа</p>
-              {repeatClient && (
+              {tariffObj ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
+                  Тариф {tariffObj.name}
+                </span>
+              ) : repeatClient && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700">
                   <Icon name="RefreshCw" size={10} /> Повторный займ
                 </span>
@@ -186,7 +219,7 @@ const AdminEditLoanForm = ({
             </div>
             <div className="flex justify-between">
               <span className={isOverdue ? 'text-red-600' : 'text-muted-foreground'}>Ставка</span>
-              <span className={`font-medium ${isOverdue ? 'text-red-700' : ''}`}>{fmtRate(loanRate)} / день{repeatClient ? ' · акционная' : ''}</span>
+              <span className={`font-medium ${isOverdue ? 'text-red-700' : ''}`}>{fmtRate(loanRate)} / день{!tariffObj && repeatClient ? ' · акционная' : ''}</span>
             </div>
             <div className="flex justify-between">
               <span className={isOverdue ? 'text-red-600' : 'text-muted-foreground'}>Переплата</span>
@@ -214,6 +247,19 @@ const AdminEditLoanForm = ({
               <span className={`font-semibold ${isOverdue ? 'text-red-700' : 'text-primary'}`}>{isOverdue ? 'К возврату с пеней' : 'К возврату'}</span>
               <span className={`font-bold text-base ${isOverdue ? 'text-red-700' : 'text-primary'}`}>{fmt(totalWithPenalty)} ₽</span>
             </div>
+            {schedule.length > 1 && (
+              <div className="border-t border-accent/20 pt-2">
+                <p className="mb-1 text-xs text-muted-foreground">Платёж раз в неделю: {schedule.length} × ≈{fmt(schedule[0].amount)} ₽</p>
+                <div className="max-h-32 space-y-0.5 overflow-y-auto text-xs">
+                  {schedule.map((p) => (
+                    <div key={p.num} className="flex justify-between">
+                      <span className="text-muted-foreground">{p.num}. {p.date.toLocaleDateString('ru-RU')}</span>
+                      <span className="font-medium">{fmt(p.amount)} ₽</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
       })()}
