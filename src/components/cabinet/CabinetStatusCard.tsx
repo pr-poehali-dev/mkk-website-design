@@ -264,6 +264,7 @@ const CabinetStatusCard = ({
   const [codeSent, setCodeSent] = useState(false);
   const [codeError, setCodeError] = useState('');
   const [enteredCode, setEnteredCode] = useState('');
+  const [signError, setSignError] = useState('');
   const [codeVerifying, setCodeVerifying] = useState(false);
 
   const handleSignClick = async () => {
@@ -301,6 +302,7 @@ const CabinetStatusCard = ({
   };
 
   const handleConfirmSign = async () => {
+    setSignError('');
     if (!enteredCode) { setCodeError('Введите код из письма'); return; }
     setCodeVerifying(true);
     setCodeError('');
@@ -324,8 +326,9 @@ const CabinetStatusCard = ({
         const fresh = await apiGetRequest(user.ref_number);
         saveSession(fresh);
         setUser(fresh);
-      } catch (_e) {
+      } catch (e: unknown) {
         setContractSigned(false);
+        setSignError(e instanceof Error ? e.message : 'Не удалось подписать договор. Попробуйте ещё раз');
       } finally {
         setSigning(false);
       }
@@ -776,6 +779,11 @@ const CabinetStatusCard = ({
                   : <span className="flex items-center gap-2">Получить деньги <Icon name="ArrowRight" size={17} /></span>
                 }
               </Button>
+              {signError && (
+                <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-red-600">
+                  <Icon name="AlertCircle" size={14} className="shrink-0" /> {signError}
+                </p>
+              )}
               <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
                 Нажимая на кнопку «Получить деньги» я подтверждаю, что ознакомлен с условиями договора займа
               </p>

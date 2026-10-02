@@ -12,6 +12,21 @@ const URLS = {
   notifications: 'https://functions.poehali.dev/12de820d-b0b0-429a-8e74-07540c902a56',
 };
 
+const NETWORK_ERROR_TEXT = 'Нет связи с сервером. Проверьте интернет и попробуйте ещё раз';
+
+async function fetchRetry(url: string, init?: RequestInit, retries = 2): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fetch(url, init);
+    } catch (e) {
+      lastError = e;
+      if (attempt < retries) await new Promise((r) => setTimeout(r, 700 * (attempt + 1)));
+    }
+  }
+  throw new Error(lastError instanceof TypeError ? NETWORK_ERROR_TEXT : (lastError instanceof Error ? lastError.message : NETWORK_ERROR_TEXT));
+}
+
 const ADMIN_TOKEN = 'admin_zaimy_plus';
 const SESSION_KEY = 'zaimy_session';
 
@@ -76,7 +91,7 @@ export function clearSession() {
 }
 
 export async function apiSendVerificationCode(email: string, purpose: 'register' | 'sign' | 'email_change', ref_number?: string): Promise<void> {
-  const res = await fetch(URLS.verify, {
+  const res = await fetchRetry(URLS.verify, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'send_code', email, purpose, ref_number }),
@@ -86,7 +101,7 @@ export async function apiSendVerificationCode(email: string, purpose: 'register'
 }
 
 export async function apiVerifyCode(email: string, purpose: 'register' | 'sign' | 'email_change', code: string): Promise<void> {
-  const res = await fetch(URLS.verify, {
+  const res = await fetchRetry(URLS.verify, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'verify_code', email, purpose, code }),
@@ -156,7 +171,7 @@ export async function apiSubmitAccessRequest(data: {
 }
 
 export async function apiGetRequest(ref: string): Promise<UserSession> {
-  const res = await fetch(`${URLS.get}?ref=${encodeURIComponent(ref)}`);
+  const res = await fetchRetry(`${URLS.get}?ref=${encodeURIComponent(ref)}`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Не найдено');
   return json as UserSession;
@@ -191,7 +206,7 @@ export async function apiUpdateRequest(data: {
   insurance_enabled?: boolean;
   tariff?: string | null;
 }): Promise<void> {
-  const res = await fetch(URLS.status, {
+  const res = await fetchRetry(URLS.status, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
     body: JSON.stringify(data),
