@@ -8,6 +8,7 @@ import { MaintenanceScreen, SuccessScreen, CheckingScreen, EmailConfirmScreen } 
 import AnketaProgress, { STEPS } from '@/components/anketa/AnketaProgress';
 import { PersonalStep, PassportStep, LoanStep } from '@/components/anketa/AnketaFormSteps';
 import { PhotosStep, AddressStep } from '@/components/anketa/AnketaDocsSteps';
+import AnketaTrust from '@/components/anketa/AnketaTrust';
 
 const Anketa = () => {
   const { maintenance } = useMaintenance();
@@ -266,10 +267,11 @@ const Anketa = () => {
         </div>
       </header>
 
-      <main className="container max-w-2xl px-4 py-10 md:max-w-3xl md:py-14">
+      <main className="container max-w-5xl px-4 py-10 md:py-14">
         <AnketaProgress step={step} />
 
-        <div className="animate-fade-up rounded-2xl border border-border bg-card/40 p-6 backdrop-blur-md sm:p-8">
+        <div className="grid gap-6 lg:grid-cols-[1fr_280px] lg:items-start">
+        <div className="animate-fade-up rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
           <h1 className="font-display mb-6 text-2xl font-bold text-primary">{STEPS[step - 1].title}</h1>
 
           {apiError && (
@@ -343,6 +345,8 @@ const Anketa = () => {
           {step === 5 && (
             <AddressStep f4={f4} setF4={setF4} codeSending={codeSending} onSubmit={handleSendEmailCode} />
           )}
+        </div>
+        <AnketaTrust />
         </div>
       </main>
     </div>

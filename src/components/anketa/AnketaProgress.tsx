@@ -14,7 +14,7 @@ const AnketaProgress = ({ step }: { step: number }) => (
       {STEPS.map((s) => (
         <div key={s.n} className="flex flex-1 flex-col items-center gap-1.5">
           <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-all ${
-            step > s.n ? 'bg-accent text-accent-foreground' :
+            step > s.n ? 'bg-primary/80 text-primary-foreground' :
             step === s.n ? 'bg-primary text-primary-foreground' :
             'bg-secondary text-muted-foreground'
           }`}>
@@ -30,7 +30,7 @@ const AnketaProgress = ({ step }: { step: number }) => (
       ))}
     </div>
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-      <div className="h-full rounded-full bg-accent transition-all duration-500"
+      <div className="h-full rounded-full bg-primary transition-all duration-500"
         style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }} />
     </div>
     <p className="mt-3 text-center text-sm text-muted-foreground">Шаг {step} из {STEPS.length} — {STEPS[step - 1].title}</p>

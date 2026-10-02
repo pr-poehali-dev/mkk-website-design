@@ -1,8 +1,7 @@
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import CameraCapture from '@/components/anketa/CameraCapture';
+import AnketaField from '@/components/anketa/AnketaField';
 import { formatPhone } from '@/lib/phone';
 
 const SELFIE_EXAMPLE_URL = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/e014475b-6ad6-4982-9ef6-ccfa2cf49809.jpg';
@@ -56,19 +55,19 @@ export const PhotosStep = ({
     </div>
 
     <div className="space-y-3">
-      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-        <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-800">
+      <div className="rounded-xl border border-border bg-secondary p-4">
+        <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary">
           <Icon name="Info" size={16} className="shrink-0" /> Как сделать фото с кодом
         </p>
-        <ol className="ml-1 space-y-1.5 text-sm text-blue-700">
-          <li>1. Напишите код <span className="rounded bg-white px-1.5 py-0.5 font-mono font-bold text-blue-900">{selfieCode}</span> крупно на листе бумаги</li>
+        <ol className="ml-1 space-y-1.5 text-sm text-muted-foreground">
+          <li>1. Напишите код <span className="rounded bg-white px-1.5 py-0.5 font-mono font-bold text-primary">{selfieCode}</span> крупно на листе бумаги</li>
           <li>2. Сфотографируйте своё лицо с этим листком рядом (как на примере)</li>
           <li>3. Убедитесь, что лицо и код хорошо видны</li>
         </ol>
-        <div className="mt-3 overflow-hidden rounded-lg border border-blue-200">
+        <div className="mt-3 overflow-hidden rounded-lg border border-border">
           <img src={SELFIE_EXAMPLE_URL} alt="Пример фото с кодом" className="w-full object-cover" />
         </div>
-        <p className="mt-2 text-center text-xs text-blue-600">Пример фото</p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">Пример фото</p>
       </div>
 
       <CameraCapture
@@ -98,12 +97,12 @@ export const PhotosStep = ({
     </div>
 
     {(passportChecking || selfieChecking || incomeChecking) && (
-      <p className="flex items-center gap-1.5 text-center text-xs text-blue-600">
+      <p className="flex items-center gap-1.5 text-center text-xs text-muted-foreground">
         <Icon name="Loader2" size={13} className="shrink-0 animate-spin" /> Дождитесь окончания проверки фото, чтобы продолжить
       </p>
     )}
 
-    <Button size="lg" className="mt-2 h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
+    <Button size="lg" className="mt-2 h-12 w-full rounded-lg bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
       disabled={passportChecking || selfieChecking || incomeChecking}
       onClick={() => {
         if (!passportFile) { setApiError('Сделайте фото паспорта'); return; }
@@ -132,44 +131,32 @@ export const AddressStep = ({ f4, setF4, codeSending, onSubmit }: AddressStepPro
     <form onSubmit={onSubmit} className="space-y-5">
       <fieldset className="space-y-4">
         <legend className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          <Icon name="MapPin" size={15} className="text-accent" /> Адрес
+          <Icon name="MapPin" size={15} className="text-primary" /> Адрес
         </legend>
-        <div className="space-y-1.5">
-          <Label htmlFor="address_residence">Место проживания *</Label>
-          <Input id="address_residence" placeholder="г. Москва, ул. Ленина, д. 1, кв. 1"
-            value={f4.address_residence} onChange={upd4('address_residence')} required />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="address_registration">Адрес регистрации (прописки)</Label>
-          <Input id="address_registration" placeholder="Совпадает с местом проживания или укажите другой"
-            value={f4.address_registration} onChange={upd4('address_registration')} />
-        </div>
+        <AnketaField id="address_residence" label="Место проживания *" icon="Home" placeholder="г. Москва, ул. Ленина, д. 1, кв. 1" autoComplete="street-address"
+          value={f4.address_residence} onChange={upd4('address_residence')} required />
+        <AnketaField id="address_registration" label="Адрес регистрации (прописки)" icon="MapPin" placeholder="Совпадает с местом проживания или укажите другой"
+          value={f4.address_registration} onChange={upd4('address_registration')} />
       </fieldset>
 
       <fieldset className="space-y-4">
         <legend className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          <Icon name="Briefcase" size={15} className="text-accent" /> Место работы
+          <Icon name="Briefcase" size={15} className="text-primary" /> Место работы
         </legend>
-        <div className="space-y-1.5">
-          <Label htmlFor="work_place">Организация и должность *</Label>
-          <Input id="work_place" placeholder="ООО «Компания», менеджер"
-            value={f4.work_place} onChange={upd4('work_place')} required />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="work_phone">Телефон работы</Label>
-          <Input id="work_phone" type="tel" placeholder="+7 (___) ___-__-__"
-            value={f4.work_phone} onChange={handleWorkPhone}
-            onFocus={() => { if (!f4.work_phone) setF4({ ...f4, work_phone: '+7 ' }); }} />
-        </div>
+        <AnketaField id="work_place" label="Организация и должность *" icon="Building2" placeholder="ООО «Компания», менеджер"
+          value={f4.work_place} onChange={upd4('work_place')} required />
+        <AnketaField id="work_phone" label="Телефон работы" icon="Phone" type="tel" inputMode="tel" placeholder="+7 (___) ___-__-__"
+          value={f4.work_phone} onChange={handleWorkPhone}
+          onFocus={() => { if (!f4.work_phone) setF4({ ...f4, work_phone: '+7 ' }); }} />
       </fieldset>
 
-      <div className="rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
-        <Icon name="ShieldCheck" size={16} className="mr-1.5 inline text-accent" />
+      <div className="rounded-xl border border-border bg-secondary p-4 text-sm text-muted-foreground">
+        <Icon name="ShieldCheck" size={16} className="mr-1.5 inline text-primary" />
         Ваши данные передаются по защищённому соединению и не передаются третьим лицам.
       </div>
 
       <Button type="submit" size="lg" disabled={codeSending}
-        className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-60">
+        className="h-12 w-full rounded-lg bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
         {codeSending ? (
           <span className="flex items-center gap-2">
             <Icon name="Loader2" size={18} className="animate-spin" />
