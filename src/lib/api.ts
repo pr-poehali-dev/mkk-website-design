@@ -772,6 +772,9 @@ export interface AccessRequestItem {
   created_at: string | null;
   processed_at: string | null;
   admin_comment: string | null;
+  new_password: string | null;
+  admin_reply: string | null;
+  replied_at: string | null;
 }
 
 export async function apiGetAccessRequests(): Promise<AccessRequestItem[]> {
@@ -795,4 +798,15 @@ export async function apiUpdateAccessRequest(data: {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка');
+}
+
+export async function apiReplyAccessRequest(id: number, reply: string): Promise<{ email_sent: boolean }> {
+  const res = await fetch(URLS.login, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'admin_reply_access_request', id, reply }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as { email_sent: boolean };
 }

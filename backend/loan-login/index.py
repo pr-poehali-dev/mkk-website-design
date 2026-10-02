@@ -56,11 +56,41 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
 
-    if body.get('action') in ('admin_list_access_requests', 'admin_update_access_request'):
+    if body.get('action') in ('admin_list_access_requests', 'admin_update_access_request', 'admin_reply_access_request'):
         if req_headers.get('x-admin-token', '') != 'admin_zaimy_plus':
             return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
+        if body['action'] == 'admin_reply_access_request':
+            req_id = int(body.get('id') or 0)
+            reply = (body.get('reply') or '').strip()
+            if not req_id or not reply:
+                conn.close()
+                return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Введите текст ответа'})}
+            cur.execute(f"SELECT ref_number, full_name, email FROM {SCHEMA}.access_requests WHERE id = %s", (req_id,))
+            row = cur.fetchone()
+            if not row:
+                conn.close()
+                return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Обращение не найдено'})}
+            ref_number, full_name, client_email = row
+            cur.execute(f"UPDATE {SCHEMA}.access_requests SET admin_reply = %s, replied_at = NOW() WHERE id = %s", (reply, req_id))
+            cur.execute(f"SELECT phone FROM {SCHEMA}.loan_requests WHERE ref_number = %s LIMIT 1", (ref_number,))
+            ph = cur.fetchone()
+            if ph and ph[0]:
+                cur.execute(
+                    f"INSERT INTO {SCHEMA}.notifications (phone, type, title, message) VALUES (%s, 'support', 'Ответ по смене пароля', %s)",
+                    (ph[0], reply)
+                )
+            conn.commit()
+            conn.close()
+            email_sent = False
+            if client_email:
+                try:
+                    send_mail(client_email, 'Ответ по заявке на смену пароля', f"Здравствуйте, {full_name}!\n\n{reply}\n\nС уважением,\nЗаймы-плюс.рф")
+                    email_sent = True
+                except Exception as e:
+                    print(f'[loan-login] reply mail error: {e}')
+            return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True, 'email_sent': email_sent})}
         if body['action'] == 'admin_update_access_request':
             req_id = int(body.get('id') or 0)
             status = body.get('status')
@@ -68,7 +98,7 @@ def handler(event: dict, context) -> dict:
             if status not in (None, 'new', 'approved', 'rejected'):
                 conn.close()
                 return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неверный статус'})}
-            cur.execute(f"SELECT ref_number, new_password_hash, status FROM {SCHEMA}.access_requests WHERE id = %s", (req_id,))
+            cur.execute(f"SELECT ref_number, new_password_hash, status, new_password_plain FROM {SCHEMA}.access_requests WHERE id = %s", (req_id,))
             row = cur.fetchone()
             if not row:
                 conn.close()
@@ -84,8 +114,8 @@ def handler(event: dict, context) -> dict:
                 sets.append('processed_at = NOW()' if status != 'new' else 'processed_at = NULL')
                 if status == 'approved' and row[2] != 'approved':
                     cur.execute(
-                        f"UPDATE {SCHEMA}.loan_requests SET password_hash = %s, password_plain = NULL WHERE ref_number = %s",
-                        (row[1], row[0])
+                        f"UPDATE {SCHEMA}.loan_requests SET password_hash = %s, password_plain = %s WHERE ref_number = %s",
+                        (row[1], row[3], row[0])
                     )
             if sets:
                 vals.append(req_id)
@@ -95,17 +125,18 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
         cur.execute(
             f"""SELECT a.id, a.ref_number, a.full_name, a.passport, a.snils, a.selfie_url, a.email, a.status,
-                       a.created_at, a.admin_comment, a.processed_at, l.phone
+                       a.created_at, a.admin_comment, a.processed_at, l.phone, a.new_password_plain, a.admin_reply, a.replied_at
                 FROM {SCHEMA}.access_requests a
                 LEFT JOIN LATERAL (SELECT phone FROM {SCHEMA}.loan_requests WHERE ref_number = a.ref_number LIMIT 1) l ON true
                 ORDER BY a.created_at DESC"""
         )
-        cols = ['id', 'ref_number', 'full_name', 'passport', 'snils', 'selfie_url', 'email', 'status', 'created_at', 'admin_comment', 'processed_at', 'phone']
+        cols = ['id', 'ref_number', 'full_name', 'passport', 'snils', 'selfie_url', 'email', 'status', 'created_at', 'admin_comment', 'processed_at', 'phone', 'new_password', 'admin_reply', 'replied_at']
         items = []
         for r in cur.fetchall():
             d = dict(zip(cols, r))
             d['created_at'] = d['created_at'].isoformat() if d['created_at'] else None
             d['processed_at'] = d['processed_at'].isoformat() if d['processed_at'] else None
+            d['replied_at'] = d['replied_at'].isoformat() if d['replied_at'] else None
             items.append(d)
         conn.close()
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps(items)}
@@ -134,9 +165,9 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Клиент с такими паспортными данными не найден'})}
         ref_number, client_email, client_phone = row
         cur.execute(
-            f"""INSERT INTO {SCHEMA}.access_requests (ref_number, full_name, passport, snils, selfie_url, new_password_hash, email)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-            (ref_number, full_name, passport, snils, selfie_url, hash_password(new_password), client_email)
+            f"""INSERT INTO {SCHEMA}.access_requests (ref_number, full_name, passport, snils, selfie_url, new_password_hash, new_password_plain, email)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+            (ref_number, full_name, passport, snils, selfie_url, hash_password(new_password), new_password, client_email)
         )
         conn.commit()
         conn.close()
