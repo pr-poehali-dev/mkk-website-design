@@ -2,12 +2,33 @@
 import json
 import os
 import hashlib
+import re
+import smtplib
 import psycopg2
+from email.mime.text import MIMEText
+from email.utils import formatdate, formataddr
 
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
 
 def hash_password(pwd: str) -> str:
     return hashlib.sha256(pwd.encode()).hexdigest()
+
+SMTP_HOST = 'smtp.yandex.ru'
+SMTP_PORT = 465
+BRAND = 'Частные займы плюс'
+
+
+def send_mail(to_email: str, subject: str, text: str) -> None:
+    login = os.environ['SMTP_LOGIN']
+    msg = MIMEText(text, 'plain', 'utf-8')
+    msg['Subject'] = subject
+    msg['From'] = formataddr((BRAND, login))
+    msg['To'] = to_email
+    msg['Date'] = formatdate(localtime=True)
+    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+        server.login(login, os.environ['SMTP_PASSWORD'])
+        server.sendmail(login, [to_email], msg.as_string())
+
 
 def handler(event: dict, context) -> dict:
     headers = {'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token'}
@@ -34,6 +55,55 @@ def handler(event: dict, context) -> dict:
         conn.commit()
         conn.close()
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
+
+    if body.get('action') == 'access_request':
+        full_name = (body.get('full_name') or '').strip()
+        new_password = (body.get('new_password') or '').strip()
+        passport = re.sub(r'\D', '', body.get('passport') or '')
+        snils = re.sub(r'\D', '', body.get('snils') or '')
+        selfie_url = (body.get('selfie_url') or '').strip()
+        if len(full_name.split()) < 2 or len(passport) != 10 or len(snils) != 11 or not selfie_url:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Заполните все поля и прикрепите селфи'})}
+        if len(new_password) < 4:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Пароль должен быть не менее 4 символов'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT ref_number, email, phone FROM {SCHEMA}.loan_requests
+                WHERE regexp_replace(COALESCE(passport, ''), '[^0-9]', '', 'g') = %s
+                ORDER BY created_at DESC LIMIT 1""",
+            (passport,)
+        )
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return {'statusCode': 404, 'headers': headers, 'body': json.dumps({'error': 'Клиент с такими паспортными данными не найден'})}
+        ref_number, client_email, client_phone = row
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.access_requests (ref_number, full_name, passport, snils, selfie_url, new_password_hash, email)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+            (ref_number, full_name, passport, snils, selfie_url, hash_password(new_password), client_email)
+        )
+        conn.commit()
+        conn.close()
+        operator_text = (
+            f"Новая заявка на смену пароля и номера телефона\n\n"
+            f"Заявка клиента: {ref_number}\nФИО: {full_name}\nТелефон в системе: {client_phone}\n"
+            f"Паспорт: {passport[:4]} {passport[4:]}\nСНИЛС: {snils}\nСелфи с паспортом: {selfie_url}\n"
+        )
+        try:
+            send_mail(os.environ['SMTP_LOGIN'], f'Заявка на смену пароля {ref_number}', operator_text)
+            if client_email:
+                send_mail(
+                    client_email,
+                    'Номер телефона будет изменён',
+                    f"Здравствуйте, {full_name}!\n\nМы получили вашу заявку на смену пароля. "
+                    f"В связи с этим номер телефона, привязанный к вашему кабинету, будет изменён после проверки данных оператором. "
+                    f"Если вы не отправляли эту заявку — срочно свяжитесь с нами.\n\nС уважением,\nЗаймы-плюс.рф"
+                )
+        except Exception as e:
+            print(f'[loan-login] mail error: {e}')
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True, 'email_sent': bool(client_email)})}
 
     if body.get('action') == 'change_password':
         phone = body.get('phone', '').strip()

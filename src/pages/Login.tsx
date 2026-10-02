@@ -9,6 +9,7 @@ import CaptchaField from '@/components/ui/captcha-field';
 import { apiLogin, saveSession } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { formatPhone } from '@/lib/phone';
+import AccessRecoveryDialog from '@/components/login/AccessRecoveryDialog';
 
 const Login = () => {
   const { maintenance, companyPhone } = useMaintenance();
@@ -19,6 +20,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [captchaValue, setCaptchaValue] = useState('');
   const [captchaValid, setCaptchaValid] = useState(false);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +88,11 @@ const Login = () => {
             </Button>
           </form>
 
+          <button type="button" onClick={() => setRecoveryOpen(true)}
+            className="mt-4 w-full text-center text-sm font-medium text-accent hover:underline">
+            Сменить пароль
+          </button>
+
           {!maintenance && (
             <p className="mt-5 text-center text-sm text-muted-foreground">
               Нет заявки? <Link to="/anketa" className="font-medium text-accent hover:underline">Оформить займ</Link>
@@ -99,7 +106,7 @@ const Login = () => {
           </p>
         </div>
 
-
+        <AccessRecoveryDialog open={recoveryOpen} onOpenChange={setRecoveryOpen} />
       </div>
     </div>
   );

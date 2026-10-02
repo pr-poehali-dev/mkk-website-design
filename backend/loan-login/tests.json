@@ -12,6 +12,13 @@
       "path": "/",
       "body": {"phone": "+70000000000", "password": "wrong"},
       "expectedStatus": 401
+    },
+    {
+      "name": "Access request validation",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "access_request", "full_name": "A"},
+      "expectedStatus": 400
     }
   ]
 }

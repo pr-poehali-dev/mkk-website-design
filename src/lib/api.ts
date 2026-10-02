@@ -142,6 +142,19 @@ export async function apiLogin(phone: string, password: string): Promise<UserSes
   return json as UserSession;
 }
 
+export async function apiSubmitAccessRequest(data: {
+  full_name: string; new_password: string; passport: string; snils: string; selfie_url: string;
+}): Promise<{ email_sent: boolean }> {
+  const res = await fetch(URLS.login, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'access_request', ...data }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось отправить заявку');
+  return json as { email_sent: boolean };
+}
+
 export async function apiGetRequest(ref: string): Promise<UserSession> {
   const res = await fetch(`${URLS.get}?ref=${encodeURIComponent(ref)}`);
   const json = await res.json();
