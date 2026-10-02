@@ -8,24 +8,14 @@ import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from '@/components/admin/contractHtml';
 import { getLoanRate, fmtRate } from '@/lib/loanRate';
+import BankPicker from '@/components/BankPicker';
+import BankLogo from '@/components/BankLogo';
+import { normalizeBankName } from '@/lib/banks';
 import {
   buildDebtClearanceCertificateHtml,
   buildPersonalDataConsentHtml,
   buildDataTransferConsentHtml,
 } from '@/components/admin/documentTemplates';
-
-const BANKS = [
-  { name: 'Сбербанк', icon: '🟢' },
-  { name: 'Тинькофф', icon: '🟡' },
-  { name: 'ВТБ', icon: '🔵' },
-  { name: 'Альфа-Банк', icon: '🔴' },
-  { name: 'Газпромбанк', icon: '🔷' },
-  { name: 'Россельхозбанк', icon: '🟩' },
-  { name: 'Почта Банк', icon: '📮' },
-  { name: 'Совкомбанк', icon: '🟠' },
-  { name: 'Открытие', icon: '🌐' },
-  { name: 'Другой банк', icon: '🏦' },
-];
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -305,21 +295,10 @@ const CabinetDialogs = ({
             <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center">
               <Icon name="CheckCircle2" size={28} className="mx-auto mb-2 text-green-600" />
               <p className="font-semibold text-green-700">Банк сохранён</p>
-              <p className="mt-1 text-sm text-green-600">{selectedBank}</p>
+              <div className="mt-2 flex items-center justify-center gap-2"><BankLogo name={selectedBank} size={28} /><p className="text-sm text-green-600">{normalizeBankName(selectedBank)}</p></div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2">
-              {BANKS.map((bank) => (
-                <button
-                  key={bank.name}
-                  onClick={() => setSelectedBank(bank.name)}
-                  className={`flex items-center gap-2 rounded-xl border px-3 py-3 text-left text-sm font-medium transition-colors ${selectedBank === bank.name ? 'border-accent bg-accent/10 text-primary' : 'border-border bg-card text-primary hover:bg-secondary'}`}>
-                  <span className="text-base">{bank.icon}</span>
-                  <span className="leading-tight">{bank.name}</span>
-                  {selectedBank === bank.name && <Icon name="Check" size={14} className="ml-auto text-accent" />}
-                </button>
-              ))}
-            </div>
+            <BankPicker selected={selectedBank} onSelect={setSelectedBank} />
           )}
           {!bankSaved && (
             <Button

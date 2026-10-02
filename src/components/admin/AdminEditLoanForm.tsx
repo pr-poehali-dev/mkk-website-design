@@ -9,19 +9,9 @@ import { apiUpdateRequest, apiListAdminNotes, type UserSession, type AdminNoteIt
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { type EditForm } from './adminEditTypes';
 import { fmtRate, TARIFFS, TARIFF_KEYS, getTariff, buildSchedule } from '@/lib/loanRate';
-
-const BANKS = [
-  { name: 'Сбербанк', icon: '🟢' },
-  { name: 'Тинькофф', icon: '🟡' },
-  { name: 'ВТБ', icon: '🔵' },
-  { name: 'Альфа-Банк', icon: '🔴' },
-  { name: 'Газпромбанк', icon: '🔷' },
-  { name: 'Россельхозбанк', icon: '🟩' },
-  { name: 'Почта Банк', icon: '📮' },
-  { name: 'Совкомбанк', icon: '🟠' },
-  { name: 'Открытие', icon: '🌐' },
-  { name: 'Другой банк', icon: '🏦' },
-];
+import BankPicker from '@/components/BankPicker';
+import BankLogo from '@/components/BankLogo';
+import { normalizeBankName } from '@/lib/banks';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -308,8 +298,8 @@ const AdminEditLoanForm = ({
         {editForm.payment_bank ? (
           <div className="flex items-center justify-between rounded-xl border border-accent/40 bg-accent/5 px-4 py-3">
             <div className="flex items-center gap-2 text-sm font-medium text-primary">
-              <Icon name="Smartphone" size={16} className="text-accent" />
-              {BANKS.find(b => b.name === editForm.payment_bank)?.icon} {editForm.payment_bank} · СБП
+              <BankLogo name={editForm.payment_bank} size={28} />
+              {normalizeBankName(editForm.payment_bank)} · СБП
             </div>
             <button onClick={() => setEditForm({ ...editForm, payment_bank: '' })}
               className="text-xs text-muted-foreground hover:text-red-500">Сбросить</button>
@@ -317,17 +307,7 @@ const AdminEditLoanForm = ({
         ) : (
           <p className="text-sm text-muted-foreground italic">Клиент ещё не выбрал банк</p>
         )}
-        <div className="grid grid-cols-2 gap-1.5">
-          {BANKS.map((bank) => (
-            <button key={bank.name}
-              onClick={() => setEditForm({ ...editForm, payment_bank: bank.name })}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${editForm.payment_bank === bank.name ? 'border-accent bg-accent/10 text-primary' : 'border-border bg-card text-primary hover:bg-secondary'}`}>
-              <span>{bank.icon}</span>
-              <span>{bank.name}</span>
-              {editForm.payment_bank === bank.name && <Icon name="Check" size={12} className="ml-auto text-accent" />}
-            </button>
-          ))}
-        </div>
+        <BankPicker selected={editForm.payment_bank || null} onSelect={(name) => setEditForm({ ...editForm, payment_bank: name })} maxHeightClass="max-h-64" />
       </div>
 
       {/* Комментарий оператора */}

@@ -13,19 +13,8 @@ import CameraCapture from '@/components/anketa/CameraCapture';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { getLoanRate, fmtRate, getTariff } from '@/lib/loanRate';
 import { useState, useEffect } from 'react';
-
-const BANKS = [
-  { name: 'Сбербанк', icon: '🟢' },
-  { name: 'Тинькофф', icon: '🟡' },
-  { name: 'ВТБ', icon: '🔵' },
-  { name: 'Альфа-Банк', icon: '🔴' },
-  { name: 'Газпромбанк', icon: '🔷' },
-  { name: 'Россельхозбанк', icon: '🟩' },
-  { name: 'Почта Банк', icon: '📮' },
-  { name: 'Совкомбанк', icon: '🟠' },
-  { name: 'Открытие', icon: '🌐' },
-  { name: 'Другой банк', icon: '🏦' },
-];
+import BankLogo from '@/components/BankLogo';
+import { normalizeBankName } from '@/lib/banks';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -732,7 +721,7 @@ const CabinetStatusCard = ({
                     {selectedBank && <Icon name="Check" size={16} className="text-accent-foreground" />}
                   </div>
                   {selectedBank
-                    ? <span className="text-sm font-semibold text-primary">{BANKS.find(b => b.name === selectedBank)?.icon} СБП · {selectedBank}</span>
+                    ? <span className="flex items-center gap-2 text-sm font-semibold text-primary"><BankLogo name={selectedBank} size={24} /> СБП · {normalizeBankName(selectedBank)}</span>
                     : <span className="text-sm font-semibold text-orange-600">Выберите способ получения</span>
                   }
                 </div>
@@ -762,7 +751,7 @@ const CabinetStatusCard = ({
                   <p className="font-display font-bold text-primary text-base">Ожидайте зачисления</p>
                   <p className="text-sm text-muted-foreground mt-1">Деньги поступят на вашу карту <span className="font-semibold text-primary">в течение 15 минут</span></p>
                   {selectedBank && (
-                    <p className="mt-2 text-xs text-muted-foreground">Перевод через СБП · {selectedBank}</p>
+                    <p className="mt-2 text-xs text-muted-foreground">Перевод через СБП · {normalizeBankName(selectedBank)}</p>
                   )}
                 </div>
               </div>
@@ -810,7 +799,7 @@ const CabinetStatusCard = ({
                 <p className="font-display font-bold text-primary text-base">Ожидайте зачисления средств</p>
                 <p className="text-sm text-muted-foreground mt-1">Деньги поступят на вашу карту <span className="font-semibold text-primary">в течение 15 минут</span></p>
                 {user.payment_bank && (
-                  <p className="mt-2 text-xs text-muted-foreground">Перевод через СБП · {user.payment_bank}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">Перевод через СБП · {normalizeBankName(user.payment_bank)}</p>
                 )}
               </div>
             </div>
@@ -837,7 +826,7 @@ const CabinetStatusCard = ({
                 <p className="font-display font-bold text-emerald-700 text-lg">Деньги выданы!</p>
                 <p className="text-sm text-emerald-600 mt-1">Средства зачислены на вашу карту</p>
                 {user.payment_bank && (
-                  <p className="mt-1 text-xs text-muted-foreground">{user.payment_bank} · СБП</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{normalizeBankName(user.payment_bank)} · СБП</p>
                 )}
                 <div className="mt-3 rounded-lg bg-white border border-emerald-200 px-4 py-2 inline-block">
                   <p className="text-2xl font-bold text-emerald-600">{fmt(user.amount)} ₽</p>
