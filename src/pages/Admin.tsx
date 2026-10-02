@@ -283,7 +283,7 @@ const Admin = () => {
             const filtered = requests.filter((r) => {
               if (statusFilter && r.status !== statusFilter) return false;
               if (tab === 'active' && !['review', 'approved', 'issued', 'money_sent', 'overdue'].includes(r.status)) return false;
-              if (tab === 'rejected' && !['rejected', 'transfer_error'].includes(r.status)) return false;
+              if (tab === 'rejected' && !['rejected', 'transfer_error', 'client_declined'].includes(r.status)) return false;
               if (tab === 'closed' && r.status !== 'repaid') return false;
               if (!search.trim()) return true;
               const q = search.trim().toLowerCase();

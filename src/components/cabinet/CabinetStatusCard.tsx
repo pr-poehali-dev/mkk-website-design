@@ -106,7 +106,7 @@ const CabinetStatusCard = ({
   const handleDecline = async () => {
     setDeclining(true);
     try {
-      await apiUpdateRequest({ ref_number: user.ref_number, status: 'rejected' });
+      await apiUpdateRequest({ ref_number: user.ref_number, status: 'client_declined' });
       const fresh = await apiGetRequest(user.ref_number);
       saveSession(fresh);
       setUser(fresh);
@@ -442,7 +442,7 @@ const CabinetStatusCard = ({
           </div>
         )}
 
-        {status !== 'rejected' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' && status !== 'photo_request' && status !== 'overdue' && status !== 'review' ? (
+        {status !== 'rejected' && status !== 'client_declined' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' && status !== 'photo_request' && status !== 'overdue' && status !== 'review' ? (
           <div className="flex items-start p-4 gap-0">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
@@ -564,6 +564,25 @@ const CabinetStatusCard = ({
                 <span>Написать в чат поддержки</span>
               </a>
             </div>
+          </div>
+        ) : status === 'client_declined' ? (
+          <div className="p-6">
+            <div className="rounded-2xl border-2 border-rose-200 bg-rose-50 p-6 text-center">
+              <div className="mb-4 flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rose-100">
+                  <Icon name="CircleAlert" size={34} className="text-rose-600" />
+                </div>
+              </div>
+              <p className="font-display text-xl font-bold text-rose-700">Вы отказались от займа</p>
+              <p className="mt-2 text-sm text-rose-600">Заполните заявку повторно, если захотите оформить заём.</p>
+            </div>
+            <Button
+              className="mt-4 h-12 w-full bg-accent font-semibold text-accent-foreground hover:bg-accent/90"
+              onClick={() => setShowCalc(true)}
+            >
+              <Icon name="RefreshCw" size={18} className="mr-2 shrink-0" />
+              Заполнить заявку повторно
+            </Button>
           </div>
         ) : status === 'rejected' ? (
           <div className="p-6 space-y-4">

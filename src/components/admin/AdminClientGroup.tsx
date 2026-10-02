@@ -27,6 +27,13 @@ const badge = (status: string) => {
       </span>
     );
   }
+  if (status === 'client_declined') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-700">
+        <Icon name="CircleAlert" size={10} /> Отказ клиента
+      </span>
+    );
+  }
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700">
       <Icon name="FilePlus" size={10} /> Новая заявка

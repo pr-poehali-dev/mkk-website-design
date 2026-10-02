@@ -169,7 +169,7 @@ def handler(event: dict, context) -> dict:
     if existing:
         ex_status = existing[1]
         ex_phone = existing[5]
-        if ex_status not in ('repaid', 'rejected'):
+        if ex_status not in ('repaid', 'rejected', 'client_declined'):
             # Клиент с такими данными уже зарегистрирован и имеет активную заявку
             conn.close()
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({
