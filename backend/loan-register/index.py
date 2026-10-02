@@ -252,6 +252,35 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return {'statusCode': 500, 'headers': headers, 'body': json.dumps({'error': 'Не удалось сгенерировать номер заявки. Попробуйте ещё раз.'})}
 
+    if existing:
+        photo_pairs = (
+            ('passport_photo_url', 'passport_photo_status'),
+            ('registration_photo_url', 'registration_photo_status'),
+            ('selfie_photo_url', 'selfie_photo_status'),
+            ('card_photo_url', 'card_photo_status'),
+            ('snils_photo_url', 'snils_photo_status'),
+            ('income_doc_url', 'income_doc_status'),
+        )
+        cols = ', '.join(c for pair in photo_pairs for c in pair)
+        cur.execute(f"SELECT {cols} FROM {SCHEMA}.loan_requests WHERE id = %s", (existing[0],))
+        old = cur.fetchone()
+        cur.execute(f"SELECT {cols} FROM {SCHEMA}.loan_requests WHERE id = %s", (row[0],))
+        fresh = cur.fetchone()
+        if old and fresh:
+            sets = []
+            vals = []
+            for i, (url_f, status_f) in enumerate(photo_pairs):
+                old_url, old_status = old[i * 2], old[i * 2 + 1]
+                new_url = fresh[i * 2]
+                if not new_url and old_url:
+                    sets.append(f'{url_f} = %s')
+                    vals.append(old_url)
+                    sets.append(f'{status_f} = %s')
+                    vals.append(old_status or 'pending')
+            if sets:
+                vals.append(row[0])
+                cur.execute(f"UPDATE {SCHEMA}.loan_requests SET {', '.join(sets)} WHERE id = %s", vals)
+
     email_settings = get_system_email_settings(cur)
     conn.commit()
     conn.close()

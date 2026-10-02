@@ -9,6 +9,7 @@ import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from '@/components/admin/contractHtml';
 import { getLoanRate, fmtRate } from '@/lib/loanRate';
 import BankPicker from '@/components/BankPicker';
+import CabinetDocPhotos from '@/components/cabinet/CabinetDocPhotos';
 import BankLogo from '@/components/BankLogo';
 import { normalizeBankName } from '@/lib/banks';
 import {
@@ -589,74 +590,7 @@ const CabinetDialogs = ({
               </div>
             )}
 
-            {/* Фото документов — загрузка клиентом */}
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Фото документов</p>
-              <div className="space-y-2">
-                {(
-                  [
-                    { field: 'passport_photo_url' as const, statusField: 'passport_photo_status' as const, label: 'Фото паспорта', hint: 'Разворот с фотографией', uploadable: true },
-                    { field: 'registration_photo_url' as const, statusField: 'registration_photo_status' as const, label: 'Фото регистрации', hint: 'Страница с пропиской', uploadable: true },
-                    { field: 'selfie_photo_url' as const, statusField: 'selfie_photo_status' as const, label: 'Фото с кодом', hint: 'Селфи с кодом на бумаге', uploadable: false },
-                    { field: 'card_photo_url' as const, statusField: 'card_photo_status' as const, label: 'Фото банковской карты', hint: 'Лицевая сторона карты', uploadable: true },
-                    { field: 'snils_photo_url' as const, statusField: 'snils_photo_status' as const, label: 'Фото СНИЛС', hint: 'СНИЛС полностью', uploadable: true },
-                    { field: 'income_doc_url' as const, statusField: 'income_doc_status' as const, label: 'Справка о доходах', hint: 'С места работы', uploadable: true },
-                  ]
-                ).filter(({ field, uploadable }) => uploadable || user[field]).map(({ field, statusField, label, hint, uploadable }) => {
-                  const url = user[field];
-                  const docStatus = user[statusField];
-                  const isLoading = docUploading === field;
-                  const isSaved = docSaved === field;
-                  const isApproved = docStatus === 'approved';
-                  const isRejected = docStatus === 'rejected';
-                  const isPending = url && docStatus === 'pending';
-                  return (
-                    <div key={field} className={`rounded-xl border bg-card overflow-hidden ${isRejected ? 'border-red-300' : isApproved ? 'border-green-300' : isPending ? 'border-orange-300' : 'border-border'}`}>
-                      {url && (
-                        <a href={url} target="_blank" rel="noopener noreferrer" className="block border-b border-border bg-black/5">
-                          <img src={url} alt={label} className="max-h-40 w-full object-contain" />
-                        </a>
-                      )}
-                      <div className="flex items-center gap-3 p-3">
-                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${isApproved ? 'bg-green-100 text-green-600' : isRejected ? 'bg-red-100 text-red-500' : isPending ? 'bg-orange-100 text-orange-500' : 'bg-primary/10 text-primary'}`}>
-                          <Icon name={isApproved ? 'BadgeCheck' : isRejected ? 'XCircle' : isPending ? 'Clock' : 'FileImage'} size={18} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-primary">{label}</p>
-                          {isApproved && <p className="text-xs font-semibold text-green-600">Принято ✓</p>}
-                          {isRejected && <p className="text-xs font-semibold text-red-500">{uploadable ? 'Отклонено — загрузите снова' : 'Отклонено'}</p>}
-                          {isPending && <p className="text-xs text-orange-600">На проверке...</p>}
-                          {!url && <p className="text-xs text-muted-foreground">{hint}</p>}
-                        </div>
-                      </div>
-                      {uploadable && (
-                        <label className={`flex cursor-pointer items-center justify-center gap-2 border-t border-border px-3 py-2 text-xs transition-colors ${isLoading ? 'pointer-events-none bg-secondary text-muted-foreground' : 'hover:bg-accent/5 text-accent'}`}>
-                          {isLoading
-                            ? <><Icon name="Loader2" size={13} className="animate-spin" /> Загрузка...</>
-                            : isSaved
-                              ? <><Icon name="Check" size={13} className="text-green-600" /> <span className="text-green-600">Отправлено на проверку</span></>
-                              : <><Icon name="Upload" size={13} /> {url ? 'Заменить файл' : 'Загрузить'}</>}
-                          <input type="file" accept="image/*,application/pdf" className="hidden"
-                            disabled={isLoading}
-                            onChange={e => { const f = e.target.files?.[0]; if (f) handleUploadDoc(f, field); e.target.value = ''; }} />
-                        </label>
-                      )}
-                    </div>
-                  );
-                })}
-                {user.doc_urls && user.doc_urls.length > 0 && (
-                  <div className="pt-1">
-                    <p className="mb-1.5 text-xs text-muted-foreground">Документы от оператора:</p>
-                    {user.doc_urls.map((url, i) => (
-                      <a key={url} href={url} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-accent hover:underline mb-1">
-                        <Icon name="FileImage" size={13} /> Документ {i + 1}
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <CabinetDocPhotos user={user} docUploading={docUploading} docSaved={docSaved} onUpload={handleUploadDoc} />
 
             {/* Документы и согласия */}
             <div>
