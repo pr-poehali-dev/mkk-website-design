@@ -21,6 +21,9 @@ const CameraCapture = ({
 }: Props) => {
   const [active, setActive] = useState(false);
   const [error, setError] = useState('');
+  const [facing, setFacing] = useState<'environment' | 'user'>('environment');
+  const [expanded, setExpanded] = useState(false);
+  const [switching, setSwitching] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -29,23 +32,50 @@ const CameraCapture = ({
     streamRef.current = null;
   };
 
+  const openStream = async (mode: 'environment' | 'user') => {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: mode } },
+      audio: false,
+    });
+    streamRef.current = stream;
+    return stream;
+  };
+
+  const attach = (stream: MediaStream) => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
   const startCamera = async () => {
     setError('');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-        audio: false,
-      });
-      streamRef.current = stream;
+      const stream = await openStream(facing);
       setActive(true);
-      requestAnimationFrame(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(() => {});
-        }
-      });
+      requestAnimationFrame(() => attach(stream));
     } catch {
       setError('Не удалось получить доступ к камере. Разрешите доступ к камере в браузере.');
+    }
+  };
+
+  const switchCamera = async () => {
+    const next = facing === 'environment' ? 'user' : 'environment';
+    setSwitching(true);
+    stopStream();
+    try {
+      const stream = await openStream(next);
+      setFacing(next);
+      attach(stream);
+    } catch {
+      try {
+        const stream = await openStream(facing);
+        attach(stream);
+      } catch {
+        setError('Не удалось переключить камеру');
+      }
+    } finally {
+      setSwitching(false);
     }
   };
 
@@ -64,12 +94,14 @@ const CameraCapture = ({
       onCapture(file);
       stopStream();
       setActive(false);
+      setExpanded(false);
     }, 'image/jpeg', 0.92);
   };
 
   const cancel = () => {
     stopStream();
     setActive(false);
+    setExpanded(false);
   };
 
   useEffect(() => () => stopStream(), []);
@@ -79,10 +111,29 @@ const CameraCapture = ({
       <p className="text-sm font-medium text-primary">{label}</p>
 
       <Dialog open={active} onOpenChange={(open) => { if (!open) cancel(); }}>
-        <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-black p-0 sm:h-[92vh] sm:w-[95vw] sm:max-w-2xl sm:rounded-2xl">
+        <DialogContent className={`flex h-[100dvh] w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-black p-0 ${expanded ? 'sm:h-[100dvh] sm:w-screen sm:max-w-none sm:rounded-none' : 'sm:h-[92vh] sm:w-[95vw] sm:max-w-2xl sm:rounded-2xl'}`}>
           <DialogTitle className="sr-only">{label}</DialogTitle>
           <div className="relative flex-1 overflow-hidden bg-black">
-            <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
+            <video ref={videoRef} playsInline muted className={`h-full w-full object-cover ${facing === 'user' ? '-scale-x-100' : ''}`} />
+            <div className="absolute left-3 top-3 z-10 flex gap-2">
+              <button
+                type="button"
+                onClick={switchCamera}
+                disabled={switching}
+                className="flex h-11 items-center gap-1.5 rounded-full bg-black/60 px-4 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-black/80 disabled:opacity-50"
+              >
+                <Icon name="SwitchCamera" size={18} className={switching ? 'animate-spin' : ''} />
+                {facing === 'environment' ? 'Фронтальная' : 'Основная'}
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="absolute right-3 top-3 z-10 hidden h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition-colors hover:bg-black/80 sm:flex"
+              aria-label={expanded ? 'Свернуть камеру' : 'Развернуть камеру'}
+            >
+              <Icon name={expanded ? 'Minimize2' : 'Maximize2'} size={18} />
+            </button>
           </div>
           <div className="flex gap-2 bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <Button type="button" variant="outline" className="h-12 flex-1" onClick={cancel}>
