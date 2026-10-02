@@ -442,7 +442,7 @@ const CabinetStatusCard = ({
           </div>
         )}
 
-        {status !== 'rejected' && status !== 'client_declined' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' && status !== 'photo_request' && status !== 'overdue' && status !== 'review' ? (
+        {status !== 'rejected' && status !== 'awaiting_call' && status !== 'client_declined' && status !== 'transfer_error' && status !== 'repaid' && status !== 'money_sent' && status !== 'approved' && status !== 'photo_request' && status !== 'overdue' && status !== 'review' ? (
           <div className="flex items-start p-4 gap-0">
             {steps.map((s, i) => {
               const done = activeStep >= i + 1;
@@ -563,6 +563,27 @@ const CabinetStatusCard = ({
                 <Icon name="MessageCircle" size={18} className="shrink-0" />
                 <span>Написать в чат поддержки</span>
               </a>
+            </div>
+          </div>
+        ) : status === 'awaiting_call' ? (
+          <div className="p-6">
+            <div className="rounded-2xl border-2 border-sky-200 bg-sky-50 p-6 text-center">
+              <div className="mb-5 flex justify-center">
+                <div className="relative flex h-24 w-24 items-center justify-center">
+                  <span className="absolute inset-0 animate-ping rounded-full bg-sky-300/50" />
+                  <span className="absolute inset-2 animate-pulse rounded-full bg-sky-200" />
+                  <span className="relative flex h-16 w-16 animate-phone-ring items-center justify-center rounded-full border-4 border-white bg-sky-500 shadow-lg shadow-sky-300">
+                    <Icon name="Phone" size={30} className="text-white" />
+                  </span>
+                  <span className="absolute -right-1 top-1 animate-bounce text-lg">🎵</span>
+                  <span className="absolute -left-1 bottom-2 animate-bounce text-lg [animation-delay:300ms]">📞</span>
+                </div>
+              </div>
+              <p className="font-display text-xl font-bold text-sky-800">Ожидайте звонка</p>
+              <p className="mt-2 text-sm text-sky-700">Ожидайте звонка специалиста для подтверждения данных</p>
+              <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-white px-4 py-2 text-sm text-sky-700">
+                <Icon name="Phone" size={14} /> {user.phone}
+              </div>
             </div>
           </div>
         ) : status === 'client_declined' ? (

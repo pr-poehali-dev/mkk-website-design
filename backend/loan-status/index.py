@@ -11,11 +11,11 @@ import boto3
 
 SCHEMA = os.environ['MAIN_DB_SCHEMA']
 ADMIN_TOKEN = 'admin_zaimy_plus'
-VALID_STATUSES = ('review', 'approved', 'issued', 'money_sent', 'rejected', 'transfer_error', 'repaid', 'photo_request', 'overdue', 'client_declined')
+VALID_STATUSES = ('review', 'approved', 'issued', 'money_sent', 'rejected', 'transfer_error', 'repaid', 'photo_request', 'overdue', 'client_declined', 'awaiting_call')
 STATUS_LABELS = {
     'review': 'На скоринге', 'approved': 'Одобрено', 'issued': 'Договор подписан',
     'money_sent': 'Деньги выданы', 'rejected': 'Отказано', 'transfer_error': 'Ошибка перевода',
-    'repaid': 'Займ погашен', 'photo_request': 'Запрос фото', 'overdue': 'Просрочка', 'client_declined': 'Отказ клиента',
+    'repaid': 'Займ погашен', 'photo_request': 'Запрос фото', 'overdue': 'Просрочка', 'client_declined': 'Отказ клиента', 'awaiting_call': 'Ожидает звонка',
 }
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465

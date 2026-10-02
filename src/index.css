@@ -228,3 +228,16 @@
   animation: flame-flicker 1.1s ease-in-out infinite;
   transform-origin: bottom center;
 }
+
+
+@keyframes phone-ring {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  10%, 30%, 50% { transform: rotate(-18deg) scale(1.08); }
+  20%, 40%, 60% { transform: rotate(18deg) scale(1.08); }
+  70% { transform: rotate(0deg) scale(1); }
+}
+
+.animate-phone-ring {
+  animation: phone-ring 1.8s ease-in-out infinite;
+  transform-origin: center;
+}

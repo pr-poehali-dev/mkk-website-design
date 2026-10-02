@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-export type StatusKey = 'review' | 'approved' | 'issued' | 'money_sent' | 'rejected' | 'transfer_error' | 'repaid' | 'photo_request' | 'overdue' | 'client_declined';
+export type StatusKey = 'review' | 'approved' | 'issued' | 'money_sent' | 'rejected' | 'transfer_error' | 'repaid' | 'photo_request' | 'overdue' | 'client_declined' | 'awaiting_call';
 
 export interface LoanRequest {
   id: string;
@@ -24,6 +24,7 @@ export const STATUS_META: Record<StatusKey, { label: string; icon: string; color
   repaid: { label: 'Займ погашен', icon: 'BadgeDollarSign', color: 'text-teal-600', bg: 'bg-teal-100', step: 5, border: 'border-teal-400', dot: 'bg-teal-500', cardBg: 'bg-teal-50/60' },
   photo_request: { label: 'Запрос фото', icon: 'Camera', color: 'text-purple-600', bg: 'bg-purple-100', step: 0, border: 'border-purple-400', dot: 'bg-purple-500', cardBg: 'bg-purple-50/60' },
   client_declined: { label: 'Отказ клиента', icon: 'CircleAlert', color: 'text-rose-600', bg: 'bg-rose-100', step: 0, border: 'border-rose-400', dot: 'bg-rose-500', cardBg: 'bg-rose-50/60' },
+  awaiting_call: { label: 'Ожидает звонка', icon: 'PhoneCall', color: 'text-sky-600', bg: 'bg-sky-100', step: 1, border: 'border-sky-400', dot: 'bg-sky-500', cardBg: 'bg-sky-50/60' },
   overdue: { label: 'Просрочка', icon: 'AlertCircle', color: 'text-red-700', bg: 'bg-red-100', step: 4, border: 'border-red-500', dot: 'bg-red-600', cardBg: 'bg-red-50/60' },
 };
 
