@@ -98,6 +98,14 @@ const Appeal = () => {
               <p className="mt-3 text-sm text-muted-foreground sm:text-base">
                 Защита прав клиентов — наш приоритет! Благодаря вашим обращениям мы выявляем и реагируем на мошеннические случаи, обеспечивая безопасность и уверенность при взаимодействии с нашей компанией
               </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-card/80 px-3 py-1.5 text-xs font-medium text-primary shadow-sm">
+                  <Icon name="ShieldCheck" size={14} className="text-accent" /> Конфиденциально
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-card/80 px-3 py-1.5 text-xs font-medium text-primary shadow-sm">
+                  <Icon name="Clock" size={14} className="text-accent" /> Ответ до 12 рабочих дней
+                </span>
+              </div>
             </div>
             <img src={HERO_IMG} alt="Обращение в поддержку" className="hidden h-32 w-32 shrink-0 object-contain sm:block sm:h-40 sm:w-40" />
           </div>
@@ -111,25 +119,35 @@ const Appeal = () => {
           </p>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl bg-card p-5">
-              <p className="text-sm text-muted-foreground">Обращение на электронную почту общества</p>
-              <a href={`mailto:${companyEmail}`} className="mt-1 block font-semibold text-primary hover:text-accent transition-colors">
-                {companyEmail}
-              </a>
+            <div className="flex items-start gap-3 rounded-2xl border border-transparent bg-card p-5 transition-all hover:border-accent/50 hover:shadow-md">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
+                <Icon name="Mail" size={20} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm text-muted-foreground">Обращение на электронную почту общества</p>
+                <a href={`mailto:${companyEmail}`} className="mt-1 block break-all font-semibold text-primary hover:text-accent transition-colors">
+                  {companyEmail}
+                </a>
+              </div>
             </div>
-            <div className="rounded-2xl bg-card p-5">
-              <p className="text-sm text-muted-foreground">Письменное обращение на почтовый адрес</p>
-              <p className="mt-1 font-semibold text-red-700">Сервис не доступен </p>
+            <div className="flex items-start gap-3 rounded-2xl bg-card p-5 opacity-80">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                <Icon name="MailX" size={20} />
+              </span>
+              <div>
+                <p className="text-sm text-muted-foreground">Письменное обращение на почтовый адрес</p>
+                <p className="mt-1 font-semibold text-red-700">Сервис не доступен</p>
+              </div>
             </div>
           </div>
 
-          <div className="mt-4 flex items-start gap-3 rounded-2xl bg-card p-5">
-            <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Icon name="AlertCircle" size={14} />
+          <div className="mt-4 flex items-start gap-3 rounded-2xl border-l-4 border-accent bg-card p-5">
+            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+              <Icon name="Clock" size={15} />
             </div>
             <div className="text-sm text-muted-foreground leading-relaxed">
               <p>Максимальный срок рассмотрения вашего обращения <span className="font-semibold text-primary">12 рабочих дней с даты его регистрации</span>. Для некоторых типов обращений предусмотрен более короткий срок рассмотрения.</p>
-              <p className="mt-2">Ответ на обращение будет направлен указанную электронную почту или почтовый адрес</p>
+              <p className="mt-2">Ответ на обращение будет направлен на указанную электронную почту или почтовый адрес</p>
             </div>
           </div>
         </div>
