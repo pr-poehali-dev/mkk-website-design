@@ -550,19 +550,39 @@ const CabinetStatusCard = ({
             </div>
           </div>
         ) : status === 'transfer_error' ? (
-          <div className="p-6 space-y-4">
-            <p className="text-sm text-muted-foreground">При переводе средств произошла ошибка. Пожалуйста, свяжитесь с нами удобным способом — мы решим вопрос в кратчайшие сроки.</p>
-            <div className="flex flex-col gap-2">
-              <a href="tel:+74999610736"
-                className="flex items-center gap-3 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-medium text-orange-700 hover:bg-orange-100 transition-colors">
-                <Icon name="Phone" size={18} className="shrink-0" />
-                <span>Позвонить: +7(499)961-07-36</span>
-              </a>
-              <a href="https://t.me/zaimyplus_support" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors">
-                <Icon name="MessageCircle" size={18} className="shrink-0" />
-                <span>Написать в чат поддержки</span>
-              </a>
+          <div className="p-6">
+            <div className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-card p-5">
+              <div className="flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-orange-100">
+                  <Icon name="TriangleAlert" size={22} className="text-orange-600" />
+                </span>
+                <div>
+                  <p className="font-display text-base font-bold text-orange-800">Ошибка при переводе</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Пожалуйста, свяжитесь с нами удобным способом — мы решим вопрос в кратчайшие сроки.</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <a href="tel:+74999610736"
+                  className="group flex items-center gap-3 rounded-xl border border-orange-200 bg-white px-4 py-3 text-sm font-medium text-orange-700 transition-all hover:border-orange-300 hover:shadow-sm">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-100 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                    <Icon name="Phone" size={16} />
+                  </span>
+                  <span className="leading-tight">
+                    <span className="block text-[11px] font-normal text-muted-foreground">Позвонить</span>
+                    +7(499)961-07-36
+                  </span>
+                </a>
+                <a href="https://t.me/zaimyplus_support" target="_blank" rel="noopener noreferrer"
+                  className="group flex items-center gap-3 rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-medium text-blue-700 transition-all hover:border-blue-300 hover:shadow-sm">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 transition-colors group-hover:bg-blue-500 group-hover:text-white">
+                    <Icon name="MessageCircle" size={16} />
+                  </span>
+                  <span className="leading-tight">
+                    <span className="block text-[11px] font-normal text-muted-foreground">Telegram</span>
+                    Чат поддержки
+                  </span>
+                </a>
+              </div>
             </div>
           </div>
         ) : status === 'awaiting_call' ? (
