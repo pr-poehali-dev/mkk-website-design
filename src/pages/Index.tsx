@@ -443,8 +443,10 @@ const Index = () => {
       </section>
 
       {/* CTA */}
-      <section className="relative mx-4 mb-8 overflow-hidden rounded-[2.5rem] bg-gradient-to-b from-secondary to-secondary/40 md:mx-auto md:max-w-5xl">
+      <section className="relative mx-4 mb-8 overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-secondary via-background to-accent/15 md:mx-auto md:max-w-5xl">
         <div className="absolute inset-0 hero-grid opacity-40" />
+        <div className="pointer-events-none absolute -right-16 bottom-0 h-72 w-72 rounded-full bg-accent/25 blur-3xl" />
+        <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
 
         {/* Плавающие звёзды-декор */}
         <Icon name="Sparkle" size={56} className="animate-float-coin pointer-events-none absolute right-[10%] top-[6%] fill-primary text-primary opacity-80 md:right-[16%] md:top-[8%]" />
@@ -469,10 +471,10 @@ const Index = () => {
                 Временно недоступно
               </Button>
             ) : (
-              <Button asChild size="lg" className="mt-7 h-14 w-full rounded-full bg-primary px-10 text-base font-bold text-primary-foreground hover:bg-primary/90 md:w-auto">
+              <Button asChild size="lg" className="group mt-7 h-14 w-full rounded-full bg-accent px-10 text-base font-bold text-accent-foreground shadow-lg shadow-accent/40 transition-all hover:-translate-y-0.5 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/50 md:w-auto">
                 <Link to="/anketa">
                   Получить деньги
-                  <Icon name="ArrowRight" size={18} className="ml-2" />
+                  <Icon name="ArrowRight" size={18} className="ml-2 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
             )}
@@ -488,10 +490,10 @@ const Index = () => {
             <img
               src="/assets/hero-person-savings.png"
               alt="Девушка с телефоном оформляет займ"
-              className="pointer-events-none relative z-10 mx-auto h-auto w-full max-w-[260px] object-contain md:max-w-full"
+              className="pointer-events-none relative z-10 mx-auto h-auto w-full max-w-[260px] object-contain drop-shadow-2xl md:max-w-full"
             />
 
-            <div className="absolute -right-2 top-0 z-20 w-[68%] rounded-2xl border border-border/60 bg-card p-3 shadow-xl sm:-right-4">
+            <div className="animate-float-coin absolute -right-2 top-0 z-20 w-[72%] rounded-2xl border border-border/60 bg-card/95 p-3.5 shadow-xl backdrop-blur sm:-right-6">
               <div className="flex items-center gap-2 text-xs font-medium text-primary sm:text-sm">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent">
                   <Icon name="Check" size={12} />
@@ -512,13 +514,13 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="absolute bottom-[6%] -left-2 z-20 flex items-center gap-2 rounded-2xl border border-border/60 bg-card px-3 py-2.5 shadow-xl sm:-left-4">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <Icon name="Sparkles" size={18} />
+            <div className="animate-float-coin-2 absolute bottom-[6%] -left-2 z-20 flex items-center gap-3 rounded-2xl border border-border/60 bg-card/95 px-3.5 py-3 shadow-xl backdrop-blur sm:-left-6">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+                <Icon name="Sparkles" size={20} />
               </div>
               <div>
                 <p className="text-[10px] text-muted-foreground">Зачисление от <span className="font-semibold text-primary">ЗП</span></p>
-                <p className="font-display text-base font-bold text-primary">+30 000 ₽</p>
+                <p className="font-display text-lg font-bold text-primary">+30 000 ₽</p>
               </div>
             </div>
           </div>
