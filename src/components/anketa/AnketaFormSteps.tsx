@@ -7,7 +7,7 @@ import { formatPhone } from '@/lib/phone';
 export type PersonalForm = {
   lastname: string; firstname: string; middlename: string; phone: string; password: string; birth_date: string; email: string;
 };
-export type PassportForm = { series: string; issued: string; issued_date: string };
+export type PassportForm = { series: string; issued: string; issued_date: string; snils: string; inn: string };
 
 const NextButton = ({ onClick }: { onClick: () => void }) => (
   <Button size="lg" className="mt-2 h-12 w-full rounded-lg bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
@@ -20,6 +20,14 @@ const formatPassport = (raw: string) => {
   const d = raw.replace(/\D/g, '').slice(0, 10);
   return d.length > 4 ? `${d.slice(0, 4)} ${d.slice(4)}` : d;
 };
+
+const formatSnils = (raw: string) => {
+  const d = raw.replace(/\D/g, '').slice(0, 11);
+  const a = d.slice(0, 3), b = d.slice(3, 6), c = d.slice(6, 9), e = d.slice(9);
+  return [a, b, c].filter(Boolean).join('-') + (e ? ` ${e}` : '');
+};
+
+const formatInn = (raw: string) => raw.replace(/\D/g, '').slice(0, 12);
 
 const isEmailValid = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
@@ -84,8 +92,19 @@ export const PassportStep = ({ f2, setF2, setApiError, next }: PassportStepProps
       </div>
       <AnketaField id="issued" label="Кем выдан *" icon="Building2" placeholder="ОВД района..."
         value={f2.issued} onChange={upd2('issued')} required />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <AnketaField id="snils" label="СНИЛС *" icon="IdCard" inputMode="numeric" placeholder="000-000-000 00"
+          value={f2.snils} onChange={(e) => setF2({ ...f2, snils: formatSnils(e.target.value) })}
+          error={f2.snils && f2.snils.replace(/\D/g, '').length !== 11 ? 'СНИЛС состоит из 11 цифр' : undefined} required />
+        <AnketaField id="inn" label="ИНН *" icon="Hash" inputMode="numeric" placeholder="12 цифр"
+          value={f2.inn} onChange={(e) => setF2({ ...f2, inn: formatInn(e.target.value) })}
+          error={f2.inn && f2.inn.length !== 12 ? 'ИНН физлица состоит из 12 цифр' : undefined} required />
+      </div>
 
-      <NextButton onClick={() => { if (f2.series && f2.issued) next(); else setApiError('Заполните серию/номер и кем выдан'); }} />
+      <NextButton onClick={() => { if (!f2.series || !f2.issued) setApiError('Заполните серию/номер и кем выдан');
+        else if (f2.snils.replace(/\D/g, '').length !== 11) setApiError('Введите СНИЛС полностью (11 цифр)');
+        else if (f2.inn.length !== 12) setApiError('Введите ИНН полностью (12 цифр)');
+        else next(); }} />
     </div>
   );
 };

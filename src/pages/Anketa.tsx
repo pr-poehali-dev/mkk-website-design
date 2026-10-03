@@ -23,7 +23,7 @@ const Anketa = () => {
   // Step 1
   const [f1, setF1] = useState({ lastname: '', firstname: '', middlename: '', phone: '', password: '', birth_date: '', email: '' });
   // Step 2
-  const [f2, setF2] = useState({ series: '', issued: '', issued_date: '' });
+  const [f2, setF2] = useState({ series: '', issued: '', issued_date: '', snils: '', inn: '' });
   const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
   const [passportFile, setPassportFile] = useState<File | null>(null);
   const [passportChecking, setPassportChecking] = useState(false);
@@ -193,6 +193,8 @@ const Anketa = () => {
         selfie_photo_url,
         existing_loans_count: Number(existingLoansCount),
         existing_debt_amount: Number(existingDebtAmount),
+        snils: f2.snils.replace(/\D/g, ''),
+        inn: f2.inn,
       });
 
       try {

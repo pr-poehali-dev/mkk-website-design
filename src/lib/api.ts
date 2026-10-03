@@ -48,6 +48,8 @@ export interface UserSession {
   address_registration?: string;
   work_place?: string;
   work_phone?: string;
+  snils?: string | null;
+  inn?: string | null;
   income_doc_url?: string;
   payment_bank?: string | null;
   is_blocked?: boolean;
@@ -118,6 +120,7 @@ export async function apiRegister(data: {
   work_place?: string; work_phone?: string; income_doc_url?: string;
   email: string; passport_photo_url?: string; selfie_photo_url?: string;
   existing_loans_count?: number; existing_debt_amount?: number;
+  snils?: string; inn?: string;
 }) {
   const res = await fetch(URLS.register, {
     method: 'POST',
