@@ -72,13 +72,16 @@ const CabinetDialogs = ({
   const downloadContract = () => {
     const sigCode = localStorage.getItem(`sig_code_${user.ref_number}`) || undefined;
     const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate, sigCode, companyName, companyInn, companyOgrn, loanRate);
-    const blob = new Blob([html], { type: 'text/html' });
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `Договор_${contractCode}.html`;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const clientDocData = {
@@ -95,13 +98,16 @@ const CabinetDialogs = ({
 
   const downloadDoc = (build: (c: typeof clientDocData, companyName?: string, companyInn?: string, companyOgrn?: string) => string, fileName: string) => {
     const html = build(clientDocData, companyName, companyInn, companyOgrn);
-    const blob = new Blob([html], { type: 'text/html' });
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = fileName;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -636,18 +642,19 @@ const CabinetDialogs = ({
                     fileName: `Согласие_на_передачу_ПД_${user.ref_number}.html`,
                   },
                 ].map((doc) => (
-                  <div key={doc.key} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon name={doc.icon} size={17} />
+                  <div key={doc.key} className="group flex items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-shadow hover:shadow-sm">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                      <Icon name={doc.icon} size={20} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-primary">{doc.title}</p>
-                      <p className="text-xs text-muted-foreground">{doc.hint}</p>
+                      <p className="text-sm font-semibold leading-snug text-primary">{doc.title}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{doc.hint}</p>
                     </div>
                     <button
                       onClick={() => downloadDoc(doc.build, doc.fileName)}
-                      className="shrink-0 flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-accent hover:bg-accent/5 transition-colors">
-                      <Icon name="Download" size={13} /> Скачать
+                      aria-label={`Скачать: ${doc.title}`}
+                      className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-accent px-3 text-xs font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
+                      <Icon name="Download" size={14} /> Скачать
                     </button>
                   </div>
                 ))}

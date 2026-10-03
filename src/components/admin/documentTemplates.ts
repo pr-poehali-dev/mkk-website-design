@@ -88,25 +88,31 @@ export function buildDebtClearanceCertificateHtml(client?: ClientDocData, compan
   const isOverdue = client?.status === 'overdue';
   const redStyle = 'color:#dc2626;font-weight:bold';
 
-  const contractLine = hasLoan
+  const contractLine = hasLoan && (client?.status === 'repaid' || client?.status === 'money_sent' || client?.status === 'overdue')
     ? `${val(client?.ref_number)} от ${val(client?.created_at ? client.created_at.slice(0, 10) : undefined)}`
     : '<b>отсутствует</b>';
 
-  const amountLine = hasLoan && client?.amount
+  const amountLine = hasLoan && client?.amount && (client?.status === 'repaid' || client?.status === 'money_sent' || client?.status === 'overdue')
     ? `<b>${fmt(client.amount)} ₽</b>`
     : '<b>отсутствует</b>';
 
+  const st = client?.status || '';
+  const isRepaid = st === 'repaid';
+  const isActive = st === 'money_sent';
+
   const statusParagraph = isOverdue
     ? `<p style="${redStyle}">по состоянию на ${today()} заёмщик имеет непогашенную просроченную задолженность по указанному договору займа. Задолженность по основному долгу, процентам, штрафам и пеням на дату выдачи настоящей справки <u>не отсутствует</u>.</p>`
-    : hasLoan
-      ? `<p>по состоянию на ${today()} исполнил(а) свои обязательства по указанному договору займа в полном объёме. Задолженность по основному долгу, процентам, штрафам и пеням на дату выдачи настоящей справки <b>отсутствует</b>.</p>`
-      : `<p>по состоянию на ${today()} не имеет действующих или непогашенных договоров займа с ${esc(companyName)}. Задолженность <b>отсутствует</b>.</p>`;
+    : isActive
+      ? `<p>по состоянию на ${today()} заёмщик имеет действующий договор займа. Просроченная задолженность <b>отсутствует</b>; обязательства исполняются в сроки, установленные договором. Займ на дату выдачи настоящей справки не погашен.</p>`
+      : isRepaid
+        ? `<p>по состоянию на ${today()} исполнил(а) свои обязательства по указанному договору займа в полном объёме. Задолженность по основному долгу, процентам, штрафам и пеням на дату выдачи настоящей справки <b>отсутствует</b>.</p>`
+        : `<p>по состоянию на ${today()} не имеет действующих или непогашенных договоров займа с ${esc(companyName)}. Задолженность <b>отсутствует</b>.</p>`;
 
   return wrap('Справка об отсутствии задолженности', `
 <h1>СПРАВКА</h1>
-<p class="center muted">${isOverdue ? 'о наличии задолженности по договору займа' : 'об отсутствии задолженности по договору займа'}</p>
+<p class="center muted">${isOverdue ? 'о наличии задолженности по договору займа' : isActive ? 'о состоянии задолженности по договору займа' : 'об отсутствии задолженности по договору займа'}</p>
 
-<p class="center">№ <span class="blank-sm"></span> от ${val(today())}</p>
+<p class="center">№ ${val(client?.ref_number ? 'СП-' + client.ref_number : undefined, 'blank-sm')} от ${val(today())}</p>
 
 <p>${esc(companyName)} (ИНН ${esc(companyInn)}, ОГРН ${esc(companyOgrn)}) настоящим подтверждает, что:</p>
 
