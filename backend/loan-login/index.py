@@ -135,6 +135,20 @@ def handler(event: dict, context) -> dict:
                     email_sent = True
                 except Exception as e:
                     print(f'[loan-login] approve mail error: {e}')
+            if status == 'rejected' and row[2] != 'rejected' and row[5]:
+                try:
+                    send_mail(
+                        row[5],
+                        'Заявка на смену пароля отклонена',
+                        f"Здравствуйте, {row[4]}!\n\nК сожалению, ваша заявка на смену пароля от личного кабинета отклонена. "
+                        f"Пароль остаётся прежним.\n\n"
+                        f"Если у вас остались вопросы или вы не отправляли эту заявку, свяжитесь с поддержкой:\n"
+                        f"Телефон: 8 499 961-07-36\nTelegram: https://t.me/zaimyplus_support\n"
+                        f"Режим работы: Пн–Пт 9:00–20:00, Сб 10:00–18:00, Вс выходной.\n\nС уважением,\nЗаймы-плюс.рф"
+                    )
+                    email_sent = True
+                except Exception as e:
+                    print(f'[loan-login] reject mail error: {e}')
             return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True, 'email_sent': email_sent})}
         cur.execute(
             f"""SELECT a.id, a.ref_number, a.full_name, a.passport, a.snils, a.selfie_url, a.email, a.status,

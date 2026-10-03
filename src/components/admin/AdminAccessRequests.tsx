@@ -46,6 +46,9 @@ const AdminAccessRequests = () => {
       if (status === 'approved') {
         setReplyInfo((p) => ({ ...p, [id]: r.email_sent ? 'Пароль изменён, клиенту отправлено письмо' : 'Пароль изменён. Письмо не отправлено (у клиента нет почты)' }));
       }
+      if (status === 'rejected') {
+        setReplyInfo((p) => ({ ...p, [id]: r.email_sent ? 'Заявка отклонена, клиенту отправлено письмо с контактами поддержки' : 'Заявка отклонена. Письмо не отправлено (у клиента нет почты)' }));
+      }
       await load();
     } finally {
       setBusyId(null);
