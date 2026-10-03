@@ -233,7 +233,7 @@ const CabinetDialogs = ({
     <>
       {/* Поп-ап меню */}
       <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
-        <DialogContent className="max-w-sm gap-0 overflow-hidden rounded-3xl border-0 p-0">
+        <DialogContent className="max-w-sm gap-0 overflow-hidden rounded-3xl border-0 p-0 [&>button]:z-10 [&>button]:text-primary-foreground [&>button]:opacity-80 [&>button:hover]:opacity-100">
           <DialogHeader className="sr-only">
             <DialogTitle>Меню</DialogTitle>
           </DialogHeader>
@@ -333,7 +333,7 @@ const CabinetDialogs = ({
 
       {/* Поп-ап Мои данные */}
       <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
-        <DialogContent className="max-w-sm gap-0 overflow-hidden rounded-3xl border-0 p-0">
+        <DialogContent className="max-w-sm gap-0 overflow-hidden rounded-3xl border-0 p-0 [&>button]:z-10 [&>button]:text-primary-foreground [&>button]:opacity-80 [&>button:hover]:opacity-100">
           <DialogHeader className="sr-only">
             <DialogTitle>Мои данные</DialogTitle>
           </DialogHeader>
