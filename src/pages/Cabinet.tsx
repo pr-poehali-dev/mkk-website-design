@@ -6,6 +6,7 @@ import { useMaintenance } from '@/lib/maintenanceContext';
 import CabinetHeader from '@/components/cabinet/CabinetHeader';
 import CabinetStatusCard from '@/components/cabinet/CabinetStatusCard';
 import CabinetDialogs from '@/components/cabinet/CabinetDialogs';
+import CabinetArticles from '@/components/cabinet/CabinetArticles';
 
 const PARTNERS_URL = 'https://topmain.ru/t4ze';
 const PARTNERS_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/6b9a90e2-d0a0-439e-8f2d-ee8d3c421ac9.jpg';
@@ -127,6 +128,8 @@ const Cabinet = () => {
           setSigning={setSigning}
           setUser={setUser}
         />
+
+        <CabinetArticles />
       </main>
 
       <CabinetDialogs

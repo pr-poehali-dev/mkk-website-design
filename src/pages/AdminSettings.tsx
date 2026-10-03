@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
+import AdminArticlesSettings from '@/components/admin/AdminArticlesSettings';
+import { parseCabinetArticles, type CabinetArticle } from '@/lib/cabinetArticles';
 import { apiGetSiteSettings, apiSaveSiteSettings, apiUploadFile } from '@/lib/api';
 import {
   DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_LOGO_URL, DEFAULT_CABINET_BANNER_URL, DEFAULT_COMPANY_INN, DEFAULT_COMPANY_OGRN,
@@ -20,6 +22,7 @@ const AdminSettings = () => {
   const [siteClosed, setSiteClosed] = useState(false);
   const [siteClosedSaving, setSiteClosedSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [articles, setArticles] = useState<CabinetArticle[]>([]);
   const [scoringEnabled, setScoringEnabled] = useState(false);
   const [scoringSaving, setScoringSaving] = useState(false);
   const [debtThreshold, setDebtThreshold] = useState(String(DEFAULT_DEBT_THRESHOLD));
@@ -79,6 +82,7 @@ const AdminSettings = () => {
         setPaymentInfoNote(s.payment_info_note || DEFAULT_PAYMENT_INFO_NOTE);
         setPaymentInfoLinkUrl(s.payment_info_link_url || DEFAULT_PAYMENT_INFO_LINK_URL);
         setPaymentInfoLinkText(s.payment_info_link_text || DEFAULT_PAYMENT_INFO_LINK_TEXT);
+        setArticles(parseCabinetArticles(s.cabinet_articles));
         setLoaded(true);
       });
     }
@@ -294,6 +298,8 @@ const AdminSettings = () => {
                 </div>
               </div>
             </div>
+
+            {loaded && <AdminArticlesSettings initial={articles} />}
 
             {/* Контакты */}
             <div className="mt-4 rounded-2xl border border-border bg-card p-4">

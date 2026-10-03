@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { apiGetSiteSettings } from '@/lib/api';
+import { parseCabinetArticles, DEFAULT_CABINET_ARTICLES, type CabinetArticle } from '@/lib/cabinetArticles';
 
 export const DEFAULT_COMPANY_NAME = 'КПК «Частные займы плюс»';
 export const DEFAULT_COMPANY_LOGO_URL = '';
@@ -35,6 +36,7 @@ interface MaintenanceState {
   paymentInfoNote: string;
   paymentInfoLinkUrl: string;
   paymentInfoLinkText: string;
+  cabinetArticles: CabinetArticle[];
 }
 
 const DEFAULT_STATE: MaintenanceState = {
@@ -55,6 +57,7 @@ const DEFAULT_STATE: MaintenanceState = {
   paymentInfoNote: DEFAULT_PAYMENT_INFO_NOTE,
   paymentInfoLinkUrl: DEFAULT_PAYMENT_INFO_LINK_URL,
   paymentInfoLinkText: DEFAULT_PAYMENT_INFO_LINK_TEXT,
+  cabinetArticles: DEFAULT_CABINET_ARTICLES,
 };
 
 const MaintenanceContext = createContext<MaintenanceState>(DEFAULT_STATE);
@@ -82,6 +85,7 @@ export const MaintenanceProvider = ({ children }: { children: ReactNode }) => {
         paymentInfoNote: s.payment_info_note || DEFAULT_PAYMENT_INFO_NOTE,
         paymentInfoLinkUrl: s.payment_info_link_url || DEFAULT_PAYMENT_INFO_LINK_URL,
         paymentInfoLinkText: s.payment_info_link_text || DEFAULT_PAYMENT_INFO_LINK_TEXT,
+        cabinetArticles: parseCabinetArticles(s.cabinet_articles),
       });
     });
   }, []);
