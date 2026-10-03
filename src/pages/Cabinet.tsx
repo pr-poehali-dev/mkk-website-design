@@ -154,8 +154,8 @@ const Cabinet = () => {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-accent-foreground">
-                  <Icon name="Landmark" size={18} />
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white shadow-md shadow-black/20">
+                  <Icon name="Sparkles" size={18} />
                 </span>
                 <p className="font-display font-bold leading-tight">{companyName}</p>
               </div>
