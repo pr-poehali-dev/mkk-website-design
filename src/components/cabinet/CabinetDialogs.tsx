@@ -7,6 +7,7 @@ import { apiUpdateRequest, apiGetRequest, apiChangePassword, apiUploadFile, apiU
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from '@/components/admin/contractHtml';
+import { downloadHtmlAsPdf } from '@/lib/htmlToPdf';
 import { getLoanRate, fmtRate } from '@/lib/loanRate';
 import BankPicker from '@/components/BankPicker';
 import CabinetDocPhotos from '@/components/cabinet/CabinetDocPhotos';
@@ -96,18 +97,16 @@ const CabinetDialogs = ({
     status: user.status,
   };
 
-  const downloadDoc = (build: (c: typeof clientDocData, companyName?: string, companyInn?: string, companyOgrn?: string) => string, fileName: string) => {
-    const html = build(clientDocData, companyName, companyInn, companyOgrn);
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const [docBusy, setDocBusy] = useState<string | null>(null);
+
+  const downloadDoc = async (build: (c: typeof clientDocData, companyName?: string, companyInn?: string, companyOgrn?: string) => string, fileName: string) => {
+    setDocBusy(fileName);
+    try {
+      const html = build(clientDocData, companyName, companyInn, companyOgrn);
+      await downloadHtmlAsPdf(html, fileName.replace(/\.html$/, '.pdf'));
+    } finally {
+      setDocBusy(null);
+    }
   };
 
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -652,9 +651,10 @@ const CabinetDialogs = ({
                     </div>
                     <button
                       onClick={() => downloadDoc(doc.build, doc.fileName)}
-                      aria-label={`Скачать: ${doc.title}`}
-                      className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-accent px-3 text-xs font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
-                      <Icon name="Download" size={14} /> Скачать
+                      disabled={docBusy !== null}
+                      aria-label={`Скачать PDF: ${doc.title}`}
+                      className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-accent px-3 text-xs font-semibold text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-60">
+                      <Icon name={docBusy === doc.fileName ? 'Loader2' : 'Download'} size={14} className={docBusy === doc.fileName ? 'animate-spin' : ''} /> PDF
                     </button>
                   </div>
                 ))}
