@@ -12,7 +12,7 @@ const PARTNERS_URL = 'https://topmain.ru/t4ze';
 const PARTNERS_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/6b9a90e2-d0a0-439e-8f2d-ee8d3c421ac9.jpg';
 
 const Cabinet = () => {
-  const { companyName, cabinetBannerUrl, companyInn, companyOgrn, companyPhone, socialTelegram } = useMaintenance();
+  const { companyName, companyInn, companyOgrn, companyPhone, socialTelegram } = useMaintenance();
   const nav = useNavigate();
   const [user, setUser] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,12 +98,6 @@ const Cabinet = () => {
 
       <main className="container max-w-3xl px-4 py-10">
         <CabinetArticles />
-
-        {cabinetBannerUrl && (
-          <div className="mb-6 overflow-hidden rounded-2xl">
-            <img src={cabinetBannerUrl} alt="Акция" className="w-full object-cover" />
-          </div>
-        )}
 
         {/* Комментарий оператора */}
         {user.operator_comment && (
