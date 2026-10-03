@@ -25,7 +25,7 @@ const CabinetArticles = () => {
   };
 
   return (
-    <section className="mt-8">
+    <section className="mb-8">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-display text-xl font-bold text-primary">Статьи для вас</h2>
         {cabinetArticles.length > 2 && (
