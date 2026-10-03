@@ -910,15 +910,15 @@ const CabinetStatusCard = ({
             </div>
           )}
           {status !== 'issued' && (
-            <div className={`rounded-2xl border p-6 ${isActiveLoan ? 'mt-4 border-accent/40 bg-accent/5' : 'border-border bg-card'}`}>
-              <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-primary">
+            <div className={`rounded-2xl border p-6 shadow-sm ${isActiveLoan ? 'mt-4 border-accent/40 bg-accent/5' : 'border-border bg-card'}`}>
+              <h2 className="mb-4 flex border-b border-border/60 pb-3 items-center gap-2 font-display text-lg font-semibold text-primary">
                 <Icon name={isActiveLoan ? 'BadgeDollarSign' : 'Wallet'} size={18} className="text-accent" />
                 {isActiveLoan ? 'Активный займ' : 'Параметры займа'}
               </h2>
               <dl className="space-y-3 text-sm">
-                {tariff && <div className="flex justify-between"><dt className="text-muted-foreground">Тариф</dt><dd className="font-semibold">{tariff.name}</dd></div>}
-                <div className="flex justify-between"><dt className="text-muted-foreground">Сумма займа</dt><dd className="font-semibold">{fmt(user.amount)} ₽</dd></div>
-                <div className="flex justify-between"><dt className="text-muted-foreground">Срок</dt><dd className="font-semibold">{user.days} дн.</dd></div>
+                {tariff && <div className="flex items-center justify-between gap-3"><dt className="flex items-center gap-2 text-muted-foreground"><Icon name="Tag" size={15} className="text-accent/70" />Тариф</dt><dd className="font-semibold text-primary">{tariff.name}</dd></div>}
+                <div className="flex items-center justify-between gap-3"><dt className="flex items-center gap-2 text-muted-foreground"><Icon name="Banknote" size={15} className="text-accent/70" />Сумма займа</dt><dd className="text-base font-bold text-primary">{fmt(user.amount)} ₽</dd></div>
+                <div className="flex items-center justify-between gap-3"><dt className="flex items-center gap-2 text-muted-foreground"><Icon name="CalendarClock" size={15} className="text-accent/70" />Срок</dt><dd className="font-semibold text-primary">{user.days} дн.</dd></div>
                 {isActiveLoan && (
                   <>
                     <div className="flex justify-between"><dt className="text-muted-foreground">Начислено процентов на сегодня ({fmtRate(loanRate)}/день)</dt><dd className="font-semibold">{fmt(currentOverpay)} ₽</dd></div>
@@ -942,9 +942,9 @@ const CabinetStatusCard = ({
                     </div>
                   </>
                 )}
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">{isActiveLoan ? 'Дата выдачи займа' : 'Дата заявки'}</dt>
-                  <dd className="font-semibold">{(isActiveLoan ? (user.money_sent_at || user.created_at) : user.created_at)?.slice(0, 10)}</dd>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="flex items-center gap-2 text-muted-foreground"><Icon name="Calendar" size={15} className="text-accent/70" />{isActiveLoan ? 'Дата выдачи займа' : 'Дата заявки'}</dt>
+                  <dd className="font-semibold text-primary">{(isActiveLoan ? (user.money_sent_at || user.created_at) : user.created_at)?.slice(0, 10).split('-').reverse().join('.')}</dd>
                 </div>
               </dl>
               {isActiveLoan && (
