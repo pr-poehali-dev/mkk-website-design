@@ -333,68 +333,70 @@ const CabinetDialogs = ({
 
       {/* Поп-ап Мои данные */}
       <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl text-primary">Мои данные</DialogTitle>
+        <DialogContent className="max-w-sm gap-0 overflow-hidden rounded-3xl border-0 p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Мои данные</DialogTitle>
           </DialogHeader>
-          <dl className="space-y-3 text-sm">
-            <div className="flex justify-between border-b border-border pb-2">
-              <dt className="text-muted-foreground">ФИО</dt>
-              <dd className="font-semibold text-right">{user.full_name}</dd>
-            </div>
-            <div className="flex justify-between border-b border-border pb-2">
-              <dt className="text-muted-foreground">Телефон</dt>
-              <dd className="font-semibold">{user.phone}</dd>
-            </div>
-            <div className="flex items-center justify-between gap-2 border-b border-border pb-2">
-              <dt className="text-muted-foreground">Email</dt>
-              <dd className="flex items-center gap-2">
-                <span className="font-semibold">{user.email || '—'}</span>
-                <button
-                  onClick={() => { setProfileOpen(false); openEmailDialog(); }}
-                  className="shrink-0 text-accent hover:underline"
-                >
-                  <Icon name="Pencil" size={13} />
-                </button>
-              </dd>
-            </div>
-            {user.birth_date && (
-              <div className="flex justify-between border-b border-border pb-2">
-                <dt className="text-muted-foreground">Дата рождения</dt>
-                <dd className="font-semibold">{user.birth_date}</dd>
+
+          <div className="bg-primary px-6 pb-5 pt-7 text-primary-foreground">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent text-lg font-bold text-accent-foreground">
+                {initials}
               </div>
-            )}
-            {user.passport && (
-              <div className="flex justify-between border-b border-border pb-2">
-                <dt className="text-muted-foreground">Паспорт</dt>
-                <dd className="font-semibold">{user.passport}</dd>
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-widest text-primary-foreground/60">Мои данные</p>
+                <p className="truncate font-display text-lg font-bold leading-tight">{user.full_name}</p>
               </div>
-            )}
-            {user.address_residence && (
-              <div className="flex justify-between border-b border-border pb-2">
-                <dt className="text-muted-foreground">Адрес</dt>
-                <dd className="font-semibold text-right max-w-[180px]">{user.address_residence}</dd>
-              </div>
-            )}
-            {user.work_place && (
-              <div className="flex justify-between border-b border-border pb-2">
-                <dt className="text-muted-foreground">Работа</dt>
-                <dd className="font-semibold text-right max-w-[180px]">{user.work_place}</dd>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Заявка</dt>
-              <dd className="font-semibold">{user.ref_number}</dd>
             </div>
-          </dl>
-          <Button
-            variant="outline"
-            className="mt-4 w-full"
-            onClick={() => { setProfileOpen(false); setPwSuccess(false); setPwError(''); setPwOpen(true); }}
-          >
-            <Icon name="KeyRound" size={16} className="mr-2" />
-            Сменить пароль
-          </Button>
+          </div>
+
+          <div className="max-h-[60vh] overflow-y-auto px-4 py-3">
+            {[
+              { icon: 'Phone', label: 'Телефон', value: user.phone },
+              { icon: 'Cake', label: 'Дата рождения', value: user.birth_date ? user.birth_date.slice(0, 10).split('-').reverse().join('.') : '' },
+              { icon: 'IdCard', label: 'Паспорт', value: user.passport },
+              { icon: 'MapPin', label: 'Адрес', value: user.address_residence },
+              { icon: 'Briefcase', label: 'Работа', value: user.work_place },
+              { icon: 'FileText', label: 'Заявка', value: user.ref_number },
+            ].filter((r) => r.value).map((r) => (
+              <div key={r.label} className="flex items-start gap-3 border-b border-border/60 py-2.5 last:border-0">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                  <Icon name={r.icon} size={15} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{r.label}</p>
+                  <p className="break-words text-sm font-semibold text-primary">{r.value}</p>
+                </div>
+              </div>
+            ))}
+            <div className="flex items-start gap-3 py-2.5">
+              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <Icon name="Mail" size={15} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Email</p>
+                <p className="break-all text-sm font-semibold text-primary">{user.email || '—'}</p>
+              </div>
+              <button
+                onClick={() => { setProfileOpen(false); openEmailDialog(); }}
+                className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-accent transition-colors hover:bg-accent/10"
+                aria-label="Изменить email"
+              >
+                <Icon name="Pencil" size={14} />
+              </button>
+            </div>
+          </div>
+
+          <div className="border-t border-border p-4">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => { setProfileOpen(false); setPwSuccess(false); setPwError(''); setPwOpen(true); }}
+            >
+              <Icon name="KeyRound" size={16} className="mr-2" />
+              Сменить пароль
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
