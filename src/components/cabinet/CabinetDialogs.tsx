@@ -70,19 +70,17 @@ const CabinetDialogs = ({
   const overpay = Math.round(user.amount * loanRate * user.days);
   const total = user.amount + overpay;
 
-  const downloadContract = () => {
-    const sigCode = localStorage.getItem(`sig_code_${user.ref_number}`) || undefined;
-    const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate, sigCode, companyName, companyInn, companyOgrn, loanRate);
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Договор_${contractCode}.html`;
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const [contractBusy, setContractBusy] = useState(false);
+
+  const downloadContract = async () => {
+    setContractBusy(true);
+    try {
+      const sigCode = localStorage.getItem(`sig_code_${user.ref_number}`) || undefined;
+      const html = buildContractHtml(user, user.amount, user.days, contractCode, returnDate, sigCode, companyName, companyInn, companyOgrn, loanRate);
+      await downloadHtmlAsPdf(html, `Договор_${contractCode}.pdf`);
+    } finally {
+      setContractBusy(false);
+    }
   };
 
   const clientDocData = {
@@ -569,9 +567,9 @@ const CabinetDialogs = ({
                     <dd className="font-semibold">{returnDate}</dd>
                   </div>
                 </dl>
-                <Button size="sm" variant="outline" className="w-full mt-1 gap-2" onClick={downloadContract}>
-                  <Icon name="Download" size={14} />
-                  Скачать договор
+                <Button size="sm" variant="outline" className="w-full mt-1 gap-2" onClick={downloadContract} disabled={contractBusy}>
+                  <Icon name={contractBusy ? 'Loader2' : 'Download'} size={14} className={contractBusy ? 'animate-spin' : ''} />
+                  {contractBusy ? 'Готовим PDF...' : 'Скачать договор (PDF)'}
                 </Button>
               </div>
             </div>
