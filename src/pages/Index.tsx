@@ -12,16 +12,18 @@ import Logo from '@/components/Logo';
 const FaqItem = ({ q, a }: { q: string; a: string }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className="group">
+    <div className={`overflow-hidden rounded-2xl border bg-card transition-all ${open ? 'border-accent shadow-lg shadow-accent/10' : 'border-border hover:border-accent/50'}`}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors hover:bg-secondary/50"
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left sm:px-6 sm:py-5"
       >
         <span className="font-medium text-primary">{q}</span>
-        <Icon name={open ? 'ChevronUp' : 'ChevronDown'} size={18} className="shrink-0 text-muted-foreground" />
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all ${open ? 'rotate-180 bg-accent text-accent-foreground' : 'bg-secondary text-primary'}`}>
+          <Icon name="ChevronDown" size={16} />
+        </span>
       </button>
       {open && (
-        <div className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">{a}</div>
+        <div className="animate-fade-up px-5 pb-5 text-sm leading-relaxed text-muted-foreground sm:px-6">{a}</div>
       )}
     </div>
   );
@@ -435,10 +437,24 @@ const Index = () => {
           <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-accent">Часто спрашивают</p>
           <h2 className="font-display text-3xl font-bold text-primary sm:text-4xl">Вопросы и ответы</h2>
         </div>
-        <div className="mx-auto max-w-2xl divide-y divide-border rounded-2xl border border-border bg-card">
+        <div className="mx-auto max-w-2xl space-y-3">
           {faqs.map((item, i) => (
             <FaqItem key={i} q={item.q} a={item.a} />
           ))}
+        </div>
+        <div className="mx-auto mt-8 flex max-w-2xl flex-col items-center justify-between gap-4 rounded-2xl bg-secondary/60 p-5 text-center sm:flex-row sm:text-left">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <Icon name="MessageCircleQuestion" size={20} />
+            </span>
+            <div>
+              <p className="font-display font-semibold text-primary">Не нашли ответ?</p>
+              <p className="text-sm text-muted-foreground">Напишите нам, ответим в рабочее время</p>
+            </div>
+          </div>
+          <Button asChild className="h-11 w-full rounded-full bg-primary px-6 font-bold text-primary-foreground hover:bg-primary/90 sm:w-auto">
+            <Link to="/appeal">Задать вопрос</Link>
+          </Button>
         </div>
       </section>
 
