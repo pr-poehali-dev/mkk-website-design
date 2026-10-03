@@ -233,53 +233,65 @@ const CabinetDialogs = ({
     <>
       {/* Поп-ап меню */}
       <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl text-primary">Меню</DialogTitle>
+        <DialogContent className="max-w-sm gap-0 overflow-hidden rounded-3xl border-0 p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Меню</DialogTitle>
           </DialogHeader>
 
-          <div className="flex items-center gap-3 rounded-xl bg-secondary p-4">
-            <div className="flex h-12 w-12 items-center justify-center bg-primary text-lg font-bold text-primary-foreground rounded-sm">
-              {initials}
-            </div>
-            <div>
-              <p className="font-semibold text-primary">{user.full_name}</p>
-              <p className="text-sm text-muted-foreground">{user.phone}</p>
+          <div className="relative overflow-hidden bg-primary px-6 pb-6 pt-8 text-primary-foreground">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-accent/25 blur-2xl" />
+            <div className="relative flex items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent text-xl font-bold text-accent-foreground shadow-lg">
+                {initials}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-display text-lg font-bold leading-tight">{user.full_name}</p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-primary-foreground/70">
+                  <Icon name="Phone" size={13} /> {user.phone}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-1">
-            <button
-              onClick={() => { setProfileOpen(true); setMenuOpen(false); }}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
-              <Icon name="User" size={18} className="text-accent" /> Мои данные
-            </button>
-            <button
-              onClick={() => { setCardsOpen(true); setBankSaved(false); setMenuOpen(false); }}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
-              <Icon name="CreditCard" size={18} className="text-accent" /> Мои карты
-              {selectedBank && <span className="ml-auto text-xs text-muted-foreground">{selectedBank}</span>}
-            </button>
-            <button
-              onClick={() => { setDocsOpen(true); setMenuOpen(false); }}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
-              <Icon name="FolderOpen" size={18} className="text-accent" /> Мои документы
-            </button>
-            <button
-              onClick={openHistory}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
-              <Icon name="History" size={18} className="text-accent" /> История займов
-            </button>
+          <div className="space-y-1 p-3">
+            {[
+              { icon: 'User', label: 'Мои данные', onClick: () => { setProfileOpen(true); setMenuOpen(false); } },
+              { icon: 'CreditCard', label: 'Мои карты', hint: selectedBank, onClick: () => { setCardsOpen(true); setBankSaved(false); setMenuOpen(false); } },
+              { icon: 'FolderOpen', label: 'Мои документы', onClick: () => { setDocsOpen(true); setMenuOpen(false); } },
+              { icon: 'History', label: 'История займов', onClick: openHistory },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={item.onClick}
+                className="group flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
+                  <Icon name={item.icon} size={18} />
+                </span>
+                {item.label}
+                {item.hint && <span className="ml-auto max-w-[110px] truncate text-xs text-muted-foreground">{item.hint}</span>}
+                <Icon name="ChevronRight" size={16} className={`text-muted-foreground/60 ${item.hint ? '' : 'ml-auto'}`} />
+              </button>
+            ))}
             <Link
               to="/appeal"
               onClick={() => setMenuOpen(false)}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
-              <Icon name="MessageCircleQuestion" size={18} className="text-accent" /> Поддержка
+              className="group flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
+                <Icon name="MessageCircleQuestion" size={18} />
+              </span>
+              Поддержка
+              <Icon name="ChevronRight" size={16} className="ml-auto text-muted-foreground/60" />
             </Link>
+
+            <div className="!my-2 border-t border-border" />
+
             <button
               onClick={onLogout}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
-              <Icon name="LogOut" size={18} /> Выйти из кабинета
+              className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50">
+                <Icon name="LogOut" size={18} />
+              </span>
+              Выйти из кабинета
             </button>
           </div>
         </DialogContent>
