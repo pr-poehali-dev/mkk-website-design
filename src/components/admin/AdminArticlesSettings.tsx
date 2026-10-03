@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { apiSaveSiteSettings, apiUploadFile } from '@/lib/api';
 import type { CabinetArticle } from '@/lib/cabinetArticles';
@@ -29,7 +30,7 @@ const AdminArticlesSettings = ({ initial }: Props) => {
     });
 
   const add = () =>
-    setItems((prev) => [...prev, { id: `a-${Date.now()}`, title: '', image_url: '', text: '', link_url: '', link_text: '' }]);
+    setItems((prev) => [...prev, { id: `a-${Date.now()}`, title: '', image_url: '', text: '', link_url: '', link_text: '', visible: true }]);
 
   const upload = async (id: string, file: File) => {
     setUploadingId(id);
@@ -68,10 +69,14 @@ const AdminArticlesSettings = ({ initial }: Props) => {
 
           <div className="space-y-3">
             {items.map((a, idx) => (
-              <div key={a.id} className="rounded-xl border border-border bg-secondary/40 p-3">
+              <div key={a.id} className={`rounded-xl border border-border bg-secondary/40 p-3 transition-opacity ${a.visible ? '' : 'opacity-60'}`}>
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Статья {idx + 1}</span>
-                  <div className="flex gap-1">
+                  <div className="flex items-center gap-1">
+                    <label className="mr-2 flex cursor-pointer items-center gap-2 text-xs font-medium text-primary">
+                      <Switch checked={a.visible} onCheckedChange={(v) => update(a.id, { visible: v })} />
+                      {a.visible ? 'Показывается' : 'Скрыта'}
+                    </label>
                     <button onClick={() => move(idx, -1)} disabled={idx === 0} aria-label="Выше"
                       className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-card disabled:opacity-30"><Icon name="ArrowUp" size={14} /></button>
                     <button onClick={() => move(idx, 1)} disabled={idx === items.length - 1} aria-label="Ниже"

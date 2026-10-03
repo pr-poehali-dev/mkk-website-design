@@ -12,7 +12,8 @@ const GRADIENTS = [
 ];
 
 const CabinetArticles = () => {
-  const { cabinetArticles } = useMaintenance();
+  const { cabinetArticles: allArticles } = useMaintenance();
+  const cabinetArticles = allArticles.filter((a) => a.visible);
   const [open, setOpen] = useState<CabinetArticle | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
 
