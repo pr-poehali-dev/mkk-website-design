@@ -149,46 +149,56 @@ const Cabinet = () => {
         onLogout={handleLogout}
       />
 
-      <footer className="mt-10 rounded-t-2xl border-t border-border bg-card">
+      <footer className="mt-10 overflow-hidden rounded-t-3xl bg-primary text-primary-foreground">
         <div className="container max-w-3xl px-4 py-8">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div>
-              <p className="mb-2 font-display font-bold text-primary">{companyName}</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+                  <Icon name="Landmark" size={18} />
+                </span>
+                <p className="font-display font-bold leading-tight">{companyName}</p>
+              </div>
+              <p className="text-xs leading-relaxed text-primary-foreground/60">
                 ИНН: {companyInn}<br />
                 ОГРН: {companyOgrn}
               </p>
             </div>
             <div>
-              <p className="mb-2 text-sm font-semibold text-primary">Контакты</p>
-              <ul className="space-y-1.5 text-xs text-muted-foreground">
-                <li className="flex items-center gap-1.5">
-                  <Icon name="Phone" size={12} className="shrink-0 text-accent" />
-                  <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="hover:text-primary transition-colors">{companyPhone}</a>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-primary-foreground/50">Контакты</p>
+              <ul className="space-y-2.5 text-sm">
+                <li>
+                  <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="flex items-center gap-2.5 text-primary-foreground/90 transition-colors hover:text-accent">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10"><Icon name="Phone" size={14} className="text-accent" /></span>
+                    {companyPhone}
+                  </a>
                 </li>
                 {socialTelegram && (
-                  <li className="flex items-center gap-1.5">
-                    <Icon name="MessageCircle" size={12} className="shrink-0 text-accent" />
-                    <a href={socialTelegram} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Telegram — поддержка</a>
+                  <li>
+                    <a href={socialTelegram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-primary-foreground/90 transition-colors hover:text-accent">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10"><Icon name="MessageCircle" size={14} className="text-accent" /></span>
+                      Telegram — поддержка
+                    </a>
                   </li>
                 )}
-                <li className="flex items-center gap-1.5">
-                  <Icon name="Globe" size={12} className="shrink-0 text-accent" />
-                  <a href="https://займы-плюс.рф" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">займы-плюс.рф</a>
+                <li>
+                  <a href="https://займы-плюс.рф" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-primary-foreground/90 transition-colors hover:text-accent">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10"><Icon name="Globe" size={14} className="text-accent" /></span>
+                    займы-плюс.рф
+                  </a>
                 </li>
               </ul>
             </div>
             <div>
-              <p className="mb-2 text-sm font-semibold text-primary">Режим работы</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Пн–Пт: 9:00 – 20:00<br />
-                Сб: 10:00 – 18:00<br />
-                Вс: выходной
-              </p>
-
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-primary-foreground/50">Режим работы</p>
+              <ul className="space-y-1.5 text-sm">
+                <li className="flex justify-between gap-3"><span className="text-primary-foreground/60">Пн–Пт</span><span>9:00 – 20:00</span></li>
+                <li className="flex justify-between gap-3"><span className="text-primary-foreground/60">Сб</span><span>10:00 – 18:00</span></li>
+                <li className="flex justify-between gap-3"><span className="text-primary-foreground/60">Вс</span><span className="text-accent">выходной</span></li>
+              </ul>
             </div>
           </div>
-          <div className="mt-6 border-t border-border pt-4 text-center text-xs text-muted-foreground">
+          <div className="mt-6 border-t border-primary-foreground/10 pt-4 text-center text-xs text-primary-foreground/50">
             © {new Date().getFullYear()} {companyName}. Все права защищены.
           </div>
         </div>
