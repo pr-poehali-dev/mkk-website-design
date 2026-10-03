@@ -470,9 +470,17 @@ const Index = () => {
               </Button>
             ) : (
               <Button asChild size="lg" className="mt-7 h-14 w-full rounded-full bg-primary px-10 text-base font-bold text-primary-foreground hover:bg-primary/90 md:w-auto">
-                <Link to="/anketa">Получить деньги</Link>
+                <Link to="/anketa">
+                  Получить деньги
+                  <Icon name="ArrowRight" size={18} className="ml-2" />
+                </Link>
               </Button>
             )}
+            <ul className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs font-medium text-muted-foreground md:justify-start">
+              <li className="flex items-center gap-1.5"><Icon name="Clock" size={14} className="text-accent" /> Решение за минуты</li>
+              <li className="flex items-center gap-1.5"><Icon name="ShieldCheck" size={14} className="text-accent" /> Без скрытых комиссий</li>
+              <li className="flex items-center gap-1.5"><Icon name="CreditCard" size={14} className="text-accent" /> На карту</li>
+            </ul>
           </div>
 
           {/* Иллюстрация */}
@@ -483,7 +491,7 @@ const Index = () => {
               className="pointer-events-none relative z-10 mx-auto h-auto w-full max-w-[260px] object-contain md:max-w-full"
             />
 
-            <div className="absolute -right-2 top-0 z-20 w-[68%] rounded-2xl bg-card p-3 shadow-lg sm:-right-4">
+            <div className="absolute -right-2 top-0 z-20 w-[68%] rounded-2xl border border-border/60 bg-card p-3 shadow-xl sm:-right-4">
               <div className="flex items-center gap-2 text-xs font-medium text-primary sm:text-sm">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent">
                   <Icon name="Check" size={12} />
@@ -504,7 +512,7 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="absolute bottom-[6%] -left-2 z-20 flex items-center gap-2 rounded-2xl bg-card px-3 py-2.5 shadow-lg sm:-left-4">
+            <div className="absolute bottom-[6%] -left-2 z-20 flex items-center gap-2 rounded-2xl border border-border/60 bg-card px-3 py-2.5 shadow-xl sm:-left-4">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <Icon name="Sparkles" size={18} />
               </div>
