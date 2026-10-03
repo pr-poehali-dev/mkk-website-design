@@ -830,16 +830,31 @@ const CabinetStatusCard = ({
                   <p className="text-xs text-indigo-500">№ {contractCode}</p>
                 </div>
               </div>
-              <div className="rounded-xl border border-accent/30 bg-accent/5 p-5 text-center">
-                <div className="flex justify-center mb-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
-                    <Icon name="Clock" size={22} className="text-accent" />
+              <div className="relative overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 via-card to-accent/5 p-6 text-center shadow-sm">
+                <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-accent/15 blur-2xl" />
+                <div className="pointer-events-none absolute -bottom-10 -left-10 h-28 w-28 rounded-full bg-accent/10 blur-2xl" />
+                <div className="relative mb-4 flex justify-center">
+                  <div className="relative flex h-16 w-16 items-center justify-center">
+                    <span className="absolute inset-0 animate-ping rounded-full bg-accent/20" />
+                    <span className="absolute inset-1 rounded-full bg-accent/15" />
+                    <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg">
+                      <Icon name="Hourglass" size={22} className="animate-pulse" />
+                    </span>
                   </div>
                 </div>
-                <p className="font-display font-bold text-primary text-base">Ожидайте зачисления средств</p>
-                <p className="text-sm text-muted-foreground mt-1">Деньги поступят на вашу карту <span className="font-semibold text-primary">в течение 15 минут</span></p>
+                <p className="relative font-display text-lg font-bold text-primary">Ожидайте зачисления средств</p>
+                <p className="relative mt-1.5 text-sm text-muted-foreground">Деньги поступят на вашу карту</p>
+                <div className="relative mt-3 inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-accent-foreground shadow">
+                  <Icon name="Zap" size={14} /> в течение 15 минут
+                </div>
                 {user.payment_bank && (
-                  <p className="mt-2 text-xs text-muted-foreground">Перевод через СБП · {normalizeBankName(user.payment_bank)}</p>
+                  <div className="relative mt-4 flex items-center justify-center gap-2.5 rounded-xl border border-border bg-card/80 px-4 py-2.5 backdrop-blur">
+                    <BankLogo name={user.payment_bank} size={26} />
+                    <div className="text-left">
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Перевод через СБП</p>
+                      <p className="text-sm font-semibold text-primary">{normalizeBankName(user.payment_bank)}</p>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
