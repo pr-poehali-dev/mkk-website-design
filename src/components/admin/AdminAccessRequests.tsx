@@ -42,7 +42,10 @@ const AdminAccessRequests = () => {
   const act = async (id: number, status?: 'new' | 'approved' | 'rejected') => {
     setBusyId(id);
     try {
-      await apiUpdateAccessRequest({ id, status, admin_comment: drafts[id] ?? '' });
+      const r = await apiUpdateAccessRequest({ id, status, admin_comment: drafts[id] ?? '' });
+      if (status === 'approved') {
+        setReplyInfo((p) => ({ ...p, [id]: r.email_sent ? 'Пароль изменён, клиенту отправлено письмо' : 'Пароль изменён. Письмо не отправлено (у клиента нет почты)' }));
+      }
       await load();
     } finally {
       setBusyId(null);

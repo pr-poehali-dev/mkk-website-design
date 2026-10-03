@@ -790,7 +790,7 @@ export async function apiGetAccessRequests(): Promise<AccessRequestItem[]> {
 
 export async function apiUpdateAccessRequest(data: {
   id: number; status?: 'new' | 'approved' | 'rejected'; admin_comment?: string;
-}): Promise<void> {
+}): Promise<{ email_sent?: boolean }> {
   const res = await fetch(URLS.login, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
@@ -798,6 +798,7 @@ export async function apiUpdateAccessRequest(data: {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Ошибка');
+  return json as { email_sent?: boolean };
 }
 
 export async function apiReplyAccessRequest(id: number, reply: string): Promise<{ email_sent: boolean }> {

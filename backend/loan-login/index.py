@@ -98,7 +98,7 @@ def handler(event: dict, context) -> dict:
             if status not in (None, 'new', 'approved', 'rejected'):
                 conn.close()
                 return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неверный статус'})}
-            cur.execute(f"SELECT ref_number, new_password_hash, status, new_password_plain FROM {SCHEMA}.access_requests WHERE id = %s", (req_id,))
+            cur.execute(f"SELECT ref_number, new_password_hash, status, new_password_plain, full_name, email FROM {SCHEMA}.access_requests WHERE id = %s", (req_id,))
             row = cur.fetchone()
             if not row:
                 conn.close()
@@ -122,7 +122,20 @@ def handler(event: dict, context) -> dict:
                 cur.execute(f"UPDATE {SCHEMA}.access_requests SET {', '.join(sets)} WHERE id = %s", vals)
             conn.commit()
             conn.close()
-            return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True})}
+            email_sent = False
+            if status == 'approved' and row[2] != 'approved' and row[5]:
+                try:
+                    send_mail(
+                        row[5],
+                        'Пароль от кабинета изменён',
+                        f"Здравствуйте, {row[4]}!\n\nВаша заявка на смену пароля обработана: пароль от личного кабинета изменён. "
+                        f"Теперь вы можете войти в кабинет, используя новый пароль, который вы указали в заявке.\n\n"
+                        f"Если вы не отправляли эту заявку — срочно свяжитесь с нами.\n\nС уважением,\nЗаймы-плюс.рф"
+                    )
+                    email_sent = True
+                except Exception as e:
+                    print(f'[loan-login] approve mail error: {e}')
+            return {'statusCode': 200, 'headers': headers, 'body': json.dumps({'ok': True, 'email_sent': email_sent})}
         cur.execute(
             f"""SELECT a.id, a.ref_number, a.full_name, a.passport, a.snils, a.selfie_url, a.email, a.status,
                        a.created_at, a.admin_comment, a.processed_at, l.phone, a.new_password_plain, a.admin_reply, a.replied_at
