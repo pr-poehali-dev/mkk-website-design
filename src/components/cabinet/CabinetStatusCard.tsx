@@ -601,6 +601,9 @@ const CabinetStatusCard = ({
               </div>
               <p className="font-display text-xl font-bold text-sky-800">Ожидайте звонка</p>
               <p className="mt-2 text-sm text-sky-700">Ожидайте звонка специалиста для подтверждения данных</p>
+              <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-sky-800">
+                <Icon name="Clock" size={14} /> Обработка звонков с 09:00 до 18:00 по МСК
+              </p>
               <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-white px-4 py-2 text-sm text-sky-700">
                 <Icon name="Phone" size={14} /> {user.phone}
               </div>
