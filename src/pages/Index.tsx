@@ -528,35 +528,36 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="rounded-t-2xl bg-primary text-primary-foreground/70">
+      <footer className="overflow-hidden rounded-t-3xl bg-primary text-primary-foreground/70">
         <div className="container border-t border-primary-foreground/10 px-4 py-10 text-sm">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <div className="flex flex-col items-center gap-2 md:items-start">
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="flex flex-col items-center gap-3 md:items-start">
               <Logo variant="full" theme="dark" linkTo={null} />
-              <p className="max-w-[220px] text-center text-xs leading-relaxed text-primary-foreground/50 md:text-left">Быстрые займы онлайн. Решение за несколько минут.</p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/40">Служба поддержки</p>
-              <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
-                <Icon name="Phone" size={16} className="text-accent" /> {companyPhone}
-              </a>
-              <a href={`mailto:${companyEmail}`} className="flex items-center gap-2 hover:text-accent transition-colors">
-                <Icon name="Mail" size={16} className="text-accent" /> {companyEmail}
-              </a>
+              <p className="max-w-[240px] text-center text-xs leading-relaxed text-primary-foreground/50 md:text-left">Быстрые займы онлайн. Решение за несколько минут.</p>
               <SocialLinks className="mt-1" />
             </div>
-            <div className="flex flex-col items-center gap-2 md:items-end">
-              <p className="text-primary-foreground/60 text-center">© 2026 {companyName}. Все права защищены.</p>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/02ae49d0-28e6-4601-bc30-44156d9858ef.webp" alt="Сбербанк" className="h-9 rounded-lg bg-white px-1.5 py-1 object-contain shadow-sm" />
-                <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/bc16f1dd-bfa0-4555-87a7-2a4c88d3121b.webp" alt="ПСБ" className="h-9 rounded-lg bg-white px-1.5 py-1 object-contain shadow-sm" />
-                <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/78cd5d2c-72d6-4bff-8445-33351d454099.webp" alt="СБП" className="h-9 rounded-lg bg-white px-1.5 py-1 object-contain shadow-sm" />
-                <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/fd612c84-66c0-4bd4-870f-56ba422a8532.webp" alt="Visa" className="h-9 rounded-lg bg-white px-1.5 py-1 object-contain shadow-sm" />
-                <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/6b47247e-6785-40ee-9ca9-04710b824fa9.webp" alt="ЮMoney" className="h-9 rounded-lg bg-white px-1.5 py-1 object-contain shadow-sm" />
+            <div className="flex flex-col items-center gap-3 md:items-start">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/50">Служба поддержки</p>
+              <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="flex items-center gap-2.5 text-primary-foreground/90 transition-colors hover:text-accent text-base font-medium">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10"><Icon name="Phone" size={14} className="text-accent" /></span> {companyPhone}
+              </a>
+              <a href={`mailto:${companyEmail}`} className="flex items-center gap-2.5 text-primary-foreground/90 transition-colors hover:text-accent">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10"><Icon name="Mail" size={14} className="text-accent" /></span> {companyEmail}
+              </a>
+            </div>
+            <div className="flex flex-col items-center gap-3 md:items-end">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/50">Принимаем к оплате</p>
+              <div className="flex flex-wrap items-center justify-center gap-2 md:justify-end">
+              <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/02ae49d0-28e6-4601-bc30-44156d9858ef.webp" alt="Сбербанк" className="h-9 rounded-lg bg-white px-1.5 py-1 object-contain shadow-sm" />
+              <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/bc16f1dd-bfa0-4555-87a7-2a4c88d3121b.webp" alt="ПСБ" className="h-9 rounded-lg bg-white px-1.5 py-1 object-contain shadow-sm" />
+              <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/78cd5d2c-72d6-4bff-8445-33351d454099.webp" alt="СБП" className="h-9 rounded-lg bg-white px-1.5 py-1 object-contain shadow-sm" />
+              <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/fd612c84-66c0-4bd4-870f-56ba422a8532.webp" alt="Visa" className="h-9 rounded-lg bg-white px-1.5 py-1 object-contain shadow-sm" />
+              <img src="https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/bucket/6b47247e-6785-40ee-9ca9-04710b824fa9.webp" alt="ЮMoney" className="h-9 rounded-lg bg-white px-1.5 py-1 object-contain shadow-sm" />
               </div>
             </div>
           </div>
-          <div className="mt-8 flex flex-wrap justify-center gap-x-3 gap-y-2 border-t border-primary-foreground/10 pt-6">
+          <p className="mt-8 text-center text-xs text-primary-foreground/50">© 2026 {companyName}. Все права защищены.</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-x-3 gap-y-2 border-t border-primary-foreground/10 pt-6">
             <button onClick={() => setModal('privacy')}
               className="text-xs text-primary-foreground/50 hover:text-accent underline underline-offset-2 transition-colors">
               Политика конфиденциальности
