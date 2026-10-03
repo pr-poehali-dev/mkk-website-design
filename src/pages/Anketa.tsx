@@ -4,6 +4,7 @@ import Icon from '@/components/ui/icon';
 import Logo from '@/components/Logo';
 import { apiRegister, apiUploadFile, apiSendVerificationCode, apiVerifyCode, apiLogin, saveSession } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
+import SiteFooter from '@/components/SiteFooter';
 import { MaintenanceScreen, SuccessScreen, CheckingScreen, EmailConfirmScreen } from '@/components/anketa/AnketaScreens';
 import AnketaProgress, { STEPS } from '@/components/anketa/AnketaProgress';
 import { PersonalStep, PassportStep, LoanStep } from '@/components/anketa/AnketaFormSteps';
@@ -349,6 +350,7 @@ const Anketa = () => {
         <AnketaTrust />
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 };

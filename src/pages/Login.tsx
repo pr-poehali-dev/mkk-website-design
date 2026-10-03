@@ -8,6 +8,7 @@ import Logo from '@/components/Logo';
 import CaptchaField from '@/components/ui/captcha-field';
 import { apiLogin, saveSession } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
+import SiteFooter from '@/components/SiteFooter';
 import { formatPhone } from '@/lib/phone';
 import AccessRecoveryDialog from '@/components/login/AccessRecoveryDialog';
 
@@ -42,8 +43,9 @@ const Login = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-primary px-4 text-primary-foreground">
-      <div className="hero-grid absolute inset-0 opacity-40" />
+    <div className="relative flex min-h-screen flex-col bg-primary text-primary-foreground">
+      <div className="hero-grid pointer-events-none absolute inset-0 opacity-40" />
+      <div className="relative flex flex-1 items-center justify-center px-4 py-10">
       <div className="animate-fade-up relative w-full max-w-md">
         <div className="mb-6 flex items-center justify-center">
           <Logo theme="dark" />
@@ -108,6 +110,8 @@ const Login = () => {
 
         <AccessRecoveryDialog open={recoveryOpen} onOpenChange={setRecoveryOpen} />
       </div>
+      </div>
+      <SiteFooter className="relative mt-0 bg-black/25" />
     </div>
   );
 };

@@ -8,13 +8,13 @@ import Logo from '@/components/Logo';
 import { apiSubmitSupportRequest, apiUploadFile } from '@/lib/api';
 import { getSession } from '@/lib/api';
 import { useMaintenance } from '@/lib/maintenanceContext';
-import SocialLinks from '@/components/SocialLinks';
+import SiteFooter from '@/components/SiteFooter';
 
 const HERO_IMG = 'https://cdn.poehali.dev/projects/e7ddf8f6-b608-452a-9939-9f00b8f5a4d9/files/affeadbd-d565-4434-9e7e-31d8281c0679.jpg';
 const MAX_FILES = 10;
 
 const Appeal = () => {
-  const { companyName, companyPhone, companyEmail } = useMaintenance();
+  const { companyEmail } = useMaintenance();
   const nav = useNavigate();
   const session = getSession();
 
@@ -234,24 +234,7 @@ const Appeal = () => {
       </main>
 
       {/* Footer */}
-      <footer className="mt-10 rounded-t-2xl bg-primary text-primary-foreground/70">
-        <div className="container border-t border-primary-foreground/10 px-4 py-10 text-sm">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <p className="font-display text-lg font-bold tracking-wide text-primary-foreground text-center">ЧАСТНЫЕ ЗАЙМЫ ПЛЮС</p>
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/40">Служба поддержки</p>
-              <a href={`tel:${companyPhone.replace(/[^\d+]/g, '')}`} className="flex items-center gap-2 text-primary-foreground hover:text-accent transition-colors font-medium text-base">
-                <Icon name="Phone" size={16} className="text-accent" /> {companyPhone}
-              </a>
-              <a href={`mailto:${companyEmail}`} className="flex items-center gap-2 hover:text-accent transition-colors">
-                <Icon name="Mail" size={16} className="text-accent" /> {companyEmail}
-              </a>
-              <SocialLinks className="mt-1" />
-            </div>
-            <p className="text-primary-foreground/60 text-center">© 2026 {companyName}. Все права защищены.</p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 };
