@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { type UserSession, type ScoringResult } from '@/lib/api';
@@ -13,6 +14,7 @@ interface Props {
   docStatuses: Record<string, string>;
   docStatusSaving: string | null;
   onDocStatus: (field: string, newStatus: string) => void;
+  onSaveIds: (snils: string, inn: string) => Promise<void>;
 }
 
 const AdminEditClientInfo = ({
@@ -24,7 +26,43 @@ const AdminEditClientInfo = ({
   docStatuses,
   docStatusSaving,
   onDocStatus,
+  onSaveIds,
 }: Props) => {
+  const [editingIds, setEditingIds] = useState(false);
+  const [snilsVal, setSnilsVal] = useState('');
+  const [innVal, setInnVal] = useState('');
+  const [idsSaving, setIdsSaving] = useState(false);
+  const [idsError, setIdsError] = useState('');
+
+  const formatSnils = (raw: string) => {
+    const d = raw.replace(/\D/g, '').slice(0, 11);
+    const base = [d.slice(0, 3), d.slice(3, 6), d.slice(6, 9)].filter(Boolean).join('-');
+    return d.length > 9 ? `${base} ${d.slice(9)}` : base;
+  };
+
+  const startEditIds = () => {
+    setSnilsVal(selected.snils ? formatSnils(selected.snils) : '');
+    setInnVal(selected.inn || '');
+    setIdsError('');
+    setEditingIds(true);
+  };
+
+  const saveIds = async () => {
+    const s = snilsVal.replace(/\D/g, '');
+    if (s && s.length !== 11) { setIdsError('СНИЛС должен содержать 11 цифр'); return; }
+    if (innVal && innVal.length !== 10 && innVal.length !== 12) { setIdsError('ИНН должен содержать 10 или 12 цифр'); return; }
+    setIdsSaving(true);
+    setIdsError('');
+    try {
+      await onSaveIds(s, innVal);
+      setEditingIds(false);
+    } catch (e: unknown) {
+      setIdsError(e instanceof Error ? e.message : 'Не удалось сохранить');
+    } finally {
+      setIdsSaving(false);
+    }
+  };
+
   return (
     <>
       {/* Данные клиента */}
@@ -35,6 +73,8 @@ const AdminEditClientInfo = ({
           { label: 'Телефон', value: selected.phone },
           { label: 'Дата рождения', value: selected.birth_date },
           { label: 'Паспорт', value: selected.passport ? `${selected.passport}${selected.passport_by ? ` · ${selected.passport_by}` : ''}` : undefined },
+          { label: 'СНИЛС', value: selected.snils ? formatSnils(selected.snils) : undefined },
+          { label: 'ИНН', value: selected.inn || undefined },
           { label: 'Адрес проживания', value: selected.address_residence },
           { label: 'Адрес регистрации', value: selected.address_registration },
           { label: 'Место работы', value: selected.work_place },
@@ -49,6 +89,34 @@ const AdminEditClientInfo = ({
             <span className="font-medium text-primary text-right">{f.value}</span>
           </div>
         ))}
+        {!selected.snils && !selected.inn && !editingIds && (
+          <p className="text-xs text-muted-foreground">СНИЛС и ИНН не указаны</p>
+        )}
+        {editingIds ? (
+          <div className="space-y-2 rounded-lg border border-border bg-card p-3">
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">СНИЛС</label>
+              <input value={snilsVal} onChange={(e) => setSnilsVal(formatSnils(e.target.value))} inputMode="numeric" placeholder="000-000-000 00"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">ИНН</label>
+              <input value={innVal} onChange={(e) => setInnVal(e.target.value.replace(/\D/g, '').slice(0, 12))} inputMode="numeric" placeholder="12 цифр"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent" />
+            </div>
+            {idsError && <p className="text-xs text-red-500">{idsError}</p>}
+            <div className="flex gap-2">
+              <Button size="sm" className="flex-1" disabled={idsSaving} onClick={saveIds}>
+                {idsSaving ? <Icon name="Loader2" size={14} className="animate-spin" /> : 'Сохранить'}
+              </Button>
+              <Button size="sm" variant="outline" className="flex-1" disabled={idsSaving} onClick={() => setEditingIds(false)}>Отмена</Button>
+            </div>
+          </div>
+        ) : (
+          <Button size="sm" variant="outline" className="mt-1 w-full gap-1.5" onClick={startEditIds}>
+            <Icon name="Pencil" size={13} /> Изменить СНИЛС и ИНН
+          </Button>
+        )}
       </div>
 
       {/* Автоскоринг */}

@@ -235,6 +235,12 @@ const AdminEditModal = ({
     await apiUpdateRequest({ ref_number: selected.ref_number, doc_urls: newUrls });
   };
 
+  const handleSaveIds = async (snils: string, inn: string) => {
+    if (!selected) return;
+    await apiUpdateRequest({ ref_number: selected.ref_number, snils, inn });
+    onDocStatusChanged?.(selected.ref_number, { snils: snils || null, inn: inn || null });
+  };
+
   const handleSave = async () => {
     if (!selected) return;
     setSaving(true);
@@ -306,6 +312,7 @@ const AdminEditModal = ({
               docStatuses={docStatuses}
               docStatusSaving={docStatusSaving}
               onDocStatus={handleDocStatus}
+              onSaveIds={handleSaveIds}
             />
 
             <AdminEditDocumentsPassword

@@ -1,5 +1,6 @@
 """Обновление/удаление заявок администратором."""
 import json
+import re
 import os
 import smtplib
 import uuid
@@ -719,6 +720,20 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'Неверный тариф'})}
         fields.append('tariff = %s')
         values.append(body['tariff'] or None)
+
+    if 'snils' in body:
+        snils_digits = re.sub(r'\D', '', body['snils'] or '')
+        if snils_digits and len(snils_digits) != 11:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'СНИЛС должен содержать 11 цифр'})}
+        fields.append('snils = %s')
+        values.append(snils_digits or None)
+
+    if 'inn' in body:
+        inn_digits = re.sub(r'\D', '', body['inn'] or '')
+        if inn_digits and len(inn_digits) not in (10, 12):
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ИНН должен содержать 10 или 12 цифр'})}
+        fields.append('inn = %s')
+        values.append(inn_digits or None)
 
     if 'insurance_enabled' in body:
         fields.append('insurance_enabled = %s')

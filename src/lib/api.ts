@@ -208,6 +208,8 @@ export async function apiUpdateRequest(data: {
   doc_urls?: string[];
   insurance_enabled?: boolean;
   tariff?: string | null;
+  snils?: string | null;
+  inn?: string | null;
 }): Promise<void> {
   const res = await fetchRetry(URLS.status, {
     method: 'POST',

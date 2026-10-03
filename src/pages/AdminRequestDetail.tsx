@@ -389,6 +389,10 @@ const AdminRequestDetail = () => {
                 docStatuses={docStatuses}
                 docStatusSaving={docStatusSaving}
                 onDocStatus={handleDocStatus}
+                onSaveIds={async (snils, inn) => {
+                  await apiUpdateRequest({ ref_number: selected.ref_number, snils, inn });
+                  setSelected((prev) => prev ? { ...prev, snils: snils || null, inn: inn || null } : prev);
+                }}
               />
               <AdminEditDocumentsPassword
                 selected={selected}
