@@ -627,9 +627,15 @@ const CabinetStatusCard = ({
           </div>
         ) : status === 'rejected' ? (
           <div className="p-6 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              К сожалению, по заявке принято отрицательное решение.
-            </p>
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100">
+                <Icon name="CircleX" size={26} className="text-red-500" />
+              </span>
+              <div>
+                <p className="font-display text-lg font-bold text-primary">Заявка отклонена</p>
+                <p className="text-sm text-muted-foreground">К сожалению, по заявке принято отрицательное решение.</p>
+              </div>
+            </div>
 
             {user.rejection_reason && (
               <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5">
@@ -642,6 +648,7 @@ const CabinetStatusCard = ({
             )}
 
             <div className="rounded-xl border border-border bg-secondary/40 p-4">
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><Icon name="CalendarClock" size={13} /> Повторная подача</p>
               {canReapply ? (
                 <p className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
                   <Icon name="CheckCircle2" size={15} className="shrink-0" /> Повторная подача уже доступна
@@ -676,10 +683,13 @@ const CabinetStatusCard = ({
               href="https://slds.pro/87ubi"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full rounded-xl border border-accent/40 bg-accent/5 px-4 py-3 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors"
+              className="group flex w-full items-center justify-between gap-3 rounded-xl border border-accent/40 bg-accent/5 px-4 py-3 text-sm font-semibold text-accent transition-colors hover:bg-accent/10"
             >
-              <Icon name="ExternalLink" size={16} className="shrink-0" />
-              Наши партнёры — получить займ
+              <span className="flex items-center gap-2">
+                <Icon name="Handshake" size={18} className="shrink-0" />
+                Наши партнёры — получить займ
+              </span>
+              <Icon name="ArrowUpRight" size={16} className="shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
           </div>
         ) : null}
