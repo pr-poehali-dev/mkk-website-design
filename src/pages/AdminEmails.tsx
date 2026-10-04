@@ -404,6 +404,51 @@ const AdminEmails = () => {
               </div>
             </section>
 
+            {/* Операции по карте */}
+            <section className="rounded-xl border border-border bg-card p-4">
+              <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <Icon name="Wallet" size={14} className="text-accent" /> Операции по карте (пополнение и вывод)
+              </p>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Письмо и уведомление в кабинете уходят клиенту, когда админ меняет статус операции. Переменные:{' '}
+                <code className="rounded bg-secondary px-1 py-0.5 text-[11px]">{'{type}'}</code>,{' '}
+                <code className="rounded bg-secondary px-1 py-0.5 text-[11px]">{'{amount}'}</code>,{' '}
+                <code className="rounded bg-secondary px-1 py-0.5 text-[11px]">{'{status}'}</code>,{' '}
+                <code className="rounded bg-secondary px-1 py-0.5 text-[11px]">{'{reason}'}</code> (причина ошибки).
+              </p>
+              <div className="space-y-3">
+                {([['processing', 'Идёт перевод', 'Loader2'], ['success', 'Успешно', 'CheckCircle2'], ['error', 'Ошибка перевода', 'XCircle']] as const).map(([key, label, icon]) => {
+                  const value = tpl.card_tx_emails[key];
+                  const setVal = (patch: Partial<typeof value>) => setTpl({ ...tpl, card_tx_emails: { ...tpl.card_tx_emails, [key]: { ...value, ...patch } } });
+                  const fill = (t: string) => t.replace('{type}', 'Вывод средств').replace('{amount}', '15 000').replace('{status}', label).replace('{reason}', key === 'error' ? 'Проверьте реквизиты получателя.' : '');
+                  return (
+                    <div key={key} className="rounded-lg border border-border p-3">
+                      <div className="mb-2 flex items-center gap-1.5">
+                        <Icon name={icon} size={14} className="text-accent" />
+                        <p className="text-xs font-semibold text-primary">{label}</p>
+                      </div>
+                      <div className="grid gap-2 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Тема письма</Label>
+                            <Input className="h-8 text-sm" value={value.subject} onChange={(e) => setVal({ subject: e.target.value })} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Текст письма</Label>
+                            <RichTextEditor value={value.body} quickIcons onChange={(html) => setVal({ body: html })} />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="mb-1 block text-xs text-muted-foreground">Предпросмотр</Label>
+                          <div dangerouslySetInnerHTML={{ __html: previewHtml(fill(value.body)) }} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
             {/* Письма с кодом подтверждения */}
             <section className="rounded-xl border border-border bg-card p-4">
               <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">

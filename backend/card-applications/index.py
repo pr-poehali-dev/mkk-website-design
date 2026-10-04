@@ -153,6 +153,82 @@ def tx_to_dict(row):
     return d
 
 
+DEFAULT_DESIGN = {
+    'brand_name': BRAND, 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8', 'logo_url': '',
+    'signature': 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.', 'layout': 'classic',
+}
+DEFAULT_TX_EMAILS = {
+    'processing': {'subject': '{type}: идёт перевод', 'body': '{type} на сумму {amount} ₽ принят в обработку. Статус: {status}. Мы сообщим, когда операция завершится.'},
+    'success': {'subject': '{type}: успешно', 'body': '{type} на сумму {amount} ₽ выполнен. Статус: {status}.'},
+    'error': {'subject': '{type}: ошибка перевода', 'body': '{type} на сумму {amount} ₽ не выполнен. Статус: {status}. {reason}'},
+}
+TX_TYPE_LABEL = {'topup': 'Пополнение карты', 'withdraw': 'Вывод средств'}
+TX_STATUS_LABEL = {'processing': 'Идёт перевод', 'error': 'Ошибка перевода', 'success': 'Успешно'}
+
+
+def get_email_settings(cur) -> dict:
+    cur.execute(f"SELECT value FROM {SCHEMA}.site_settings WHERE key = 'system_email_templates'")
+    row = cur.fetchone()
+    try:
+        return json.loads(row[0]) if row else {}
+    except Exception:
+        return {}
+
+
+def wrap_html(design: dict, body: str) -> str:
+    sig = (design.get('signature') or '').replace('\n', '<br>')
+    sig_html = f'<p style="color:#888;font-size:12px;margin:20px 0 0;border-top:1px solid #eee;padding-top:12px;">{sig}</p>' if sig else ''
+    logo = f'<img src="{design["logo_url"]}" alt="" style="max-height:44px;margin:0 0 12px;display:block;" />' if design.get('logo_url') else ''
+    layout = design.get('layout', 'classic')
+    inner = f'<div style="color:#333;font-size:14px;line-height:1.6;">{body}</div>{sig_html}'
+    if layout == 'header':
+        return (f'<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;border:1px solid #eee;border-radius:14px;overflow:hidden;">'
+                f'<div style="background:{design["primary_color"]};padding:22px;text-align:center;"><h2 style="color:#fff;margin:0;font-size:18px;">{design["brand_name"]}</h2></div>'
+                f'<div style="padding:24px;background:#fff;">{inner}</div></div>')
+    if layout == 'card':
+        return (f'<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:30px 26px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;text-align:center;">'
+                f'{logo}<h2 style="color:{design["primary_color"]};margin:0 0 14px;">{design["brand_name"]}</h2>{inner}</div>')
+    return (f'<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">'
+            f'{logo}<h2 style="color:{design["primary_color"]};">{design["brand_name"]}</h2>{inner}</div>')
+
+
+def send_html(to_email: str, subject: str, html: str, brand: str) -> None:
+    login = os.environ['SMTP_LOGIN']
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = formataddr((brand, login))
+    msg['To'] = to_email
+    msg['Date'] = formatdate(localtime=True)
+    import re
+    msg.attach(MIMEText(re.sub(r'<[^>]+>', '', html.replace('<br>', '\n')), 'plain', 'utf-8'))
+    msg.attach(MIMEText(html, 'html', 'utf-8'))
+    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as s:
+        s.login(login, os.environ['SMTP_PASSWORD'])
+        s.sendmail(login, [to_email], msg.as_string())
+
+
+def notify_tx(cur, tx: dict, email: str):
+    settings = get_email_settings(cur)
+    design = {**DEFAULT_DESIGN, **(settings.get('design') or {})}
+    tpl = {**DEFAULT_TX_EMAILS.get(tx['status'], {}), **((settings.get('card_tx_emails') or {}).get(tx['status']) or {})}
+    amount = f"{tx['amount']:,}".replace(',', ' ')
+    reason = (tx.get('admin_comment') or '') if tx['status'] == 'error' else ''
+    def fill(t: str) -> str:
+        return (t.replace('{amount}', amount).replace('{type}', TX_TYPE_LABEL.get(tx['tx_type'], ''))
+                .replace('{status}', TX_STATUS_LABEL.get(tx['status'], '')).replace('{reason}', reason).strip())
+    subject, body = fill(tpl.get('subject', '')), fill(tpl.get('body', ''))
+    plain = body.replace('<br>', ' ')
+    import re
+    plain = re.sub(r'<[^>]+>', '', plain)
+    cur.execute(f"INSERT INTO {SCHEMA}.notifications (phone, type, title, message) VALUES (%s,%s,%s,%s)",
+                (tx['phone'], 'info', subject, f"{amount} ₽ · {TX_STATUS_LABEL.get(tx['status'], '')}. {plain}"[:500]))
+    if email:
+        try:
+            send_html(email, subject, wrap_html(design, body), design['brand_name'])
+        except Exception as e:
+            print(f'[card-applications] tx mail failed: {e}')
+
+
 def resp(code, headers, data):
     return {'statusCode': code, 'headers': headers, 'body': json.dumps(data, ensure_ascii=False)}
 
@@ -254,7 +330,13 @@ def handler(event: dict, context) -> dict:
             cur.execute(f"UPDATE {SCHEMA}.card_transactions SET status=%s, admin_comment=%s, applied=%s, updated_at=NOW() WHERE id=%s", (status, comment, applied, tx['id']))
             conn.commit()
             cur.execute(TX_SELECT + " WHERE id = %s", (tx['id'],))
-            return resp(200, headers, tx_to_dict(cur.fetchone()))
+            new_tx = tx_to_dict(cur.fetchone())
+            if status != tx['status']:
+                cur.execute(f"SELECT email FROM {SCHEMA}.card_applications WHERE id = %s", (tx['application_id'],))
+                er = cur.fetchone()
+                notify_tx(cur, new_tx, er[0] if er else None)
+                conn.commit()
+            return resp(200, headers, new_tx)
 
         if body.get('action') == 'update':
             if not is_admin:

@@ -487,6 +487,7 @@ export interface SystemEmailTemplates {
   status_emails: Record<string, SystemEmailTemplate>;
   code_emails: Record<'register' | 'sign', SystemCodeEmailTemplate>;
   reminder_email: SystemEmailTemplate;
+  card_tx_emails: Record<'processing' | 'success' | 'error', SystemEmailTemplate>;
 }
 
 export const DEFAULT_SYSTEM_EMAIL_TEMPLATES: SystemEmailTemplates = {
@@ -519,6 +520,11 @@ export const DEFAULT_SYSTEM_EMAIL_TEMPLATES: SystemEmailTemplates = {
     subject: 'Напоминание о погашении займа',
     body: 'Напоминаем, что по заявке {ref} срок погашения займа — {return_date}. Сумма к возврату: {total} ₽. Пожалуйста, подготовьте средства заранее, чтобы избежать просрочки.',
   },
+  card_tx_emails: {
+    processing: { subject: '{type}: идёт перевод', body: '{type} на сумму {amount} ₽ принят в обработку. Статус: {status}. Мы сообщим, когда операция завершится.' },
+    success: { subject: '{type}: успешно', body: '{type} на сумму {amount} ₽ выполнен. Статус: {status}.' },
+    error: { subject: '{type}: ошибка перевода', body: '{type} на сумму {amount} ₽ не выполнен. Статус: {status}. {reason}' },
+  },
 };
 
 export async function apiGetSystemEmailTemplates(): Promise<SystemEmailTemplates> {
@@ -532,6 +538,7 @@ export async function apiGetSystemEmailTemplates(): Promise<SystemEmailTemplates
       status_emails: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.status_emails, ...parsed.status_emails },
       code_emails: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.code_emails, ...parsed.code_emails },
       reminder_email: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.reminder_email, ...parsed.reminder_email },
+      card_tx_emails: { ...DEFAULT_SYSTEM_EMAIL_TEMPLATES.card_tx_emails, ...parsed.card_tx_emails },
     };
   } catch {
     return DEFAULT_SYSTEM_EMAIL_TEMPLATES;
