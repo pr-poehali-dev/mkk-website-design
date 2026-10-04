@@ -155,7 +155,7 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
                     {txs.length > 0 && (
                       <div>
                         <p className="mb-2 text-sm font-semibold text-primary">Операции</p>
-                        <div className="max-h-44 space-y-2 overflow-y-auto">
+                        <div className="max-h-[204px] space-y-2 overflow-y-auto pr-1">
                           {txs.map((t) => (
                             <div key={t.id} className="flex items-center justify-between gap-2 rounded-xl border border-border p-3 text-sm">
                               <div className="min-w-0">
