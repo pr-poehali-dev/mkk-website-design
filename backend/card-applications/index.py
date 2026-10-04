@@ -1,6 +1,7 @@
 """Заявки на виртуальную карту (кошелёк): клиент подаёт заявку, админ меняет статус, лимит, срок, ставку, пересчитывает график; клиенту уходит письмо по статусу."""
 import json
 import os
+import random
 import smtplib
 from datetime import date
 from email.mime.text import MIMEText
@@ -17,7 +18,7 @@ MAX_LIMIT = 270000
 STATUSES = ('new', 'review', 'approved', 'issued', 'rejected')
 COLS = ['id', 'ref_number', 'phone', 'full_name', 'email', 'birth_date', 'passport', 'address', 'work_place',
         'income', 'requested_limit', 'approved_limit', 'term_months', 'rate_percent', 'schedule', 'status',
-        'admin_comment', 'created_at', 'updated_at']
+        'admin_comment', 'created_at', 'updated_at', 'card_number', 'card_expiry', 'card_holder']
 
 STATUS_MAIL = {
     'new': ('Заявка на карту принята', 'Ваша заявка на виртуальную карту принята и поставлена в очередь на рассмотрение.'),
@@ -36,6 +37,35 @@ def row_to_dict(row):
     if d.get('rate_percent') is not None:
         d['rate_percent'] = float(d['rate_percent'])
     return d
+
+
+TRANSLIT = dict(zip('абвгдеёжзийклмнопрстуфхцчшщъыьэюя', ['A','B','V','G','D','E','E','ZH','Z','I','Y','K','L','M','N','O','P','R','S','T','U','F','KH','TS','CH','SH','SHCH','','Y','','E','YU','YA']))
+
+
+def translit(name: str) -> str:
+    parts = name.lower().split()
+    parts = parts[:2] if len(parts) > 1 else parts
+    parts = [parts[1], parts[0]] if len(parts) == 2 else parts
+    return ' '.join(''.join(TRANSLIT.get(c, c.upper() if c.isascii() and c.isalpha() else '') for c in p) for p in parts)[:26]
+
+
+def gen_card_number() -> str:
+    digits = [2, 2, 0, 0] + [random.randint(0, 9) for _ in range(11)]
+    total = 0
+    for i, d in enumerate(reversed(digits)):
+        if i % 2 == 0:
+            d *= 2
+            if d > 9:
+                d -= 9
+        total += d
+    digits.append((10 - total % 10) % 10)
+    s = ''.join(map(str, digits))
+    return ' '.join(s[i:i + 4] for i in range(0, 16, 4))
+
+
+def gen_card_expiry() -> str:
+    t = date.today()
+    return f"{t.month:02d}/{(t.year + 3) % 100:02d}"
 
 
 def build_schedule(amount: int, months: int, rate: float) -> list:
@@ -65,6 +95,8 @@ def send_status_email(to_email, status, app):
     subject, text = STATUS_MAIL[status]
     lines = [text]
     if status in ('approved', 'issued'):
+        if app.get('card_number'):
+            lines.append(f"Карта: {app['card_number']}, срок действия {app['card_expiry']}")
         lines.append(f"Лимит: {int(app.get('approved_limit') or 0):,} ₽".replace(',', ' '))
         if app.get('term_months'):
             lines.append(f"Срок: {app['term_months']} мес.")
@@ -165,6 +197,14 @@ def handler(event: dict, context) -> dict:
             schedule = old['schedule']
             if body.get('recalc') or (limit and term and schedule is None):
                 schedule = build_schedule(limit or 0, term or 0, rate or 0)
+            if status == 'issued' and not old.get('card_number'):
+                while True:
+                    num = gen_card_number()
+                    cur.execute(f"SELECT 1 FROM {SCHEMA}.card_applications WHERE card_number = %s", (num,))
+                    if not cur.fetchone():
+                        break
+                cur.execute(f"UPDATE {SCHEMA}.card_applications SET card_number=%s, card_expiry=%s, card_holder=%s WHERE id=%s",
+                            (num, gen_card_expiry(), translit(old['full_name']), app_id))
             cur.execute(
                 f"""UPDATE {SCHEMA}.card_applications SET status=%s, approved_limit=%s, term_months=%s,
                     rate_percent=%s, admin_comment=%s, schedule=%s, updated_at=NOW() WHERE id=%s""",

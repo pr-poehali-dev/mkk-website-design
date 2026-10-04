@@ -67,13 +67,29 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
           <div className="space-y-4">
             {shown ? (
               <>
-                <div className="rounded-2xl bg-gradient-to-br from-primary to-primary/70 p-5 text-primary-foreground shadow-lg">
-                  <div className="flex items-center justify-between text-xs opacity-80">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/70 p-5 text-primary-foreground shadow-lg">
+                  <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-accent/30 blur-2xl" />
+                  <div className="relative flex items-center justify-between text-xs opacity-90">
                     <span>Виртуальная карта</span><Icon name="Wallet" size={18} />
                   </div>
-                  <p className="mt-6 text-xs opacity-80">{shown.status === 'issued' ? 'Доступный лимит' : shown.approved_limit ? 'Одобренный лимит' : 'Запрошенный лимит'}</p>
-                  <p className="font-display text-3xl font-bold">{fmt(shown.approved_limit ?? shown.requested_limit)} ₽</p>
-                  <p className="mt-3 text-sm opacity-90">{shown.full_name}</p>
+                  <div className="relative mt-5 h-8 w-11 rounded-md bg-gradient-to-br from-amber-200 to-amber-400/80" />
+                  <p className="relative mt-4 font-mono text-lg tracking-widest sm:text-xl">
+                    {shown.status === 'issued' && shown.card_number ? shown.card_number : '•••• •••• •••• ••••'}
+                  </p>
+                  <div className="relative mt-3 flex items-end justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase opacity-70">Владелец</p>
+                      <p className="truncate font-mono text-sm uppercase">{shown.status === 'issued' && shown.card_holder ? shown.card_holder : shown.full_name}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-[10px] uppercase opacity-70">Действует до</p>
+                      <p className="font-mono text-sm">{shown.status === 'issued' && shown.card_expiry ? shown.card_expiry : '••/••'}</p>
+                    </div>
+                  </div>
+                  <div className="relative mt-4 border-t border-white/20 pt-3">
+                    <p className="text-xs opacity-80">{shown.status === 'issued' ? 'Доступный лимит' : shown.approved_limit ? 'Одобренный лимит' : 'Запрошенный лимит'}</p>
+                    <p className="font-display text-2xl font-bold">{fmt(shown.approved_limit ?? shown.requested_limit)} ₽</p>
+                  </div>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Статус заявки</span>

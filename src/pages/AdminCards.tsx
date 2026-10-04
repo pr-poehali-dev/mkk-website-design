@@ -97,6 +97,16 @@ const AdminCards = () => {
                       <p><span className="text-muted-foreground">Работа:</span> {a.work_place || '—'}</p>
                       <p><span className="text-muted-foreground">Доход:</span> {a.income ? `${fmt(a.income)} ₽` : '—'}</p>
                     </div>
+                    <div className="rounded-xl border bg-secondary/40 p-3 text-sm">
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Данные карты</p>
+                      {a.card_number ? (
+                        <div className="grid gap-1 sm:grid-cols-3">
+                          <p><span className="text-muted-foreground">Номер:</span> <span className="font-mono">{a.card_number}</span></p>
+                          <p><span className="text-muted-foreground">Срок:</span> <span className="font-mono">{a.card_expiry}</span></p>
+                          <p><span className="text-muted-foreground">Имя на карте:</span> <span className="font-mono">{a.card_holder}</span></p>
+                        </div>
+                      ) : <p className="text-muted-foreground">Номер сгенерируется автоматически при статусе «Карта выпущена».</p>}
+                    </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div><Label>Статус (клиенту уйдёт письмо)</Label>
                         <select value={d.status} onChange={(e) => patch(a, { status: e.target.value as CardStatus })}
