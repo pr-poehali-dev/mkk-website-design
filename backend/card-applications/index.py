@@ -189,6 +189,10 @@ def handler(event: dict, context) -> dict:
             return resp(400, headers, {'error': 'Заполните ФИО, паспорт и адрес'})
         if req_limit < 1000 or req_limit > MAX_LIMIT:
             return resp(400, headers, {'error': f'Лимит от 1 000 до {MAX_LIMIT} ₽'})
+        cur.execute(f"SELECT status FROM {SCHEMA}.loan_requests WHERE ref_number = %s AND phone = %s", (body.get('ref_number') or '', phone))
+        lr = cur.fetchone()
+        if not lr or lr[0] not in ('repaid', 'rejected'):
+            return resp(403, headers, {'error': 'Оформить карту можно после погашения займа или при отклонённой заявке'})
         cur.execute(sel + " WHERE phone = %s AND status IN ('new','review') LIMIT 1", (phone,))
         if cur.fetchone():
             return resp(409, headers, {'error': 'У вас уже есть заявка на рассмотрении'})

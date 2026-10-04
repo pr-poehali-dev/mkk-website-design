@@ -113,7 +113,7 @@ const Cabinet = () => {
           </div>
         )}
 
-        {!cardBannerHidden && (
+        {!cardBannerHidden && (user.status === 'repaid' || user.status === 'rejected') && (
         <div
           role="button"
           tabIndex={0}

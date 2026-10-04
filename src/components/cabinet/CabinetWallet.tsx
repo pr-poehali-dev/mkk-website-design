@@ -32,6 +32,7 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
   };
   useEffect(() => { if (open) { load(); setForm(false); setError(''); } }, [open]);
 
+  const canOpen = user.status === 'repaid' || user.status === 'rejected';
   const current = apps[0];
   const card = apps.find((a) => a.status === 'issued');
   const pending = apps.find((a) => a.status === 'new' || a.status === 'review');
@@ -94,14 +95,16 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
                     </div>
                   </div>
                 )}
-                {shown.status === 'rejected' && <Button className="w-full" onClick={() => setForm(true)}>Подать заявку повторно</Button>}
+                {shown.status === 'rejected' && canOpen && <Button className="w-full" onClick={() => setForm(true)}>Подать заявку повторно</Button>}
               </>
             ) : (
               <div className="space-y-3 text-center">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15 text-accent"><Icon name="CreditCard" size={28} /></div>
                 <p className="font-semibold text-primary">У вас пока нет карты</p>
                 <p className="text-sm text-muted-foreground">Откройте виртуальную карту онлайн с лимитом до {fmt(CARD_MAX_LIMIT)} ₽.</p>
-                <Button className="w-full" onClick={() => setForm(true)}>Открыть карту</Button>
+                {canOpen
+                  ? <Button className="w-full" onClick={() => setForm(true)}>Открыть карту</Button>
+                  : <p className="rounded-xl bg-secondary p-3 text-sm text-muted-foreground">Оформить карту можно после погашения займа или при отклонённой заявке.</p>}
               </div>
             )}
           </div>
