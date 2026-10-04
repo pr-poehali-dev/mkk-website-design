@@ -13,7 +13,7 @@ import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
 import BankiRuWidget from '@/components/cabinet/BankiRuWidget';
 import CameraCapture from '@/components/anketa/CameraCapture';
 import { useMaintenance } from '@/lib/maintenanceContext';
-import { getLoanRate, fmtRate, getTariff, calcInsurance } from '@/lib/loanRate';
+import { getLoanRate, fmtRate, getTariff, calcInsurance, buildSchedule } from '@/lib/loanRate';
 import { useState, useEffect } from 'react';
 import BankLogo from '@/components/BankLogo';
 import { normalizeBankName } from '@/lib/banks';
@@ -371,6 +371,15 @@ const CabinetStatusCard = ({
     Math.max(1, Math.ceil((Date.now() - new Date(user.money_sent_at || user.created_at).getTime()) / 86400000))
   );
   const currentOverpay = Math.round(user.amount * loanRate * accruedDays);
+
+  const installment = (() => {
+    if (!tariff?.weekly || !isActiveLoan) return null;
+    const sched = buildSchedule(user.money_sent_at || user.created_at, user.amount + Math.round(user.amount * loanRate * user.days) + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0), user.days, tariff);
+    let left = paidTotal;
+    const rest = sched.map((p) => { const cov = Math.min(left, p.amount); left -= cov; return { num: p.num, date: p.date, amount: p.amount - cov }; });
+    const next = rest.find((p) => p.amount > 0);
+    return sched.length > 1 && next ? { num: next.num, total: sched.length, date: next.date.toLocaleDateString('ru-RU'), amount: next.amount } : null;
+  })();
 
   const moneySentKey = `money_sent_seen_${user.ref_number}`;
   const [showMoneySent, setShowMoneySent] = useState(() =>
@@ -1022,6 +1031,7 @@ const CabinetStatusCard = ({
 
       {/* Поп-ап погашения займа */}
       <RepaymentDialog
+        installment={installment}
         open={payInfoOpen}
         onOpenChange={setPayInfoOpen}
         totalDue={Math.max(user.amount + currentOverpay + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0) + (status === 'overdue' ? overduePenaltyTotal : 0) - paidTotal, 1)}

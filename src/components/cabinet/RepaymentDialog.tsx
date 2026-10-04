@@ -18,6 +18,7 @@ interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   totalDue: number;
+  installment?: { num: number; total: number; date: string; amount: number } | null;
   supportUrl: string;
   supportText: string;
   note?: string;
@@ -25,7 +26,7 @@ interface Props {
 
 type Step = 'form' | 'checking' | 'error';
 
-const RepaymentDialog = ({ open, onOpenChange, totalDue, supportUrl, supportText, note }: Props) => {
+const RepaymentDialog = ({ open, onOpenChange, totalDue, installment, supportUrl, supportText, note }: Props) => {
   const min = Math.min(100, totalDue);
   const [amount, setAmount] = useState(totalDue);
   const [method, setMethod] = useState<'card' | 'sbp'>('card');
@@ -100,6 +101,20 @@ const RepaymentDialog = ({ open, onOpenChange, totalDue, supportUrl, supportText
 
         {!step2 && (
           <div className="space-y-4 py-1">
+            {installment && (
+              <button type="button" onClick={() => setAmount(Math.min(installment.amount, totalDue))}
+                className={`flex w-full items-center justify-between gap-3 rounded-xl border-2 p-3 text-left transition-colors ${amount === Math.min(installment.amount, totalDue) ? 'border-accent bg-accent/10' : 'border-border hover:border-accent/50'}`}>
+                <span className="flex items-center gap-2">
+                  <Icon name="CalendarCheck" size={20} className="shrink-0 text-accent" />
+                  <span>
+                    <span className="block text-sm font-semibold text-primary">Платёж по графику {installment.num} из {installment.total}</span>
+                    <span className="block text-xs text-muted-foreground">до {installment.date}</span>
+                  </span>
+                </span>
+                <span className="shrink-0 font-display text-base font-bold text-primary">{fmt(Math.min(installment.amount, totalDue))} ₽</span>
+              </button>
+            )}
+
             <div className="rounded-xl bg-secondary/60 p-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
