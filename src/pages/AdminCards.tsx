@@ -14,7 +14,7 @@ import {
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 const fmtDate = (iso: string) => new Date(iso).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-interface Draft { status: CardStatus; limit: string; term: string; rate: string; comment: string }
+interface Draft { status: CardStatus; limit: string; term: string; rate: string; spent: string; comment: string }
 
 const AdminCards = () => {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('zaimy_admin') === '1');
@@ -36,7 +36,7 @@ const AdminCards = () => {
 
   const draftOf = (a: CardApplication): Draft => drafts[a.id] || {
     status: a.status, limit: String(a.approved_limit ?? a.requested_limit), term: a.term_months ? String(a.term_months) : '',
-    rate: a.rate_percent != null ? String(a.rate_percent) : '', comment: a.admin_comment || '',
+    rate: a.rate_percent != null ? String(a.rate_percent) : '', spent: String(a.spent_amount || 0), comment: a.admin_comment || '',
   };
   const patch = (a: CardApplication, p: Partial<Draft>) => setDrafts({ ...drafts, [a.id]: { ...draftOf(a), ...p } });
 
@@ -47,7 +47,7 @@ const AdminCards = () => {
       const upd = await apiAdminUpdateCardApplication({
         id: a.id, status: d.status, approved_limit: d.limit ? Number(d.limit) : null,
         term_months: d.term ? Number(d.term) : null, rate_percent: d.rate !== '' ? Number(d.rate) : null,
-        admin_comment: d.comment || null, recalc,
+        admin_comment: d.comment || null, spent_amount: d.spent ? Number(d.spent) : 0, recalc,
       });
       setItems((prev) => prev.map((x) => (x.id === a.id ? upd : x)));
       setDrafts((p) => { const n = { ...p }; delete n[a.id]; return n; });
@@ -117,6 +117,7 @@ const AdminCards = () => {
                       <div><Label>Лимит, ₽ (макс. {fmt(CARD_MAX_LIMIT)})</Label><Input type="number" max={CARD_MAX_LIMIT} value={d.limit} onChange={(e) => patch(a, { limit: e.target.value })} /></div>
                       <div><Label>Срок, мес.</Label><Input type="number" value={d.term} onChange={(e) => patch(a, { term: e.target.value })} /></div>
                       <div><Label>Ставка, % годовых</Label><Input type="number" value={d.rate} onChange={(e) => patch(a, { rate: e.target.value })} /></div>
+                      <div><Label>Потрачено по карте, ₽</Label><Input type="number" min={0} value={d.spent} onChange={(e) => patch(a, { spent: e.target.value })} /></div>
                     </div>
                     <div><Label>Комментарий клиенту</Label><Textarea value={d.comment} onChange={(e) => patch(a, { comment: e.target.value })} /></div>
                     {a.schedule && a.schedule.length > 0 && (

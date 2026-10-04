@@ -1,0 +1,1 @@
+ALTER TABLE t_p90084086_mkk_website_design.card_applications ADD COLUMN IF NOT EXISTS spent_amount INTEGER NOT NULL DEFAULT 0;

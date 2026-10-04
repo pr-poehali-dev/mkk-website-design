@@ -18,7 +18,7 @@ MAX_LIMIT = 270000
 STATUSES = ('new', 'review', 'approved', 'issued', 'rejected')
 COLS = ['id', 'ref_number', 'phone', 'full_name', 'email', 'birth_date', 'passport', 'address', 'work_place',
         'income', 'requested_limit', 'approved_limit', 'term_months', 'rate_percent', 'schedule', 'status',
-        'admin_comment', 'created_at', 'updated_at', 'card_number', 'card_expiry', 'card_holder', 'card_cvv']
+        'admin_comment', 'created_at', 'updated_at', 'card_number', 'card_expiry', 'card_holder', 'card_cvv', 'spent_amount']
 
 STATUS_MAIL = {
     'new': ('Заявка на карту принята', 'Ваша заявка на виртуальную карту принята и поставлена в очередь на рассмотрение.'),
@@ -189,6 +189,10 @@ def handler(event: dict, context) -> dict:
             limit = int(limit) if limit not in (None, '') else None
             if limit is not None and (limit < 0 or limit > MAX_LIMIT):
                 return resp(400, headers, {'error': f'Лимит не может превышать {MAX_LIMIT} ₽'})
+            spent = body.get('spent_amount', old['spent_amount'])
+            spent = int(spent) if spent not in (None, '') else 0
+            if spent < 0 or (limit is not None and spent > limit):
+                return resp(400, headers, {'error': 'Потрачено не может быть больше лимита или меньше нуля'})
             term = body.get('term_months', old['term_months'])
             term = int(term) if term not in (None, '') else None
             rate = body.get('rate_percent', old['rate_percent'])
@@ -209,8 +213,8 @@ def handler(event: dict, context) -> dict:
                 cur.execute(f"UPDATE {SCHEMA}.card_applications SET card_cvv=%s WHERE id=%s", (f"{random.randint(0, 999):03d}", app_id))
             cur.execute(
                 f"""UPDATE {SCHEMA}.card_applications SET status=%s, approved_limit=%s, term_months=%s,
-                    rate_percent=%s, admin_comment=%s, schedule=%s, updated_at=NOW() WHERE id=%s""",
-                (status, limit, term, rate, comment, json.dumps(schedule) if schedule is not None else None, app_id))
+                    rate_percent=%s, admin_comment=%s, spent_amount=%s, schedule=%s, updated_at=NOW() WHERE id=%s""",
+                (status, limit, term, rate, comment, spent, json.dumps(schedule) if schedule is not None else None, app_id))
             conn.commit()
             cur.execute(sel + " WHERE id = %s", (app_id,))
             new = row_to_dict(cur.fetchone())

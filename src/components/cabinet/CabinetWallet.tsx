@@ -119,6 +119,29 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
                     <p className="font-display text-2xl font-bold">{fmt(shown.approved_limit ?? shown.requested_limit)} ₽</p>
                   </div>
                 </div>
+                {shown.status === 'issued' && (() => {
+                  const total = shown.approved_limit ?? 0;
+                  const spent = Math.min(shown.spent_amount || 0, total);
+                  const left = Math.max(total - spent, 0);
+                  const pct = total > 0 ? Math.round((spent / total) * 100) : 0;
+                  const bar = pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-500' : 'bg-accent';
+                  return (
+                    <div className="rounded-2xl border border-border bg-card p-4">
+                      <div className="mb-3 flex items-center justify-between">
+                        <p className="text-sm font-semibold text-primary">Использование лимита</p>
+                        <span className="text-xs font-semibold text-muted-foreground">{pct}%</span>
+                      </div>
+                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-secondary">
+                        <div className={`h-full rounded-full transition-all ${bar}`} style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                        <div><p className="text-xs text-muted-foreground">Потрачено</p><p className="font-semibold text-primary">{fmt(spent)} ₽</p></div>
+                        <div className="text-right"><p className="text-xs text-muted-foreground">Доступно</p><p className="font-semibold text-emerald-600">{fmt(left)} ₽</p></div>
+                      </div>
+                      <p className="mt-2 text-xs text-muted-foreground">Общий лимит: {fmt(total)} ₽</p>
+                    </div>
+                  );
+                })()}
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Статус заявки</span>
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${CARD_STATUS_META[shown.status].badge}`}>{CARD_STATUS_META[shown.status].label}</span>
