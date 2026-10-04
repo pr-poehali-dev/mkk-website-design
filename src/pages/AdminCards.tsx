@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import AdminLoginScreen from '@/components/admin/AdminLoginScreen';
 import {
-  apiAdminListCardApplications, apiAdminUpdateCardApplication, CARD_MAX_LIMIT, CARD_STATUS_META,
+  apiAdminListCardApplications, apiAdminUpdateCardApplication, apiAdminListCardTransactions, apiAdminUpdateCardTransaction,
+  CARD_TX_STATUS_META, type CardTransaction, type CardTxStatus, CARD_MAX_LIMIT, CARD_STATUS_META,
   type CardApplication, type CardStatus,
 } from '@/lib/api';
 
@@ -25,10 +26,12 @@ const AdminCards = () => {
   const [drafts, setDrafts] = useState<Record<number, Draft>>({});
   const [savingId, setSavingId] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [txs, setTxs] = useState<CardTransaction[]>([]);
+  const [txSaving, setTxSaving] = useState<number | null>(null);
 
   const load = async () => {
     setLoading(true);
-    try { setItems(await apiAdminListCardApplications()); } catch (e) { setError(e instanceof Error ? e.message : 'Ошибка'); } finally { setLoading(false); }
+    try { const [a, t] = await Promise.all([apiAdminListCardApplications(), apiAdminListCardTransactions()]); setItems(a); setTxs(t); } catch (e) { setError(e instanceof Error ? e.message : 'Ошибка'); } finally { setLoading(false); }
   };
   useEffect(() => { if (authed) load(); }, [authed]);
 
@@ -52,6 +55,16 @@ const AdminCards = () => {
       setItems((prev) => prev.map((x) => (x.id === a.id ? upd : x)));
       setDrafts((p) => { const n = { ...p }; delete n[a.id]; return n; });
     } catch (e) { setError(e instanceof Error ? e.message : 'Ошибка'); } finally { setSavingId(null); }
+  };
+
+  const changeTx = async (t: CardTransaction, status: CardTxStatus) => {
+    const comment = status === 'error' ? window.prompt('Причина ошибки (увидит клиент)', t.admin_comment || '') : t.admin_comment;
+    if (status === 'error' && comment === null) return;
+    setTxSaving(t.id); setError('');
+    try {
+      await apiAdminUpdateCardTransaction({ id: t.id, status, admin_comment: comment || null });
+      await load();
+    } catch (e) { setError(e instanceof Error ? e.message : 'Ошибка'); } finally { setTxSaving(null); }
   };
 
   const filtered = items.filter((a) => tab === 'all' || a.status === tab);
@@ -124,6 +137,26 @@ const AdminCards = () => {
                       <div className="max-h-48 overflow-y-auto rounded-xl border text-xs">
                         <table className="w-full"><thead className="bg-secondary"><tr><th className="p-2 text-left">№</th><th className="p-2 text-left">Дата</th><th className="p-2 text-right">Платёж</th><th className="p-2 text-right">Основной долг</th><th className="p-2 text-right">Проценты</th><th className="p-2 text-right">Остаток</th></tr></thead>
                           <tbody>{a.schedule.map((s) => (<tr key={s.n} className="border-t"><td className="p-2">{s.n}</td><td className="p-2">{new Date(s.date).toLocaleDateString('ru-RU')}</td><td className="p-2 text-right">{fmt(s.payment)}</td><td className="p-2 text-right">{fmt(s.principal)}</td><td className="p-2 text-right">{fmt(s.interest)}</td><td className="p-2 text-right">{fmt(s.balance)}</td></tr>))}</tbody></table>
+                      </div>
+                    )}
+                    {txs.filter((t) => t.application_id === a.id).length > 0 && (
+                      <div>
+                        <p className="mb-2 text-sm font-semibold text-primary">Операции по карте</p>
+                        <div className="space-y-2">
+                          {txs.filter((t) => t.application_id === a.id).map((t) => (
+                            <div key={t.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 text-sm">
+                              <div>
+                                <p className="font-medium text-primary">{t.tx_type === 'topup' ? 'Пополнение' : t.method === 'sbp' ? 'Вывод по СБП' : 'Вывод на карту'} · {fmt(t.amount)} ₽</p>
+                                <p className="text-xs text-muted-foreground">{fmtDate(t.created_at)}{t.target ? ` · ${t.target}` : ''}{t.bank ? ` · ${t.bank}` : ''}</p>
+                                {t.admin_comment && <p className="text-xs text-red-600">{t.admin_comment}</p>}
+                              </div>
+                              <select value={t.status} disabled={txSaving === t.id} onChange={(e) => changeTx(t, e.target.value as CardTxStatus)}
+                                className="h-9 rounded-md border bg-background px-2 text-sm">
+                                {(Object.keys(CARD_TX_STATUS_META) as CardTxStatus[]).map((k) => <option key={k} value={k}>{CARD_TX_STATUS_META[k].label}</option>)}
+                              </select>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                     <div className="flex flex-wrap gap-2">

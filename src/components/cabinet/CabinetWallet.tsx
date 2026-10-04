@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
+import CardTransferDialog from '@/components/cabinet/CardTransferDialog';
 import {
+  apiGetMyCardTransactions, CARD_TX_STATUS_META, type CardTransaction,
   apiGetMyCardApplications, apiCreateCardApplication, CARD_MAX_LIMIT, CARD_STATUS_META,
   type CardApplication, type UserSession,
 } from '@/lib/api';
@@ -26,15 +28,17 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [showCvv, setShowCvv] = useState(false);
+  const [txMode, setTxMode] = useState<'topup' | 'withdraw' | null>(null);
+  const [txs, setTxs] = useState<CardTransaction[]>([]);
   const [copied, setCopied] = useState(false);
 
   const copyNumber = async (num: string) => {
     try { await navigator.clipboard.writeText(num.replace(/\s/g, '')); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* ignore */ }
   };
 
-  const load = async () => {
-    setLoading(true);
-    try { setApps(await apiGetMyCardApplications(user.phone)); } catch { /* ignore */ } finally { setLoading(false); }
+  const load = async (silent = false) => {
+    if (!silent) setLoading(true);
+    try { const [a, t] = await Promise.all([apiGetMyCardApplications(user.phone), apiGetMyCardTransactions(user.phone)]); setApps(a); setTxs(t); } catch { /* ignore */ } finally { setLoading(false); }
   };
   useEffect(() => { if (open) { load(); setForm(false); setError(''); setShowCvv(false); } }, [open]);
 
@@ -142,6 +146,33 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
                     </div>
                   );
                 })()}
+                {shown.status === 'issued' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button onClick={() => setTxMode('topup')} className="h-11"><Icon name="Plus" size={16} className="mr-1.5" />Пополнить</Button>
+                      <Button variant="outline" onClick={() => setTxMode('withdraw')} className="h-11"><Icon name="ArrowUpRight" size={16} className="mr-1.5" />Вывести</Button>
+                    </div>
+                    {txs.length > 0 && (
+                      <div>
+                        <p className="mb-2 text-sm font-semibold text-primary">Операции</p>
+                        <div className="max-h-44 space-y-2 overflow-y-auto">
+                          {txs.map((t) => (
+                            <div key={t.id} className="flex items-center justify-between gap-2 rounded-xl border border-border p-3 text-sm">
+                              <div className="min-w-0">
+                                <p className="font-medium text-primary">{t.tx_type === 'topup' ? 'Пополнение' : t.method === 'sbp' ? 'Вывод по СБП' : 'Вывод на карту'}</p>
+                                <p className="truncate text-xs text-muted-foreground">{new Date(t.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}{t.bank ? ` · ${t.bank}` : ''}</p>
+                              </div>
+                              <div className="shrink-0 text-right">
+                                <p className="font-semibold text-primary">{t.tx_type === 'topup' ? '+' : '−'}{fmt(t.amount)} ₽</p>
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${CARD_TX_STATUS_META[t.status].badge}`}>{CARD_TX_STATUS_META[t.status].label}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Статус заявки</span>
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${CARD_STATUS_META[shown.status].badge}`}>{CARD_STATUS_META[shown.status].label}</span>
@@ -200,6 +231,9 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
           </div>
         )}
       </DialogContent>
+      {card && txMode && (
+        <CardTransferDialog open={!!txMode} onOpenChange={(v) => { if (!v) setTxMode(null); }} mode={txMode} card={card} user={user} onDone={() => load(true)} />
+      )}
     </Dialog>
   );
 };

@@ -139,6 +139,20 @@ def notify(cur, app, status):
                 (app['phone'], app['ref_number'], 'info', title, text))
 
 
+TX_COLS = ['id', 'application_id', 'phone', 'tx_type', 'method', 'amount', 'target', 'bank', 'status',
+           'admin_comment', 'created_at', 'updated_at']
+TX_STATUSES = ('processing', 'error', 'success')
+TX_SELECT = f"SELECT {', '.join(TX_COLS)} FROM {SCHEMA}.card_transactions"
+
+
+def tx_to_dict(row):
+    d = dict(zip(TX_COLS, row))
+    for k in ('created_at', 'updated_at'):
+        if d.get(k):
+            d[k] = d[k].isoformat()
+    return d
+
+
 def resp(code, headers, data):
     return {'statusCode': code, 'headers': headers, 'body': json.dumps(data, ensure_ascii=False)}
 
@@ -161,6 +175,16 @@ def handler(event: dict, context) -> dict:
     cur = conn.cursor()
     sel = f"SELECT {', '.join(COLS)} FROM {SCHEMA}.card_applications"
     try:
+        if event.get('httpMethod') == 'GET' and params.get('tx'):
+            if is_admin:
+                cur.execute(TX_SELECT + " ORDER BY created_at DESC LIMIT 500")
+            else:
+                phone = params.get('phone')
+                if not phone:
+                    return resp(400, headers, {'error': 'phone обязателен'})
+                cur.execute(TX_SELECT + " WHERE phone = %s ORDER BY created_at DESC LIMIT 30", (phone,))
+            return resp(200, headers, [tx_to_dict(r) for r in cur.fetchall()])
+
         if event.get('httpMethod') == 'GET':
             if is_admin:
                 cur.execute(sel + " ORDER BY created_at DESC LIMIT 500")
@@ -172,6 +196,65 @@ def handler(event: dict, context) -> dict:
             return resp(200, headers, [row_to_dict(r) for r in cur.fetchall()])
 
         body = json.loads(event.get('body') or '{}')
+
+        if body.get('action') == 'tx_create':
+            phone = (body.get('phone') or '').strip()
+            cur.execute(sel + " WHERE id = %s AND phone = %s AND status = 'issued'", (body.get('application_id'), phone))
+            row = cur.fetchone()
+            if not row:
+                return resp(404, headers, {'error': 'Карта не найдена'})
+            app = row_to_dict(row)
+            tx_type = body.get('tx_type')
+            method = body.get('method')
+            try:
+                amount = int(body.get('amount') or 0)
+            except (TypeError, ValueError):
+                amount = 0
+            if tx_type not in ('topup', 'withdraw') or method not in ('sbp', 'card') or amount < 100:
+                return resp(400, headers, {'error': 'Минимальная сумма операции 100 ₽'})
+            target = ''.join(ch for ch in (body.get('target') or '') if ch.isdigit() or ch == '+')
+            if tx_type == 'withdraw':
+                need = 11 if method == 'sbp' else 16
+                if len(target.replace('+', '')) != need:
+                    return resp(400, headers, {'error': 'Неверный номер телефона' if method == 'sbp' else 'Номер карты должен содержать 16 цифр'})
+                cur.execute(f"SELECT COALESCE(SUM(amount),0) FROM {SCHEMA}.card_transactions WHERE application_id=%s AND tx_type='withdraw' AND status='processing'", (app['id'],))
+                reserved = cur.fetchone()[0]
+                available = (app['approved_limit'] or 0) - (app['spent_amount'] or 0) - reserved
+                if amount > available:
+                    return resp(400, headers, {'error': f'Недостаточно средств. Доступно {max(available, 0)} ₽'})
+            cur.execute(
+                f"""INSERT INTO {SCHEMA}.card_transactions (application_id, phone, tx_type, method, amount, target, bank)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING {', '.join(TX_COLS)}""",
+                (app['id'], phone, tx_type, method, amount, target or None, body.get('bank')))
+            tx = tx_to_dict(cur.fetchone())
+            conn.commit()
+            return resp(201, headers, tx)
+
+        if body.get('action') == 'tx_update':
+            if not is_admin:
+                return resp(403, headers, {'error': 'Нет доступа'})
+            status = body.get('status')
+            if status not in TX_STATUSES:
+                return resp(400, headers, {'error': 'Неверный статус'})
+            cur.execute(f"SELECT {', '.join(TX_COLS)}, applied FROM {SCHEMA}.card_transactions WHERE id = %s", (body.get('id'),))
+            row = cur.fetchone()
+            if not row:
+                return resp(404, headers, {'error': 'Операция не найдена'})
+            tx = tx_to_dict(row[:-1])
+            applied = row[-1]
+            comment = body.get('admin_comment', tx['admin_comment'])
+            if status == 'success' and not applied:
+                delta = tx['amount'] if tx['tx_type'] == 'withdraw' else -tx['amount']
+                cur.execute(f"UPDATE {SCHEMA}.card_applications SET spent_amount = GREATEST(LEAST(spent_amount + %s, COALESCE(approved_limit, spent_amount + %s)), 0), updated_at=NOW() WHERE id = %s", (delta, delta, tx['application_id']))
+                applied = True
+            elif status != 'success' and applied:
+                delta = -tx['amount'] if tx['tx_type'] == 'withdraw' else tx['amount']
+                cur.execute(f"UPDATE {SCHEMA}.card_applications SET spent_amount = GREATEST(LEAST(spent_amount + %s, COALESCE(approved_limit, spent_amount + %s)), 0), updated_at=NOW() WHERE id = %s", (delta, delta, tx['application_id']))
+                applied = False
+            cur.execute(f"UPDATE {SCHEMA}.card_transactions SET status=%s, admin_comment=%s, applied=%s, updated_at=NOW() WHERE id=%s", (status, comment, applied, tx['id']))
+            conn.commit()
+            cur.execute(TX_SELECT + " WHERE id = %s", (tx['id'],))
+            return resp(200, headers, tx_to_dict(cur.fetchone()))
 
         if body.get('action') == 'update':
             if not is_admin:

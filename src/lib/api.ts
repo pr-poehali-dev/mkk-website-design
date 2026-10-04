@@ -878,3 +878,51 @@ export async function apiAdminUpdateCardApplication(data: {
   if (!res.ok) throw new Error(json.error || 'Не удалось сохранить');
   return json;
 }
+
+export type CardTxStatus = 'processing' | 'error' | 'success';
+export interface CardTransaction {
+  id: number; application_id: number; phone: string; tx_type: 'topup' | 'withdraw'; method: 'sbp' | 'card';
+  amount: number; target: string | null; bank: string | null; status: CardTxStatus;
+  admin_comment: string | null; created_at: string; updated_at: string;
+}
+export const CARD_TX_STATUS_META: Record<CardTxStatus, { label: string; badge: string; icon: string }> = {
+  processing: { label: 'Идёт перевод', badge: 'bg-blue-100 text-blue-700', icon: 'Loader2' },
+  error: { label: 'Ошибка перевода', badge: 'bg-red-100 text-red-700', icon: 'XCircle' },
+  success: { label: 'Успешно', badge: 'bg-green-100 text-green-700', icon: 'CheckCircle2' },
+};
+
+export async function apiGetMyCardTransactions(phone: string): Promise<CardTransaction[]> {
+  const res = await fetchRetry(`${CARD_URL}?tx=1&phone=${encodeURIComponent(phone)}`);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки');
+  return json;
+}
+
+export async function apiCreateCardTransaction(data: {
+  application_id: number; phone: string; tx_type: 'topup' | 'withdraw'; method: 'sbp' | 'card';
+  amount: number; target?: string; bank?: string;
+}): Promise<CardTransaction> {
+  const res = await fetchRetry(CARD_URL, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'tx_create', ...data }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось создать операцию');
+  return json;
+}
+
+export async function apiAdminListCardTransactions(): Promise<CardTransaction[]> {
+  const res = await fetchRetry(`${CARD_URL}?tx=1`, { headers: { 'x-admin-token': ADMIN_TOKEN } });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки');
+  return json;
+}
+
+export async function apiAdminUpdateCardTransaction(data: { id: number; status: CardTxStatus; admin_comment?: string | null }): Promise<CardTransaction> {
+  const res = await fetchRetry(CARD_URL, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'tx_update', ...data }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось сохранить');
+  return json;
+}
