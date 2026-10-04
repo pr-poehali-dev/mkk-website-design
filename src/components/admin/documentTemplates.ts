@@ -1,4 +1,4 @@
-export const DEFAULT_COMPANY_NAME = 'КПК «Частные займы плюс»';
+export const DEFAULT_COMPANY_NAME = '«Частные займы плюс»';
 export const DEFAULT_COMPANY_INN = '220038299987';
 export const DEFAULT_COMPANY_OGRN = '0092800992828288';
 

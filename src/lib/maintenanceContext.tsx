@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { apiGetSiteSettings } from '@/lib/api';
 import { parseCabinetArticles, DEFAULT_CABINET_ARTICLES, type CabinetArticle } from '@/lib/cabinetArticles';
 
-export const DEFAULT_COMPANY_NAME = 'КПК «Частные займы плюс»';
+export const DEFAULT_COMPANY_NAME = '«Частные займы плюс»';
 export const DEFAULT_COMPANY_LOGO_URL = '';
 export const DEFAULT_CABINET_BANNER_URL = '';
 export const DEFAULT_COMPANY_INN = '220038299987';

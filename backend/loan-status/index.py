@@ -27,7 +27,7 @@ DEFAULT_DESIGN = {
     'brand_name': 'Частные займы плюс', 'primary_color': '#1a2b4c', 'accent_color': '#f2f4f8',
     'logo_url': '', 'signature': 'С уважением,\nЗаймы-плюс.рф\nРежим работы с 09:00 до 18:00 по мск.',
 }
-DEFAULT_COMPANY_NAME = 'КПК «Частные займы плюс»'
+DEFAULT_COMPANY_NAME = '«Частные займы плюс»'
 DEFAULT_COMPANY_INN = '220038299987'
 DEFAULT_COMPANY_OGRN = '0092800992828288'
 
