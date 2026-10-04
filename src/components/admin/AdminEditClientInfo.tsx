@@ -40,6 +40,8 @@ const AdminEditClientInfo = ({
     return d.length > 9 ? `${base} ${d.slice(9)}` : base;
   };
 
+  const passportDigits = (selected.passport || '').replace(/\D/g, '');
+
   const startEditIds = () => {
     setSnilsVal(selected.snils ? formatSnils(selected.snils) : '');
     setInnVal(selected.inn || '');
@@ -72,7 +74,9 @@ const AdminEditClientInfo = ({
           { label: 'ФИО', value: selected.full_name },
           { label: 'Телефон', value: selected.phone },
           { label: 'Дата рождения', value: selected.birth_date },
-          { label: 'Паспорт', value: selected.passport ? `${selected.passport}${selected.passport_by ? ` · ${selected.passport_by}` : ''}` : undefined },
+          { label: 'Серия паспорта', value: passportDigits.slice(0, 4) || undefined },
+          { label: 'Номер паспорта', value: passportDigits.slice(4) || undefined },
+          { label: 'Кем выдан', value: selected.passport_by || undefined },
           { label: 'СНИЛС', value: selected.snils ? formatSnils(selected.snils) : undefined },
           { label: 'ИНН', value: selected.inn || undefined },
           { label: 'Адрес проживания', value: selected.address_residence },
