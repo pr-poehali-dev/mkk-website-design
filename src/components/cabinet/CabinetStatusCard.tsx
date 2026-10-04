@@ -924,7 +924,7 @@ const CabinetStatusCard = ({
             </div>
           )}
           {status !== 'issued' && (
-            !isActiveLoan ? <BankiRuWidget /> :
+            status === 'rejected' ? <BankiRuWidget /> :
             <div className={`rounded-2xl border p-6 shadow-sm ${isActiveLoan ? 'mt-4 border-accent/40 bg-accent/5' : 'border-border bg-card'}`}>
               <h2 className="mb-4 flex border-b border-border/60 pb-3 items-center gap-2 font-display text-lg font-semibold text-primary">
                 <Icon name={isActiveLoan ? 'BadgeDollarSign' : 'Wallet'} size={18} className="text-accent" />
