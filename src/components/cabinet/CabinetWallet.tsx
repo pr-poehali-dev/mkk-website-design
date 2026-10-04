@@ -25,12 +25,18 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
   });
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [showCvv, setShowCvv] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyNumber = async (num: string) => {
+    try { await navigator.clipboard.writeText(num.replace(/\s/g, '')); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* ignore */ }
+  };
 
   const load = async () => {
     setLoading(true);
     try { setApps(await apiGetMyCardApplications(user.phone)); } catch { /* ignore */ } finally { setLoading(false); }
   };
-  useEffect(() => { if (open) { load(); setForm(false); setError(''); } }, [open]);
+  useEffect(() => { if (open) { load(); setForm(false); setError(''); setShowCvv(false); } }, [open]);
 
   const canOpen = user.status === 'repaid' || user.status === 'rejected';
   const current = apps[0];
@@ -73,17 +79,39 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
                     <span>Виртуальная карта</span><Icon name="Wallet" size={18} />
                   </div>
                   <div className="relative mt-5 h-8 w-11 rounded-md bg-gradient-to-br from-amber-200 to-amber-400/80" />
-                  <p className="relative mt-4 font-mono text-lg tracking-widest sm:text-xl">
-                    {shown.status === 'issued' && shown.card_number ? shown.card_number : '•••• •••• •••• ••••'}
-                  </p>
+                  <div className="relative mt-4 flex items-center justify-between gap-2">
+                    <p className="font-mono text-lg tracking-widest sm:text-xl">
+                      {shown.status === 'issued' && shown.card_number ? shown.card_number : '•••• •••• •••• ••••'}
+                    </p>
+                    {shown.status === 'issued' && shown.card_number && (
+                      <button type="button" onClick={() => copyNumber(shown.card_number!)} aria-label="Скопировать номер карты"
+                        className="flex h-8 shrink-0 items-center gap-1 rounded-lg bg-white/15 px-2 text-xs hover:bg-white/25">
+                        <Icon name={copied ? 'Check' : 'Copy'} size={14} />{copied ? 'Скопировано' : 'Копировать'}
+                      </button>
+                    )}
+                  </div>
                   <div className="relative mt-3 flex items-end justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-[10px] uppercase opacity-70">Владелец</p>
                       <p className="truncate font-mono text-sm uppercase">{shown.status === 'issued' && shown.card_holder ? shown.card_holder : shown.full_name}</p>
                     </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-[10px] uppercase opacity-70">Действует до</p>
-                      <p className="font-mono text-sm">{shown.status === 'issued' && shown.card_expiry ? shown.card_expiry : '••/••'}</p>
+                    <div className="flex shrink-0 items-end gap-4 text-right">
+                      <div>
+                        <p className="text-[10px] uppercase opacity-70">Действует до</p>
+                        <p className="font-mono text-sm">{shown.status === 'issued' && shown.card_expiry ? shown.card_expiry : '••/••'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase opacity-70">CVV</p>
+                        <div className="flex items-center justify-end gap-1">
+                          <p className="font-mono text-sm">{shown.status === 'issued' && shown.card_cvv ? (showCvv ? shown.card_cvv : '•••') : '•••'}</p>
+                          {shown.status === 'issued' && shown.card_cvv && (
+                            <button type="button" onClick={() => setShowCvv(!showCvv)} aria-label={showCvv ? 'Скрыть CVV' : 'Показать CVV'}
+                              className="flex h-6 w-6 items-center justify-center rounded-md bg-white/15 hover:bg-white/25">
+                              <Icon name={showCvv ? 'EyeOff' : 'Eye'} size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div className="relative mt-4 border-t border-white/20 pt-3">

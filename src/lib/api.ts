@@ -830,7 +830,7 @@ export interface CardApplication {
   income: number | null; requested_limit: number; approved_limit: number | null; term_months: number | null;
   rate_percent: number | null; schedule: CardScheduleRow[] | null; status: CardStatus;
   admin_comment: string | null; created_at: string; updated_at: string;
-  card_number: string | null; card_expiry: string | null; card_holder: string | null;
+  card_number: string | null; card_expiry: string | null; card_holder: string | null; card_cvv: string | null;
 }
 export const CARD_STATUS_META: Record<CardStatus, { label: string; badge: string }> = {
   new: { label: 'Новая', badge: 'bg-accent/15 text-accent' },

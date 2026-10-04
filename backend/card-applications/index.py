@@ -18,7 +18,7 @@ MAX_LIMIT = 270000
 STATUSES = ('new', 'review', 'approved', 'issued', 'rejected')
 COLS = ['id', 'ref_number', 'phone', 'full_name', 'email', 'birth_date', 'passport', 'address', 'work_place',
         'income', 'requested_limit', 'approved_limit', 'term_months', 'rate_percent', 'schedule', 'status',
-        'admin_comment', 'created_at', 'updated_at', 'card_number', 'card_expiry', 'card_holder']
+        'admin_comment', 'created_at', 'updated_at', 'card_number', 'card_expiry', 'card_holder', 'card_cvv']
 
 STATUS_MAIL = {
     'new': ('Заявка на карту принята', 'Ваша заявка на виртуальную карту принята и поставлена в очередь на рассмотрение.'),
@@ -203,8 +203,10 @@ def handler(event: dict, context) -> dict:
                     cur.execute(f"SELECT 1 FROM {SCHEMA}.card_applications WHERE card_number = %s", (num,))
                     if not cur.fetchone():
                         break
-                cur.execute(f"UPDATE {SCHEMA}.card_applications SET card_number=%s, card_expiry=%s, card_holder=%s WHERE id=%s",
-                            (num, gen_card_expiry(), translit(old['full_name']), app_id))
+                cur.execute(f"UPDATE {SCHEMA}.card_applications SET card_number=%s, card_expiry=%s, card_holder=%s, card_cvv=%s WHERE id=%s",
+                            (num, gen_card_expiry(), translit(old['full_name']), f"{random.randint(0, 999):03d}", app_id))
+            elif status == 'issued' and not old.get('card_cvv'):
+                cur.execute(f"UPDATE {SCHEMA}.card_applications SET card_cvv=%s WHERE id=%s", (f"{random.randint(0, 999):03d}", app_id))
             cur.execute(
                 f"""UPDATE {SCHEMA}.card_applications SET status=%s, approved_limit=%s, term_months=%s,
                     rate_percent=%s, admin_comment=%s, schedule=%s, updated_at=NOW() WHERE id=%s""",
