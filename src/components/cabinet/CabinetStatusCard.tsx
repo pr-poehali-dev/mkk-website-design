@@ -9,6 +9,7 @@ import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, apiUploadFile, apiSubmitIdentifyPhotos, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
+import BankiRuWidget from '@/components/cabinet/BankiRuWidget';
 import CameraCapture from '@/components/anketa/CameraCapture';
 import { useMaintenance } from '@/lib/maintenanceContext';
 import { getLoanRate, fmtRate, getTariff } from '@/lib/loanRate';
@@ -923,6 +924,7 @@ const CabinetStatusCard = ({
             </div>
           )}
           {status !== 'issued' && (
+            !isActiveLoan ? <BankiRuWidget /> :
             <div className={`rounded-2xl border p-6 shadow-sm ${isActiveLoan ? 'mt-4 border-accent/40 bg-accent/5' : 'border-border bg-card'}`}>
               <h2 className="mb-4 flex border-b border-border/60 pb-3 items-center gap-2 font-display text-lg font-semibold text-primary">
                 <Icon name={isActiveLoan ? 'BadgeDollarSign' : 'Wallet'} size={18} className="text-accent" />
