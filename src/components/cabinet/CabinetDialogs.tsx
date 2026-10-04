@@ -38,6 +38,8 @@ interface Props {
   setSelectedBank: (v: string | null) => void;
   bankSaved: boolean;
   setBankSaved: (v: boolean) => void;
+  walletOpen: boolean;
+  setWalletOpen: (v: boolean) => void;
   setUser: (u: UserSession) => void;
   onLogout: () => void;
 }
@@ -52,10 +54,10 @@ const CabinetDialogs = ({
   docsOpen, setDocsOpen,
   selectedBank, setSelectedBank,
   bankSaved, setBankSaved,
+  walletOpen, setWalletOpen,
   setUser,
   onLogout,
 }: Props) => {
-  const [walletOpen, setWalletOpen] = useState(false);
   const { companyName, companyInn, companyOgrn } = useMaintenance();
   const returnDate = (() => {
     const d = new Date(user.created_at || Date.now());
