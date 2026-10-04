@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
-import { apiSaveSiteSettings } from '@/lib/api';
+import { apiSaveSiteSettings, apiUploadFile } from '@/lib/api';
 import type { SiteDocument } from '@/lib/siteDocuments';
 
 interface Props {
@@ -14,6 +14,8 @@ const AdminDocumentsSettings = ({ initial }: Props) => {
   const [items, setItems] = useState<SiteDocument[]>(initial);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState('');
 
   const update = (id: string, patch: Partial<SiteDocument>) =>
     setItems((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d)));
@@ -29,6 +31,21 @@ const AdminDocumentsSettings = ({ initial }: Props) => {
 
   const add = () =>
     setItems((prev) => [...prev, { id: `d-${Date.now()}`, group: prev[prev.length - 1]?.group || 'Документы компании', title: '', url: '', visible: true }]);
+
+  const upload = async (id: string, file: File) => {
+    setUploadError('');
+    if (file.type !== 'application/pdf') { setUploadError('Выберите файл в формате PDF'); return; }
+    if (file.size > 10 * 1024 * 1024) { setUploadError('Файл больше 10 МБ'); return; }
+    setUploadingId(id);
+    try {
+      const url = await apiUploadFile(file, 'documents');
+      update(id, { url });
+    } catch (e) {
+      setUploadError(e instanceof Error ? e.message : 'Не удалось загрузить файл');
+    } finally {
+      setUploadingId(null);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -76,11 +93,31 @@ const AdminDocumentsSettings = ({ initial }: Props) => {
                 <div className="space-y-2">
                   <Input placeholder="Раздел (например, Прочее)" value={d.group} onChange={(e) => update(d.id, { group: e.target.value })} />
                   <Input placeholder="Название документа" value={d.title} onChange={(e) => update(d.id, { title: e.target.value })} />
-                  <Input placeholder="Ссылка на документ (https://...)" value={d.url} onChange={(e) => update(d.id, { url: e.target.value })} />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className={`flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium ${uploadingId === d.id ? 'pointer-events-none opacity-60' : 'text-primary hover:bg-secondary'}`}>
+                      {uploadingId === d.id ? <Icon name="Loader2" size={14} className="animate-spin" /> : <Icon name="Upload" size={14} />}
+                      {d.url ? 'Заменить PDF' : 'Загрузить PDF'}
+                      <input type="file" accept="application/pdf,.pdf" className="hidden" disabled={uploadingId === d.id}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(d.id, f); e.target.value = ''; }} />
+                    </label>
+                    {d.url ? (
+                      <>
+                        <a href={d.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-accent hover:underline">
+                          <Icon name="FileCheck" size={14} /> Открыть файл
+                        </a>
+                        <button onClick={() => update(d.id, { url: '' })} aria-label="Убрать файл"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-red-500"><Icon name="X" size={14} /></button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Файл не загружен</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {uploadError && <p className="mt-2 flex items-center gap-1.5 text-sm text-red-600"><Icon name="AlertCircle" size={14} /> {uploadError}</p>}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button size="sm" variant="outline" onClick={add}><Icon name="Plus" size={14} className="mr-1.5" /> Добавить документ</Button>
