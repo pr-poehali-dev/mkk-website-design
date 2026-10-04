@@ -976,9 +976,6 @@ const CabinetStatusCard = ({
                     {user.insurance_enabled && (
                       <div className="flex items-center justify-between gap-3"><dt className="flex items-center gap-2 text-muted-foreground"><Icon name="ShieldCheck" size={15} className="text-blue-600" />Страховка займа</dt><dd className="font-semibold text-blue-700">{fmt(calcInsurance(user.amount, user.insurance_amount))} ₽</dd></div>
                     )}
-                    {paidTotal > 0 && (
-                      <div className="flex items-center justify-between gap-3"><dt className="flex items-center gap-2 text-emerald-700"><Icon name="CheckCircle2" size={15} />Оплачено</dt><dd className="font-semibold text-emerald-700">− {fmt(paidTotal)} ₽</dd></div>
-                    )}
                     <div className="flex justify-between border-t border-accent/20 pt-2">
                       <dt className="font-semibold text-primary">{paidTotal > 0 ? 'Остаток долга на сегодня' : 'К возврату на сегодня'}</dt>
                       <dd className="font-bold text-accent text-base">{fmt(Math.max(user.amount + currentOverpay + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0) - paidTotal, 0))} ₽</dd>
