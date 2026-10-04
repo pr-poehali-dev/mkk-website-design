@@ -118,6 +118,7 @@ const Index = () => {
             <a href="#why" className="text-muted-foreground transition-colors hover:text-primary">Преимущества</a>
             <a href="#faq" className="text-muted-foreground transition-colors hover:text-primary">FAQ</a>
             <Link to="/news" className="text-muted-foreground transition-colors hover:text-primary">Новости</Link>
+            <Link to="/documents" className="text-muted-foreground transition-colors hover:text-primary">Документы</Link>
             <Link to="/appeal" className="text-muted-foreground transition-colors hover:text-primary">Задать вопрос</Link>
           </nav>
           <div className="flex items-center gap-2">
@@ -139,6 +140,7 @@ const Index = () => {
                   <a href="#why" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Преимущества</a>
                   <a href="#faq" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">FAQ</a>
                   <Link to="/news" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Новости</Link>
+                  <Link to="/documents" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Документы</Link>
                   <Link to="/payment" className="rounded-xl px-4 py-3 text-base font-medium text-primary hover:bg-secondary">Способы оплаты</Link>
                   <Link to="/appeal" className="flex items-center gap-2 rounded-xl px-4 py-3 text-left text-base font-medium text-primary hover:bg-secondary">
                     <Icon name="MessageCircleQuestion" size={18} className="text-accent" /> Задать вопрос

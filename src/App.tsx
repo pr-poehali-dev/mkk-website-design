@@ -11,6 +11,7 @@ import Anketa from "./pages/Anketa";
 import Login from "./pages/Login";
 import Cabinet from "./pages/Cabinet";
 import News from "./pages/News";
+import Documents from "./pages/Documents";
 import NewsArticle from "./pages/NewsArticle";
 import PaymentMethods from "./pages/PaymentMethods";
 import Appeal from "./pages/Appeal";
@@ -63,6 +64,7 @@ const App = () => {
               <Route path="/cabinet" element={<Cabinet />} />
               <Route path="/news" element={<News />} />
               <Route path="/news/:id" element={<NewsArticle />} />
+              <Route path="/documents" element={<Documents />} />
               <Route path="/payment" element={<PaymentMethods />} />
               <Route path="/appeal" element={<Appeal />} />
               <Route path="/admin" element={<Admin />} />

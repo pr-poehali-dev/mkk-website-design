@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import AdminArticlesSettings from '@/components/admin/AdminArticlesSettings';
+import AdminDocumentsSettings from '@/components/admin/AdminDocumentsSettings';
+import { parseSiteDocuments, type SiteDocument } from '@/lib/siteDocuments';
 import { parseCabinetArticles, type CabinetArticle } from '@/lib/cabinetArticles';
 import { apiGetSiteSettings, apiSaveSiteSettings, apiUploadFile } from '@/lib/api';
 import {
@@ -23,6 +25,7 @@ const AdminSettings = () => {
   const [siteClosedSaving, setSiteClosedSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [articles, setArticles] = useState<CabinetArticle[]>([]);
+  const [siteDocs, setSiteDocs] = useState<SiteDocument[]>([]);
   const [scoringEnabled, setScoringEnabled] = useState(false);
   const [scoringSaving, setScoringSaving] = useState(false);
   const [debtThreshold, setDebtThreshold] = useState(String(DEFAULT_DEBT_THRESHOLD));
@@ -83,6 +86,7 @@ const AdminSettings = () => {
         setPaymentInfoLinkUrl(s.payment_info_link_url || DEFAULT_PAYMENT_INFO_LINK_URL);
         setPaymentInfoLinkText(s.payment_info_link_text || DEFAULT_PAYMENT_INFO_LINK_TEXT);
         setArticles(parseCabinetArticles(s.cabinet_articles));
+        setSiteDocs(parseSiteDocuments(s.site_documents));
         setLoaded(true);
       });
     }
@@ -300,6 +304,7 @@ const AdminSettings = () => {
             </div>
 
             {loaded && <AdminArticlesSettings initial={articles} />}
+            {loaded && <AdminDocumentsSettings initial={siteDocs} />}
 
             {/* Контакты */}
             <div className="mt-4 rounded-2xl border border-border bg-card p-4">
