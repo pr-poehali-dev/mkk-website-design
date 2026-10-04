@@ -18,6 +18,7 @@ interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   totalDue: number;
+  breakdown?: { label: string; value: number; danger?: boolean }[];
   supportUrl: string;
   supportText: string;
   note?: string;
@@ -25,7 +26,7 @@ interface Props {
 
 type Step = 'form' | 'checking' | 'error';
 
-const RepaymentDialog = ({ open, onOpenChange, totalDue, supportUrl, supportText, note }: Props) => {
+const RepaymentDialog = ({ open, onOpenChange, totalDue, breakdown, supportUrl, supportText, note }: Props) => {
   const min = Math.min(100, totalDue);
   const [amount, setAmount] = useState(totalDue);
   const [method, setMethod] = useState<'card' | 'sbp'>('card');
@@ -100,11 +101,35 @@ const RepaymentDialog = ({ open, onOpenChange, totalDue, supportUrl, supportText
 
         {!step2 && (
           <div className="space-y-4 py-1">
+            <div className="rounded-xl border border-accent/30 bg-accent/5 p-4">
+              <p className="text-xs text-muted-foreground">Точная сумма к погашению на сегодня</p>
+              <p className="font-display text-3xl font-bold text-primary">{fmt(totalDue)} ₽</p>
+              {breakdown && breakdown.length > 0 && (
+                <div className="mt-3 space-y-1 border-t border-accent/20 pt-3 text-sm">
+                  {breakdown.map((b) => (
+                    <div key={b.label} className="flex justify-between">
+                      <span className={b.danger ? 'text-red-600' : 'text-muted-foreground'}>{b.label}</span>
+                      <span className={`font-medium ${b.danger ? 'text-red-700' : 'text-primary'}`}>{fmt(b.value)} ₽</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="rounded-xl bg-secondary/60 p-4">
-              <p className="text-xs text-muted-foreground">Сумма погашения</p>
-              <p className="font-display text-3xl font-bold text-primary">{fmt(amount)} ₽</p>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-xs text-muted-foreground">Сумма платежа</p>
+                  <p className="font-display text-2xl font-bold text-primary">{fmt(amount)} ₽</p>
+                </div>
+                {amount !== totalDue && (
+                  <button type="button" onClick={() => setAmount(totalDue)} className="rounded-lg bg-card px-3 py-1.5 text-xs font-semibold text-accent shadow-sm hover:bg-secondary">
+                    Погасить всё
+                  </button>
+                )}
+              </div>
               <Slider className="mt-4" min={min} max={totalDue} step={100} value={[Math.min(amount, totalDue)]}
-                onValueChange={(v) => setAmount(v[0])} disabled={totalDue <= min} />
+                onValueChange={(v) => setAmount(v[0] >= totalDue - 50 ? totalDue : v[0])} disabled={totalDue <= min} />
               <div className="mt-2 flex justify-between text-xs text-muted-foreground">
                 <span>{fmt(min)} ₽</span><span>Всё: {fmt(totalDue)} ₽</span>
               </div>
