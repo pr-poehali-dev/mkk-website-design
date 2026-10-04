@@ -8,6 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, apiUploadFile, apiSubmitIdentifyPhotos, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
+import RepaymentDialog from '@/components/cabinet/RepaymentDialog';
 import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
 import BankiRuWidget from '@/components/cabinet/BankiRuWidget';
 import CameraCapture from '@/components/anketa/CameraCapture';
@@ -65,7 +66,7 @@ const CabinetStatusCard = ({
   const status = (user.status as StatusKey) in STATUS_META ? (user.status as StatusKey) : 'review';
   const meta = STATUS_META[status];
   const activeStep = meta.step;
-  const { paymentInfoText, paymentInfoNote, paymentInfoLinkUrl, paymentInfoLinkText } = useMaintenance();
+  const { paymentInfoNote, paymentInfoLinkUrl, paymentInfoLinkText } = useMaintenance();
 
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [consentData, setConsentData] = useState(false);
@@ -1005,30 +1006,15 @@ const CabinetStatusCard = ({
         </Button>
       )}
 
-      {/* Поп-ап информации об оплате */}
-      <Dialog open={payInfoOpen} onOpenChange={setPayInfoOpen}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-display text-lg">
-              <Icon name="BadgeDollarSign" size={20} className="text-accent" />
-              Погашение займа
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-1">
-            <p className="text-sm leading-relaxed text-primary whitespace-pre-line">
-              {paymentInfoText}
-            </p>
-            {paymentInfoNote && (
-              <p className="text-xs text-muted-foreground">{paymentInfoNote}</p>
-            )}
-            <a href={paymentInfoLinkUrl} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition-colors">
-              <Icon name="MessageCircle" size={17} className="shrink-0" />
-              {paymentInfoLinkText}
-            </a>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Поп-ап погашения займа */}
+      <RepaymentDialog
+        open={payInfoOpen}
+        onOpenChange={setPayInfoOpen}
+        totalDue={user.amount + currentOverpay + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0) + (status === 'overdue' ? overduePenaltyTotal : 0)}
+        supportUrl={paymentInfoLinkUrl}
+        supportText={paymentInfoLinkText}
+        note={paymentInfoNote}
+      />
 
       {status === 'repaid' && (
         <Button
