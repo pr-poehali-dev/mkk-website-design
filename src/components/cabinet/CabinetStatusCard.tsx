@@ -17,6 +17,18 @@ import { useState, useEffect } from 'react';
 import BankLogo from '@/components/BankLogo';
 import { normalizeBankName } from '@/lib/banks';
 
+const STATUS_HINTS: Record<string, string> = {
+  issued: 'Договор подписан. Деньги будут переведены в ближайшее время.',
+  money_sent: 'Средства отправлены на вашу карту.',
+  repaid: 'Спасибо! Займ полностью погашен.',
+  rejected: 'К сожалению, по заявке принято отрицательное решение.',
+  transfer_error: 'Не удалось перевести деньги. Проверьте реквизиты карты.',
+  photo_request: 'Нужны фотографии документов для продолжения.',
+  client_declined: 'Вы отказались от займа.',
+  awaiting_call: 'Скоро с вами свяжется специалист.',
+  overdue: 'Погасите займ как можно скорее, чтобы не росла пеня.',
+};
+
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
 const steps = [
@@ -432,13 +444,20 @@ const CabinetStatusCard = ({
             </div>
           </>
         ) : (
-          <div className="flex items-center gap-4 border-b border-border p-6">
-            <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${meta.bg} ${meta.color} transition-all`}>
-              <Icon name={meta.icon} size={32} />
+          <div className={`flex items-center gap-4 border-b border-border p-5 sm:p-6 ${meta.cardBg}`}>
+            <div className="relative shrink-0">
+              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm sm:h-16 sm:w-16 ${meta.bg} ${meta.color}`}>
+                <Icon name={meta.icon} size={30} />
+              </div>
+              <span className={`absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-card ${meta.dot} ${status === 'money_sent' || status === 'overdue' ? 'animate-pulse' : ''}`} />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Статус заявки {user.ref_number}</p>
-              <p className={`font-display text-2xl font-bold ${meta.color}`}>{meta.label}</p>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Статус заявки</p>
+                <span className="rounded-full border border-border bg-card px-2 py-0.5 text-xs font-semibold text-primary">№ {user.ref_number}</span>
+              </div>
+              <p className={`mt-0.5 font-display text-xl font-bold sm:text-2xl ${meta.color}`}>{meta.label}</p>
+              {STATUS_HINTS[status] && <p className="mt-1 text-sm text-muted-foreground">{STATUS_HINTS[status]}</p>}
             </div>
           </div>
         )}
