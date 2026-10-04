@@ -76,7 +76,21 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
 
         {!loading && !form && (
           <div className="space-y-4">
-            {shown && shown.status === 'rejected' ? (() => {
+            {shown && shown.status === 'new' ? (
+              <div className="space-y-4 py-4 text-center">
+                <div className="relative mx-auto flex h-24 w-24 items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-4 border-accent/20" />
+                  <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-accent" />
+                  <Icon name="CreditCard" size={32} className="text-accent" />
+                </div>
+                <p className="font-display text-lg font-bold text-primary">Заявка поступила как новая</p>
+                <p className="text-sm text-muted-foreground">Мы скоро возьмём её в работу и сообщим о решении.</p>
+                <div className="rounded-xl bg-secondary/60 p-3 text-sm">
+                  <span className="text-muted-foreground">Запрошенный лимит: </span>
+                  <span className="font-semibold text-primary">{fmt(shown.requested_limit)} ₽</span>
+                </div>
+              </div>
+            ) : shown && shown.status === 'rejected' ? (() => {
               const since = new Date(shown.rejected_at || shown.updated_at).getTime();
               const daysPassed = Math.max(0, Math.floor((Date.now() - since) / 86400000));
               const daysLeft = Math.max(REAPPLY_DAYS - daysPassed, 0);
