@@ -957,9 +957,12 @@ const CabinetStatusCard = ({
                 {isActiveLoan && (
                   <>
                     <div className="flex justify-between"><dt className="text-muted-foreground">Начислено процентов на сегодня ({fmtRate(loanRate)}/день)</dt><dd className="font-semibold">{fmt(currentOverpay)} ₽</dd></div>
+                    {user.insurance_enabled && (
+                      <div className="flex items-center justify-between gap-3"><dt className="flex items-center gap-2 text-muted-foreground"><Icon name="ShieldCheck" size={15} className="text-blue-600" />Страховка займа</dt><dd className="font-semibold text-blue-700">{fmt(calcInsurance(user.amount, user.insurance_amount))} ₽</dd></div>
+                    )}
                     <div className="flex justify-between border-t border-accent/20 pt-2">
                       <dt className="font-semibold text-primary">К возврату на сегодня</dt>
-                      <dd className="font-bold text-accent text-base">{fmt(user.amount + currentOverpay)} ₽</dd>
+                      <dd className="font-bold text-accent text-base">{fmt(user.amount + currentOverpay + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0))} ₽</dd>
                     </div>
                   </>
                 )}
