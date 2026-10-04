@@ -81,13 +81,16 @@ const AccessRecoveryDialog = ({ open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded-2xl">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl text-primary">Сменить пароль</DialogTitle>
+      <DialogContent className="max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-lg gap-0 overflow-y-auto rounded-2xl p-0 sm:max-w-xl">
+        <DialogHeader className="border-b border-border/60 bg-secondary/40 px-5 py-4 text-left sm:px-6">
+          <DialogTitle className="flex items-center gap-2 font-display text-xl text-primary">
+            <Icon name="KeyRound" size={20} className="text-accent" /> Сменить пароль
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground">Подтвердите личность — мы проверим данные и обновим доступ.</p>
         </DialogHeader>
 
         {done ? (
-          <div className="space-y-4 py-4 text-center">
+          <div className="space-y-4 px-5 py-8 text-center sm:px-6">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
               <Icon name="MailCheck" size={28} className="text-green-600" />
             </div>
@@ -100,23 +103,28 @@ const AccessRecoveryDialog = ({ open, onOpenChange }: Props) => {
             </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 px-5 pt-4 sm:px-6">
+            <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="ar-last">Фамилия</Label>
-              <Input id="ar-last" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+              <Input id="ar-last" autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="ar-first">Имя</Label>
-              <Input id="ar-first" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+              <Input id="ar-first" autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
             </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="ar-middle">Отчество</Label>
-              <Input id="ar-middle" value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
+              <Input id="ar-middle" autoComplete="additional-name" value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="ar-pass">Новый пароль</Label>
-              <Input id="ar-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <Input id="ar-pass" type="password" autoComplete="new-password" minLength={4} value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="ar-passport">Серия и номер паспорта</Label>
               <Input id="ar-passport" inputMode="numeric" placeholder="0000 000000" value={passport}
@@ -126,6 +134,7 @@ const AccessRecoveryDialog = ({ open, onOpenChange }: Props) => {
               <Label htmlFor="ar-snils">СНИЛС</Label>
               <Input id="ar-snils" inputMode="numeric" placeholder="000-000-000 00" value={snils}
                 onChange={(e) => setSnils(formatSnils(e.target.value))} required />
+            </div>
             </div>
 
             <CameraCapture
@@ -142,12 +151,14 @@ const AccessRecoveryDialog = ({ open, onOpenChange }: Props) => {
               </p>
             )}
 
+            <div className="sticky bottom-0 -mx-5 border-t border-border/60 bg-background px-5 py-3 sm:-mx-6 sm:px-6">
             <Button type="submit" size="lg" disabled={loading}
               className="h-12 w-full bg-accent text-base font-bold text-accent-foreground hover:bg-accent/90 disabled:opacity-60">
               {loading
                 ? <span className="flex items-center gap-2"><Icon name="Loader2" size={18} className="animate-spin" /> Отправка...</span>
                 : 'Отправить заявку'}
             </Button>
+            </div>
           </form>
         )}
       </DialogContent>
