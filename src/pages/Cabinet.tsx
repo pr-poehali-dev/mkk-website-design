@@ -24,6 +24,7 @@ const Cabinet = () => {
   const [bankSaved, setBankSaved] = useState(false);
   const [docsOpen, setDocsOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
+  const [cardBannerHidden, setCardBannerHidden] = useState(() => localStorage.getItem('card_banner_hidden') === '1');
   const [partnersPopup, setPartnersPopup] = useState(false);
   const popupShown = useRef(false);
 
@@ -112,23 +113,35 @@ const Cabinet = () => {
           </div>
         )}
 
-        <button
-          type="button"
+        {!cardBannerHidden && (
+        <div
+          role="button"
+          tabIndex={0}
           onClick={() => setWalletOpen(true)}
-          className="group relative mb-6 flex w-full items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-5 text-left text-primary-foreground shadow-lg transition-transform hover:scale-[1.01] active:scale-[0.99]"
+          onKeyDown={(e) => { if (e.key === 'Enter') setWalletOpen(true); }}
+          className="group relative mb-6 flex cursor-pointer w-full items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-5 text-left text-primary-foreground shadow-lg transition-transform hover:scale-[1.01] active:scale-[0.99]"
         >
           <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-accent/30 blur-2xl" />
           <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
             <Icon name="CreditCard" size={24} />
           </span>
-          <span className="relative min-w-0 flex-1">
+          <span className="relative min-w-0 flex-1 pr-6">
             <span className="block font-display text-base font-bold leading-tight sm:text-lg">Откройте виртуальную карту до 270 000 ₽</span>
             <span className="mt-1 block text-xs text-primary-foreground/80 sm:text-sm">Онлайн, без визита в офис — заявка за пару минут</span>
           </span>
           <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground transition-transform group-hover:translate-x-1">
             <Icon name="ArrowRight" size={18} />
           </span>
-        </button>
+          <button
+            type="button"
+            aria-label="Закрыть"
+            onClick={(e) => { e.stopPropagation(); setCardBannerHidden(true); localStorage.setItem('card_banner_hidden', '1'); }}
+            className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/25 text-primary-foreground hover:bg-black/40"
+          >
+            <Icon name="X" size={14} />
+          </button>
+        </div>
+        )}
 
         <CabinetStatusCard
           user={user}
