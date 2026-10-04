@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
-import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, apiUploadFile, apiSubmitIdentifyPhotos, apiGetHistory, saveSession, type UserSession } from '@/lib/api';
+import { apiUpdateRequest, apiGetRequest, apiRegister, apiSendVerificationCode, apiVerifyCode, apiUploadFile, apiSubmitIdentifyPhotos, apiGetHistory, apiClientListPayments, saveSession, type UserSession } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import RepaymentDialog from '@/components/cabinet/RepaymentDialog';
 import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
@@ -339,6 +339,13 @@ const CabinetStatusCard = ({
   };
 
   const [payInfoOpen, setPayInfoOpen] = useState(false);
+  const [paidTotal, setPaidTotal] = useState(0);
+  useEffect(() => {
+    if (status !== 'money_sent' && status !== 'overdue') { setPaidTotal(0); return; }
+    apiClientListPayments(user.ref_number)
+      .then((list) => setPaidTotal(Math.round(list.reduce((s, p) => s + p.amount, 0))))
+      .catch(() => {});
+  }, [status, user.ref_number]);
   const isActiveLoan = status === 'money_sent' || status === 'overdue';
 
   const [allUserRequests, setAllUserRequests] = useState<UserSession[]>([user]);
@@ -960,9 +967,12 @@ const CabinetStatusCard = ({
                     {user.insurance_enabled && (
                       <div className="flex items-center justify-between gap-3"><dt className="flex items-center gap-2 text-muted-foreground"><Icon name="ShieldCheck" size={15} className="text-blue-600" />Страховка займа</dt><dd className="font-semibold text-blue-700">{fmt(calcInsurance(user.amount, user.insurance_amount))} ₽</dd></div>
                     )}
+                    {paidTotal > 0 && (
+                      <div className="flex items-center justify-between gap-3"><dt className="flex items-center gap-2 text-emerald-700"><Icon name="CheckCircle2" size={15} />Оплачено</dt><dd className="font-semibold text-emerald-700">− {fmt(paidTotal)} ₽</dd></div>
+                    )}
                     <div className="flex justify-between border-t border-accent/20 pt-2">
-                      <dt className="font-semibold text-primary">К возврату на сегодня</dt>
-                      <dd className="font-bold text-accent text-base">{fmt(user.amount + currentOverpay + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0))} ₽</dd>
+                      <dt className="font-semibold text-primary">{paidTotal > 0 ? 'Остаток долга на сегодня' : 'К возврату на сегодня'}</dt>
+                      <dd className="font-bold text-accent text-base">{fmt(Math.max(user.amount + currentOverpay + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0) - paidTotal, 0))} ₽</dd>
                     </div>
                   </>
                 )}
@@ -975,8 +985,8 @@ const CabinetStatusCard = ({
                     <div className="flex justify-between"><dt className="text-red-600">Пеня за просрочку (1%/день)</dt><dd className="font-semibold text-red-700">{fmt(overdueDailyPenalty)} ₽/дн.</dd></div>
                     <div className="flex justify-between"><dt className="text-red-600">Начислено пени</dt><dd className="font-semibold text-red-700">{fmt(overduePenaltyTotal)} ₽</dd></div>
                     <div className="flex justify-between border-t border-red-200 pt-2">
-                      <dt className="font-semibold text-red-700">Итого к возврату с пеней</dt>
-                      <dd className="font-bold text-red-700 text-base">{fmt(user.amount + Math.round(user.amount * loanRate * user.days) + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0) + overduePenaltyTotal)} ₽</dd>
+                      <dt className="font-semibold text-red-700">{paidTotal > 0 ? 'Остаток долга с пеней' : 'Итого к возврату с пеней'}</dt>
+                      <dd className="font-bold text-red-700 text-base">{fmt(Math.max(user.amount + Math.round(user.amount * loanRate * user.days) + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0) + overduePenaltyTotal - paidTotal, 0))} ₽</dd>
                     </div>
                   </>
                 )}
@@ -994,6 +1004,7 @@ const CabinetStatusCard = ({
                   insurance={user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0}
                   tariff={tariff}
                   statusOverdue={status === 'overdue'}
+                  paid={paidTotal}
                 />
               )}
             </div>
@@ -1013,7 +1024,7 @@ const CabinetStatusCard = ({
       <RepaymentDialog
         open={payInfoOpen}
         onOpenChange={setPayInfoOpen}
-        totalDue={user.amount + currentOverpay + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0) + (status === 'overdue' ? overduePenaltyTotal : 0)}
+        totalDue={Math.max(user.amount + currentOverpay + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0) + (status === 'overdue' ? overduePenaltyTotal : 0) - paidTotal, 1)}
         supportUrl={paymentInfoLinkUrl}
         supportText={paymentInfoLinkText}
         note={paymentInfoNote}

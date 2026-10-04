@@ -376,6 +376,19 @@ export async function apiListPayments(ref_number: string): Promise<LoanPayment[]
   return json as LoanPayment[];
 }
 
+export interface ClientPayment { id: number; amount: number; payment_method: string; created_at: string }
+
+export async function apiClientListPayments(ref_number: string): Promise<ClientPayment[]> {
+  const res = await fetch(URLS.status, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'client_list_payments', ref_number }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки платежей');
+  return json as ClientPayment[];
+}
+
 export async function apiAddPayment(data: {
   ref_number: string; amount: number; payment_method?: string; transaction_id?: string; status?: string;
 }): Promise<LoanPayment> {

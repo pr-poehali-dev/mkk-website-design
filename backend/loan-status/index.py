@@ -406,6 +406,24 @@ def handler(event: dict, context) -> dict:
         } for r in rows]
         return {'statusCode': 200, 'headers': headers, 'body': json.dumps(receipts)}
 
+    # Клиент смотрит свои успешные платежи по займу (без admin-токена)
+    if not is_admin and body.get('action') == 'client_list_payments':
+        ref = body.get('ref_number')
+        if not ref:
+            return {'statusCode': 400, 'headers': headers, 'body': json.dumps({'error': 'ref_number обязателен'})}
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT id, amount, payment_method, created_at FROM {SCHEMA}.loan_payments
+                WHERE ref_number = %s AND status = 'success' ORDER BY created_at ASC""",
+            (ref,)
+        )
+        rows = cur.fetchall()
+        conn.close()
+        payments = [{'id': r[0], 'amount': float(r[1]), 'payment_method': r[2],
+                     'created_at': r[3].isoformat() if r[3] else None} for r in rows]
+        return {'statusCode': 200, 'headers': headers, 'body': json.dumps(payments)}
+
     if not is_admin:
         return {'statusCode': 403, 'headers': headers, 'body': json.dumps({'error': 'Нет доступа'})}
 

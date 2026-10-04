@@ -11,9 +11,10 @@ interface Props {
   insurance?: number;
   tariff?: Tariff | null;
   statusOverdue?: boolean;
+  paid?: number;
 }
 
-const LoanRepaymentProgress = ({ amount, days, startDate, overpay, insurance = 0, tariff = null, statusOverdue }: Props) => {
+const LoanRepaymentProgress = ({ amount, days, startDate, overpay, insurance = 0, tariff = null, statusOverdue, paid = 0 }: Props) => {
   const start = new Date(startDate);
   const due = new Date(start);
   due.setDate(due.getDate() + days);
@@ -31,9 +32,16 @@ const LoanRepaymentProgress = ({ amount, days, startDate, overpay, insurance = 0
   const daysOverdue = isOverdue ? Math.max(1, Math.ceil((now.getTime() - due.getTime()) / msPerDay)) : 0;
   const penaltyTotal = Math.round(amount * 0.01) * daysOverdue;
 
-  const total = amount + overpay + insurance + penaltyTotal;
+  const grossTotal = amount + overpay + insurance + penaltyTotal;
+  const total = Math.max(grossTotal - paid, 0);
   const schedule = tariff?.weekly ? buildSchedule(startDate, amount + overpay + insurance, days, tariff) : [];
-  const nextPayment = schedule.find((p) => p.date.getTime() >= now.getTime() - msPerDay);
+  let paidLeft = paid;
+  const rows = schedule.map((p) => {
+    const covered = Math.min(paidLeft, p.amount);
+    paidLeft -= covered;
+    return { ...p, covered, remaining: p.amount - covered, isPaid: p.amount - covered <= 0 };
+  });
+  const nextPayment = rows.find((p) => !p.isPaid);
   const dueLabel = due.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
 
   const barColor = isOverdue ? 'bg-red-500' : isUrgent ? 'bg-orange-500' : 'bg-accent';
@@ -68,9 +76,16 @@ const LoanRepaymentProgress = ({ amount, days, startDate, overpay, insurance = 0
       </div>
 
       <div className={`mt-4 flex items-center justify-between rounded-lg px-3 py-2.5 ${isOverdue ? 'bg-red-100' : 'bg-secondary'}`}>
-        <span className={`text-sm ${isOverdue ? 'text-red-700' : 'text-muted-foreground'}`}>{isOverdue ? 'Сумма к возврату с пеней' : 'Сумма к возврату'}</span>
+        <span className={`text-sm ${isOverdue ? 'text-red-700' : 'text-muted-foreground'}`}>{paid > 0 ? 'Остаток долга' : isOverdue ? 'Сумма к возврату с пеней' : 'Сумма к возврату'}</span>
         <span className={`font-display text-lg font-bold ${isOverdue ? 'text-red-700' : 'text-primary'}`}>{fmt(total)} ₽</span>
       </div>
+
+      {paid > 0 && (
+        <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-sm">
+          <span className="flex items-center gap-1.5 text-emerald-700"><Icon name="CheckCircle2" size={15} />Уже оплачено</span>
+          <span className="font-semibold text-emerald-700">{fmt(paid)} ₽</span>
+        </div>
+      )}
 
       {schedule.length > 1 && (
         <div className="mt-3 rounded-lg border border-border bg-card p-3">
@@ -80,16 +95,18 @@ const LoanRepaymentProgress = ({ amount, days, startDate, overpay, insurance = 0
           </p>
           {nextPayment && !isOverdue && (
             <p className="mb-2 text-xs text-muted-foreground">
-              Ближайший платёж: <span className="font-semibold text-primary">{fmt(nextPayment.amount)} ₽</span> до {nextPayment.date.toLocaleDateString('ru-RU')}
+              Ближайший платёж: <span className="font-semibold text-primary">{fmt(nextPayment.remaining)} ₽</span> до {nextPayment.date.toLocaleDateString('ru-RU')}
             </p>
           )}
           <div className="max-h-48 space-y-1 overflow-y-auto text-xs">
-            {schedule.map((p) => {
+            {rows.map((p) => {
               const past = p.date.getTime() < now.getTime() - msPerDay;
               return (
-                <div key={p.num} className={`flex justify-between rounded px-2 py-1 ${nextPayment?.num === p.num ? 'bg-accent/10 font-semibold' : ''} ${past ? 'text-muted-foreground' : ''}`}>
-                  <span>{p.num}. {p.date.toLocaleDateString('ru-RU')}</span>
-                  <span>{fmt(p.amount)} ₽</span>
+                <div key={p.num} className={`flex justify-between rounded px-2 py-1 ${p.isPaid ? 'bg-emerald-50 text-emerald-700' : nextPayment?.num === p.num ? 'bg-accent/10 font-semibold' : ''} ${!p.isPaid && past ? 'text-muted-foreground' : ''}`}>
+                  <span className="flex items-center gap-1">{p.isPaid && <Icon name="Check" size={12} />}{p.num}. {p.date.toLocaleDateString('ru-RU')}</span>
+                  <span>
+                    {p.isPaid ? 'Оплачено' : p.covered > 0 ? `осталось ${fmt(p.remaining)} из ${fmt(p.amount)} ₽` : `${fmt(p.amount)} ₽`}
+                  </span>
                 </div>
               );
             })}
