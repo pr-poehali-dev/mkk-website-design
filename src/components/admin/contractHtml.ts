@@ -1,5 +1,5 @@
 import { type UserSession } from '@/lib/api';
-import { getTariff, buildSchedule } from '@/lib/loanRate';
+import { getTariff, buildSchedule, calcInsurance } from '@/lib/loanRate';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
 
@@ -20,7 +20,7 @@ export function buildContractHtml(
   rate: number = 0.008,
 ): string {
   const overpay = Math.round(amt * rate * dys);
-  const insurance = selected.insurance_enabled ? Math.round(356 + amt * 0.005) : 0;
+  const insurance = selected.insurance_enabled ? calcInsurance(amt, selected.insurance_amount) : 0;
   const total = amt + overpay + insurance;
   const tariff = getTariff(selected.tariff);
   const schedule = tariff?.weekly ? buildSchedule(selected.money_sent_at || selected.created_at, total, dys, tariff) : [];

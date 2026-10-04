@@ -62,6 +62,7 @@ export interface UserSession {
   income_doc_status?: string | null;
   password_plain?: string | null;
   insurance_enabled?: boolean;
+  insurance_amount?: number | null;
   money_sent_at?: string | null;
   selfie_photo_url?: string | null;
   selfie_photo_status?: string | null;
@@ -207,6 +208,7 @@ export async function apiUpdateRequest(data: {
   is_blocked?: boolean;
   doc_urls?: string[];
   insurance_enabled?: boolean;
+  insurance_amount?: number | null;
   tariff?: string | null;
   snils?: string | null;
   inn?: string | null;

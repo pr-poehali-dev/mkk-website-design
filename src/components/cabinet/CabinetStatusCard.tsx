@@ -12,7 +12,7 @@ import LoanRepaymentProgress from '@/components/cabinet/LoanRepaymentProgress';
 import BankiRuWidget from '@/components/cabinet/BankiRuWidget';
 import CameraCapture from '@/components/anketa/CameraCapture';
 import { useMaintenance } from '@/lib/maintenanceContext';
-import { getLoanRate, fmtRate, getTariff } from '@/lib/loanRate';
+import { getLoanRate, fmtRate, getTariff, calcInsurance } from '@/lib/loanRate';
 import { useState, useEffect } from 'react';
 import BankLogo from '@/components/BankLogo';
 import { normalizeBankName } from '@/lib/banks';
@@ -744,7 +744,7 @@ const CabinetStatusCard = ({
             {/* Итоги */}
             {(() => {
               const overpay = Math.round(approvedAmount * loanRate * approvedDays);
-              const insurance = user.insurance_enabled ? Math.round(356 + approvedAmount * 0.005) : 0;
+              const insurance = user.insurance_enabled ? calcInsurance(approvedAmount, user.insurance_amount) : 0;
               const total = approvedAmount + overpay + insurance;
               return (
                 <dl className="mt-4 divide-y divide-border rounded-2xl border border-border text-sm">
@@ -953,7 +953,7 @@ const CabinetStatusCard = ({
                     <div className="flex justify-between"><dt className="text-red-600">Начислено пени</dt><dd className="font-semibold text-red-700">{fmt(overduePenaltyTotal)} ₽</dd></div>
                     <div className="flex justify-between border-t border-red-200 pt-2">
                       <dt className="font-semibold text-red-700">Итого к возврату с пеней</dt>
-                      <dd className="font-bold text-red-700 text-base">{fmt(user.amount + Math.round(user.amount * loanRate * user.days) + (user.insurance_enabled ? Math.round(356 + user.amount * 0.005) : 0) + overduePenaltyTotal)} ₽</dd>
+                      <dd className="font-bold text-red-700 text-base">{fmt(user.amount + Math.round(user.amount * loanRate * user.days) + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0) + overduePenaltyTotal)} ₽</dd>
                     </div>
                   </>
                 )}
@@ -968,7 +968,7 @@ const CabinetStatusCard = ({
                   days={user.days}
                   startDate={user.money_sent_at || user.created_at}
                   overpay={Math.round(user.amount * loanRate * user.days)}
-                  insurance={user.insurance_enabled ? Math.round(356 + user.amount * 0.005) : 0}
+                  insurance={user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0}
                   tariff={tariff}
                   statusOverdue={status === 'overdue'}
                 />

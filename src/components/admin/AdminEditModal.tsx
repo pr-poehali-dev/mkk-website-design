@@ -253,6 +253,7 @@ const AdminEditModal = ({
         operator_comment: editForm.operator_comment,
         payment_bank: editForm.payment_bank || null,
         insurance_enabled: editForm.insurance_enabled,
+        insurance_amount: editForm.insurance_amount === '' ? null : parseInt(editForm.insurance_amount),
         tariff: editForm.tariff || null,
       });
       onSaved({
@@ -262,6 +263,7 @@ const AdminEditModal = ({
         days: parseInt(editForm.days),
         operator_comment: editForm.operator_comment,
         insurance_enabled: editForm.insurance_enabled,
+        insurance_amount: editForm.insurance_amount === '' ? null : parseInt(editForm.insurance_amount),
         tariff: editForm.tariff || null,
       });
       onClose();

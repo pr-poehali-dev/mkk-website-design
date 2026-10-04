@@ -741,6 +741,11 @@ def handler(event: dict, context) -> dict:
         fields.append('insurance_enabled = %s')
         values.append(bool(body['insurance_enabled']))
 
+    if 'insurance_amount' in body:
+        raw_ins = body['insurance_amount']
+        fields.append('insurance_amount = %s')
+        values.append(int(raw_ins) if raw_ins not in (None, '') and int(raw_ins) >= 0 else None)
+
     # Статусы документов (принять/отклонить) — только для админа
     VALID_DOC_STATUSES = ('pending', 'approved', 'rejected')
     for doc_status_field in ('passport_photo_status', 'registration_photo_status', 'income_doc_status', 'selfie_photo_status', 'card_photo_status', 'snils_photo_status'):

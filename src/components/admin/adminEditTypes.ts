@@ -6,5 +6,6 @@ export type EditForm = {
   admin_notes: string;
   payment_bank: string;
   insurance_enabled: boolean;
+  insurance_amount: string;
   tariff: string;
 };

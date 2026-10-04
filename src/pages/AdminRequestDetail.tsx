@@ -33,7 +33,7 @@ const AdminRequestDetail = () => {
   const [allRequests, setAllRequests] = useState<UserSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', admin_notes: '', payment_bank: '', insurance_enabled: false, tariff: '' });
+  const [editForm, setEditForm] = useState<EditForm>({ status: '', amount: '', days: '', operator_comment: '', admin_notes: '', payment_bank: '', insurance_enabled: false, insurance_amount: '', tariff: '' });
   const [deleting, setDeleting] = useState(false);
 
   const [newPassword, setNewPassword] = useState('');
@@ -79,6 +79,7 @@ const AdminRequestDetail = () => {
           admin_notes: found.admin_notes || '',
           payment_bank: found.payment_bank || '',
           insurance_enabled: found.insurance_enabled || false,
+          insurance_amount: found.insurance_amount != null ? String(found.insurance_amount) : '',
           tariff: found.tariff || '',
         });
         setDocUrls(found.doc_urls || []);
@@ -273,6 +274,7 @@ const AdminRequestDetail = () => {
         admin_notes: editForm.admin_notes,
         payment_bank: editForm.payment_bank || null,
         insurance_enabled: editForm.insurance_enabled,
+        insurance_amount: editForm.insurance_amount === '' ? null : parseInt(editForm.insurance_amount),
         tariff: editForm.tariff || null,
       });
       setSelected((prev) => prev ? {
@@ -283,6 +285,7 @@ const AdminRequestDetail = () => {
         operator_comment: editForm.operator_comment,
         admin_notes: editForm.admin_notes,
         insurance_enabled: editForm.insurance_enabled,
+        insurance_amount: editForm.insurance_amount === '' ? null : parseInt(editForm.insurance_amount),
         tariff: editForm.tariff || null,
       } : prev);
     } finally {

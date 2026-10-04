@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icon';
 import { apiUpdateRequest, apiListAdminNotes, type UserSession, type AdminNoteItem } from '@/lib/api';
 import { STATUS_META, type StatusKey } from '@/lib/loanStore';
 import { type EditForm } from './adminEditTypes';
-import { fmtRate, TARIFFS, TARIFF_KEYS, getTariff, buildSchedule } from '@/lib/loanRate';
+import { calcInsurance, fmtRate, TARIFFS, TARIFF_KEYS, getTariff, buildSchedule } from '@/lib/loanRate';
 import BankPicker from '@/components/BankPicker';
 import BankLogo from '@/components/BankLogo';
 import { normalizeBankName } from '@/lib/banks';
@@ -92,6 +92,8 @@ const AdminEditLoanForm = ({
     }
   };
 
+  const customIns = editForm.insurance_amount === '' || isNaN(parseInt(editForm.insurance_amount)) ? null : parseInt(editForm.insurance_amount);
+
   return (
     <>
       {/* Статус */}
@@ -159,7 +161,7 @@ const AdminEditLoanForm = ({
             <p className={`text-sm font-semibold ${editForm.insurance_enabled ? 'text-blue-700' : 'text-primary'}`}>Страховка займа</p>
             <p className="text-xs text-muted-foreground">
               {editForm.insurance_enabled
-                ? `${fmt(Math.round(356 + (parseInt(editForm.amount) || 0) * 0.005))} ₽ · включена`
+                ? `${fmt(calcInsurance(parseInt(editForm.amount) || 0, customIns))} ₽ · включена`
                 : '356 ₽ + 0.5% от суммы · отключена'}
             </p>
           </div>
@@ -168,11 +170,26 @@ const AdminEditLoanForm = ({
           <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${editForm.insurance_enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
         </div>
       </div>
+      {editForm.insurance_enabled && (
+        <div className="space-y-1.5">
+          <Label htmlFor="edit-insurance">Сумма страховки (₽)</Label>
+          <div className="flex gap-2">
+            <Input id="edit-insurance" type="number" min={0}
+              placeholder={`Авто: ${fmt(Math.round(356 + (parseInt(editForm.amount) || 0) * 0.005))}`}
+              value={editForm.insurance_amount}
+              onChange={(e) => setEditForm({ ...editForm, insurance_amount: e.target.value })} />
+            {editForm.insurance_amount !== '' && (
+              <Button type="button" variant="outline" onClick={() => setEditForm({ ...editForm, insurance_amount: '' })}>Авто</Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">Пусто — считается автоматически: 356 ₽ + 0.5% от суммы.</p>
+        </div>
+      )}
 
       {/* Расчёт займа */}
       {contract && (() => {
         const isOverdue = editForm.status === 'overdue';
-        const insuranceSum = editForm.insurance_enabled ? Math.round(356 + contract.amt * 0.005) : 0;
+        const insuranceSum = editForm.insurance_enabled ? calcInsurance(contract.amt, customIns) : 0;
         let daysOverdue = 0;
         let penaltyTotal = 0;
         if (isOverdue) {

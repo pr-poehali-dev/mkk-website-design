@@ -70,6 +70,10 @@ export function getLoanRate(target: Pick<UserSession, 'ref_number' | 'phone' | '
   return isRepeatRequest(target, allRequests) ? REPEAT_LOAN_RATE : FIRST_LOAN_RATE;
 }
 
+export function calcInsurance(amount: number, custom?: number | null): number {
+  return custom != null ? custom : Math.round(356 + amount * 0.005);
+}
+
 export function fmtRate(rate: number): string {
   return `${(rate * 100).toFixed(2).replace(/\.?0+$/, '')}%`;
 }
