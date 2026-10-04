@@ -1013,12 +1013,6 @@ const CabinetStatusCard = ({
       <RepaymentDialog
         open={payInfoOpen}
         onOpenChange={setPayInfoOpen}
-        breakdown={[
-          { label: 'Основной долг', value: user.amount },
-          { label: `Проценты на сегодня (${fmtRate(loanRate)}/день)`, value: currentOverpay },
-          ...(user.insurance_enabled ? [{ label: 'Страховка', value: calcInsurance(user.amount, user.insurance_amount) }] : []),
-          ...(status === 'overdue' ? [{ label: 'Пеня за просрочку', value: overduePenaltyTotal, danger: true }] : []),
-        ]}
         totalDue={user.amount + currentOverpay + (user.insurance_enabled ? calcInsurance(user.amount, user.insurance_amount) : 0) + (status === 'overdue' ? overduePenaltyTotal : 0)}
         supportUrl={paymentInfoLinkUrl}
         supportText={paymentInfoLinkText}
