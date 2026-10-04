@@ -43,6 +43,7 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
   useEffect(() => { if (open) { load(); setForm(false); setError(''); setShowCvv(false); } }, [open]);
 
   const canOpen = user.status === 'repaid' || user.status === 'rejected';
+  const REAPPLY_DAYS = 45;
   const current = apps[0];
   const card = apps.find((a) => a.status === 'issued');
   const pending = apps.find((a) => a.status === 'new' || a.status === 'review');
@@ -75,7 +76,34 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
 
         {!loading && !form && (
           <div className="space-y-4">
-            {shown ? (
+            {shown && shown.status === 'rejected' ? (() => {
+              const since = new Date(shown.rejected_at || shown.updated_at).getTime();
+              const daysPassed = Math.max(0, Math.floor((Date.now() - since) / 86400000));
+              const daysLeft = Math.max(REAPPLY_DAYS - daysPassed, 0);
+              const pct = Math.min(100, Math.round((daysPassed / REAPPLY_DAYS) * 100));
+              const word = daysLeft % 10 === 1 && daysLeft % 100 !== 11 ? 'день' : [2, 3, 4].includes(daysLeft % 10) && ![12, 13, 14].includes(daysLeft % 100) ? 'дня' : 'дней';
+              return (
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
+                    <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600"><Icon name="XCircle" size={30} /></div>
+                    <p className="font-display text-lg font-bold text-red-700">Ваша заявка на кредитную карту отклонена</p>
+                    {shown.admin_comment && <p className="mt-2 text-sm text-red-700/80">{shown.admin_comment}</p>}
+                  </div>
+                  <div className="rounded-xl border border-border bg-secondary/40 p-4">
+                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><Icon name="CalendarClock" size={13} /> Повторная подача</p>
+                    {daysLeft > 0 ? (
+                      <>
+                        <p className="text-sm text-muted-foreground">Повторная подача возможна через {REAPPLY_DAYS} дней. Через <span className="font-semibold text-primary">{daysLeft} {word}</span> подача откроется снова.</p>
+                        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-border"><div className="h-full rounded-full bg-accent transition-all" style={{ width: `${pct}%` }} /></div>
+                      </>
+                    ) : (
+                      <p className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600"><Icon name="CheckCircle2" size={15} /> Повторная подача уже доступна</p>
+                    )}
+                  </div>
+                  {daysLeft === 0 && canOpen && <Button className="w-full" onClick={() => setForm(true)}>Подать заявку повторно</Button>}
+                </div>
+              );
+            })() : shown ? (
               <>
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/70 p-5 text-primary-foreground shadow-lg">
                   <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-accent/30 blur-2xl" />
@@ -193,7 +221,6 @@ const CabinetWallet = ({ open, onOpenChange, user }: Props) => {
                     </div>
                   </div>
                 )}
-                {shown.status === 'rejected' && canOpen && <Button className="w-full" onClick={() => setForm(true)}>Подать заявку повторно</Button>}
               </>
             ) : (
               <div className="space-y-3 text-center">

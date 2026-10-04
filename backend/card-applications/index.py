@@ -18,7 +18,7 @@ MAX_LIMIT = 270000
 STATUSES = ('new', 'review', 'approved', 'issued', 'rejected')
 COLS = ['id', 'ref_number', 'phone', 'full_name', 'email', 'birth_date', 'passport', 'address', 'work_place',
         'income', 'requested_limit', 'approved_limit', 'term_months', 'rate_percent', 'schedule', 'status',
-        'admin_comment', 'created_at', 'updated_at', 'card_number', 'card_expiry', 'card_holder', 'card_cvv', 'spent_amount']
+        'admin_comment', 'created_at', 'updated_at', 'card_number', 'card_expiry', 'card_holder', 'card_cvv', 'spent_amount', 'rejected_at']
 
 STATUS_MAIL = {
     'new': ('Заявка на карту принята', 'Ваша заявка на виртуальную карту принята и поставлена в очередь на рассмотрение.'),
@@ -31,7 +31,7 @@ STATUS_MAIL = {
 
 def row_to_dict(row):
     d = dict(zip(COLS, row))
-    for k in ('created_at', 'updated_at'):
+    for k in ('created_at', 'updated_at', 'rejected_at'):
         if d.get(k):
             d[k] = d[k].isoformat()
     if d.get('rate_percent') is not None:
@@ -378,8 +378,9 @@ def handler(event: dict, context) -> dict:
                 cur.execute(f"UPDATE {SCHEMA}.card_applications SET card_cvv=%s WHERE id=%s", (f"{random.randint(0, 999):03d}", app_id))
             cur.execute(
                 f"""UPDATE {SCHEMA}.card_applications SET status=%s, approved_limit=%s, term_months=%s,
-                    rate_percent=%s, admin_comment=%s, spent_amount=%s, schedule=%s, updated_at=NOW() WHERE id=%s""",
-                (status, limit, term, rate, comment, spent, json.dumps(schedule) if schedule is not None else None, app_id))
+                    rate_percent=%s, admin_comment=%s, spent_amount=%s, schedule=%s, updated_at=NOW(),
+                    rejected_at = CASE WHEN %s = 'rejected' THEN COALESCE(rejected_at, NOW()) ELSE NULL END WHERE id=%s""",
+                (status, limit, term, rate, comment, spent, json.dumps(schedule) if schedule is not None else None, status, app_id))
             conn.commit()
             cur.execute(sel + " WHERE id = %s", (app_id,))
             new = row_to_dict(cur.fetchone())
@@ -404,6 +405,13 @@ def handler(event: dict, context) -> dict:
         lr = cur.fetchone()
         if not lr or lr[0] not in ('repaid', 'rejected'):
             return resp(403, headers, {'error': 'Оформить карту можно после погашения займа или при отклонённой заявке'})
+        cur.execute(f"SELECT COALESCE(rejected_at, updated_at) FROM {SCHEMA}.card_applications WHERE phone = %s AND status = 'rejected' ORDER BY COALESCE(rejected_at, updated_at) DESC LIMIT 1", (phone,))
+        rj = cur.fetchone()
+        if rj and rj[0]:
+            cur.execute("SELECT EXTRACT(DAY FROM NOW() - %s)", (rj[0],))
+            passed = int(cur.fetchone()[0] or 0)
+            if passed < 45:
+                return resp(403, headers, {'error': f'Повторная подача возможна через {45 - passed} дн.'})
         cur.execute(sel + " WHERE phone = %s AND status IN ('new','review') LIMIT 1", (phone,))
         if cur.fetchone():
             return resp(409, headers, {'error': 'У вас уже есть заявка на рассмотрении'})

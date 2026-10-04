@@ -1,0 +1,2 @@
+ALTER TABLE t_p90084086_mkk_website_design.card_applications ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMPTZ;
+UPDATE t_p90084086_mkk_website_design.card_applications SET rejected_at = updated_at WHERE status = 'rejected' AND rejected_at IS NULL;
