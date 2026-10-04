@@ -9,6 +9,7 @@ import { useMaintenance } from '@/lib/maintenanceContext';
 import { buildContractHtml } from '@/components/admin/contractHtml';
 import { downloadHtmlAsPdf } from '@/lib/htmlToPdf';
 import { getLoanRate, fmtRate } from '@/lib/loanRate';
+import CabinetWallet from '@/components/cabinet/CabinetWallet';
 import BankPicker from '@/components/BankPicker';
 import CabinetDocPhotos from '@/components/cabinet/CabinetDocPhotos';
 import BankLogo from '@/components/BankLogo';
@@ -54,6 +55,7 @@ const CabinetDialogs = ({
   setUser,
   onLogout,
 }: Props) => {
+  const [walletOpen, setWalletOpen] = useState(false);
   const { companyName, companyInn, companyOgrn } = useMaintenance();
   const returnDate = (() => {
     const d = new Date(user.created_at || Date.now());
@@ -259,6 +261,7 @@ const CabinetDialogs = ({
           <div className="space-y-1 p-3">
             {[
               { icon: 'User', label: 'Мои данные', onClick: () => { setProfileOpen(true); setMenuOpen(false); } },
+              { icon: 'Wallet', label: 'Кошелёк', onClick: () => { setWalletOpen(true); setMenuOpen(false); } },
               { icon: 'CreditCard', label: 'Мои карты', hint: selectedBank, onClick: () => { setCardsOpen(true); setBankSaved(false); setMenuOpen(false); } },
               { icon: 'FolderOpen', label: 'Мои документы', onClick: () => { setDocsOpen(true); setMenuOpen(false); } },
               { icon: 'History', label: 'История займов', onClick: openHistory },
@@ -720,6 +723,7 @@ const CabinetDialogs = ({
           )}
         </DialogContent>
       </Dialog>
+      <CabinetWallet open={walletOpen} onOpenChange={setWalletOpen} user={user} />
     </>
   );
 };

@@ -1,0 +1,7 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+    {"name": "GET without phone", "method": "GET", "path": "/", "expectedStatus": 400},
+    {"name": "Create without fields", "method": "POST", "path": "/", "body": {"phone": "1"}, "expectedStatus": 400}
+  ]
+}

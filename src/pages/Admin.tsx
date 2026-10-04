@@ -129,6 +129,10 @@ const Admin = () => {
                 <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">{newSupportCount}</span>
               )}
             </Link>
+            <Link to="/admin/cards" onClick={() => setMenuOpen(false)}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
+              <Icon name="CreditCard" size={18} className="text-accent" /> Заявки по карте
+            </Link>
             <Link to="/admin/news" onClick={() => setMenuOpen(false)}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-primary transition-colors hover:bg-secondary">
               <Icon name="Newspaper" size={18} className="text-accent" /> Новости

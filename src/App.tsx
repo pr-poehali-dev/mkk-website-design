@@ -1,4 +1,5 @@
 
+import AdminCards from "./pages/AdminCards";
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -72,6 +73,7 @@ const App = () => {
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/admin/emails" element={<AdminEmails />} />
               <Route path="/admin/support" element={<AdminSupport />} />
+              <Route path="/admin/cards" element={<AdminCards />} />
               <Route path="/admin/news" element={<AdminNews />} />
               <Route path="/admin/documents" element={<AdminDocuments />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

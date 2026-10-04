@@ -818,3 +818,62 @@ export async function apiReplyAccessRequest(id: number, reply: string): Promise<
   if (!res.ok) throw new Error(json.error || 'Ошибка');
   return json as { email_sent: boolean };
 }
+
+// ---------- Виртуальная карта (кошелёк) ----------
+const CARD_URL = 'https://functions.poehali.dev/92f2bea8-0870-4fd8-b1e5-0cf7a1549040';
+export const CARD_MAX_LIMIT = 270000;
+export type CardStatus = 'new' | 'review' | 'approved' | 'issued' | 'rejected';
+export interface CardScheduleRow { n: number; date: string; payment: number; principal: number; interest: number; balance: number }
+export interface CardApplication {
+  id: number; ref_number: string; phone: string; full_name: string; email: string | null;
+  birth_date: string | null; passport: string | null; address: string | null; work_place: string | null;
+  income: number | null; requested_limit: number; approved_limit: number | null; term_months: number | null;
+  rate_percent: number | null; schedule: CardScheduleRow[] | null; status: CardStatus;
+  admin_comment: string | null; created_at: string; updated_at: string;
+}
+export const CARD_STATUS_META: Record<CardStatus, { label: string; badge: string }> = {
+  new: { label: 'Новая', badge: 'bg-accent/15 text-accent' },
+  review: { label: 'На рассмотрении', badge: 'bg-blue-100 text-blue-700' },
+  approved: { label: 'Одобрена', badge: 'bg-emerald-100 text-emerald-700' },
+  issued: { label: 'Карта выпущена', badge: 'bg-green-100 text-green-700' },
+  rejected: { label: 'Отклонена', badge: 'bg-red-100 text-red-700' },
+};
+
+export async function apiGetMyCardApplications(phone: string): Promise<CardApplication[]> {
+  const res = await fetchRetry(`${CARD_URL}?phone=${encodeURIComponent(phone)}`);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки');
+  return json;
+}
+
+export async function apiCreateCardApplication(data: {
+  ref_number: string; phone: string; full_name: string; email?: string | null; birth_date?: string;
+  passport: string; address: string; work_place?: string; income?: number; requested_limit: number;
+}): Promise<CardApplication> {
+  const res = await fetchRetry(CARD_URL, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось отправить заявку');
+  return json;
+}
+
+export async function apiAdminListCardApplications(): Promise<CardApplication[]> {
+  const res = await fetchRetry(CARD_URL, { headers: { 'x-admin-token': ADMIN_TOKEN } });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Ошибка загрузки');
+  return json;
+}
+
+export async function apiAdminUpdateCardApplication(data: {
+  id: number; status?: CardStatus; approved_limit?: number | null; term_months?: number | null;
+  rate_percent?: number | null; admin_comment?: string | null; recalc?: boolean; send_email?: boolean;
+}): Promise<CardApplication> {
+  const res = await fetchRetry(CARD_URL, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'update', ...data }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Не удалось сохранить');
+  return json;
+}
